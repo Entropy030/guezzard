@@ -4,20 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Career Game</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Corrected CSS path - assuming styles.css in src -->
+    <link rel="stylesheet" href="styles.css"> <!-- Relative path to CSS (in src folder) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
           integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
-
-
-
-
-    <script src="config.js"></script> <!-- Corrected Config Path - assuming config.js in src -->
-    <script src="enhanced-script.js"></script> <!-- Corrected Main Script Path - assuming enhanced-script.js in src -->
-
-
-    <!-- --- ADDED SCRIPT TAGS FOR MODULES BELOW --- -->
+    <!-- --- SCRIPT TAGS WITH RELATIVE PATHS (index.html in src folder) --- -->
+    <script src="config.js"></script> <!-- Relative path to config.js (in src folder) -->
+    <script src="enhanced-script.js"></script> <!-- Relative path to enhanced-script.js (in src folder) -->
     <script src="game-state.js"></script>
     <script src="game-init.js"></script>
     <script src="tab-navigation.js"></script>
@@ -38,8 +32,9 @@
     <script src="settings.js"></script>
     <script src="mobile-support.js"></script>
     <script src="career-summary.js"></script>
-    <!-- --- ADDED SCRIPT TAGS ABOVE --- -->
-   
+    <!-- --- SCRIPT TAGS WITH RELATIVE PATHS (index.html in src folder) --- -->
+
+    <!-- No changes needed to main game script tag as it's already relative: -->
     <script src="enhanced-script.js"></script> <!-- Your main game script (now in src) -->
 </head>
 <body>
@@ -68,9 +63,9 @@
         <button class="tab-button" data-tab="skillsTab">Skills</button>
         <button class="tab-button" data-tab="shopTab">Shop</button>
         <button class="tab-button" data-tab="achievementsTab">Achievements</button>
-        <button class="tab-button" data-tab="relationships-tab">Relationships</button>  <!-- ADDED Relationships Tab -->
-        <button class="tab-button" data-tab="pet-tab">Pet</button>  <!-- ADDED Pet Tab -->
-        <button class="tab-button" data-tab="prestige-tab">Prestige</button>  <!-- ADDED Prestige Tab -->
+        <button class="tab-button" data-tab="relationships-tab">Relationships</button> <!-- ADDED Relationships Tab -->
+        <button class="tab-button" data-tab="pet-tab">Pet</button> <!-- ADDED Pet Tab -->
+        <button class="tab-button" data-tab="prestige-tab">Prestige</button> <!-- ADDED Prestige Tab -->
     </div>
 
     <div id="tabContent">
