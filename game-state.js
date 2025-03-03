@@ -4,6 +4,7 @@ const gameState = {
     gold: 0,
     energy: 100,
     maxEnergy: 100,
+    currentJobTier: 0,
 
     // Skills and attributes
     skills: {
