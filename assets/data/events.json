@@ -1,0 +1,66 @@
+[
+    {
+      "title": "Ultimate Street View Showdown",
+      "description": "Your uncanny ability to identify Romanian gas stations led to a viral GeoGuessr moment!",
+      "jobRequirement": "GeoGuessr Champion",
+      "goldEffect": 50,
+      "skillEffect": "Map Skills:5"
+    },
+    {
+      "title": "The Dreaded 'Are You Still There?' Message",
+      "description": "Netflix has called you out for your 18-hour binge. The shame is unbearable.",
+      "goldEffect": -10,
+      "skillEffect": "Creativity:2"
+    },
+    {
+      "title": "Group Chat Misunderstanding",
+      "description": "Your sarcastic message was taken literally. Now everyone thinks you're moving to Antarctica.",
+      "skillRequirement": "Sarcasm Detection:5",
+      "goldEffect": -5,
+      "skillEffect": "Sarcasm Detection:3"
+    },
+    {
+      "title": "AI Generated Masterpiece",
+      "description": "Your prompt 'Draw a cat but it's secretly a corporate accountant' has gone viral!",
+      "jobRequirement": "AI Prompt Whisperer",
+      "goldEffect": 30,
+      "skillEffect": "Prompt Engineering:4"
+    },
+    {
+      "title": "Spin Class Confrontation",
+      "description": "Your instructor spotted you at the coffee shop during class. Your excuse about having a twin didn't work.",
+      "jobRequirement": "Spin Class Ghosting Expert",
+      "goldEffect": -15,
+      "skillEffect": "Creativity:3"
+    },
+    {
+      "title": "Meme Translation Breakthrough",
+      "description": "You've decoded the most obscure office chat reference yet!",
+      "jobRequirement": "Internal Chat Translator",
+      "goldEffect": 25,
+      "skillEffect": "Sarcasm Detection:4"
+    },
+    {
+      "title": "Accidental Reply All",
+      "description": "Your message about the 'boring meeting' went to the entire company. The CEO was not amused.",
+      "goldEffect": -20
+    },
+    {
+      "title": "Friend's Birthday Remembered",
+      "description": "You actually remembered without Facebook's help! Everyone is shocked.",
+      "goldEffect": 15,
+      "skillEffect": "Creativity:1"
+    },
+    {
+      "title": "Coffee Machine Mastery",
+      "description": "You've figured out how to use the office's overly complicated coffee machine!",
+      "goldEffect": 10,
+      "skillEffect": "Prompt Engineering:2"
+    },
+    {
+      "title": "Unexpected Phone Call",
+      "description": "Someone actually called instead of texting. The anxiety is real.",
+      "goldEffect": -5,
+      "skillEffect": "Sarcasm Detection:1"
+    }
+  ]

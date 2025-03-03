@@ -1,0 +1,114 @@
+[
+    {
+      "id": "rich1",
+      "name": "First Paycheck",
+      "description": "Earn 100 gold",
+      "type": "gold",
+      "requirement": 100
+    },
+    {
+      "id": "rich2",
+      "name": "Middle Class",
+      "description": "Accumulate 500 gold",
+      "type": "gold",
+      "requirement": 500
+    },
+    {
+      "id": "rich3",
+      "name": "Gold Hoarder",
+      "description": "Amass 2000 gold",
+      "type": "gold",
+      "requirement": 2000
+    },
+    {
+      "id": "skill1",
+      "name": "Map Enthusiast",
+      "description": "Reach level 10 in Map Skills",
+      "type": "skill",
+      "requirement": "Map Skills:10"
+    },
+    {
+      "id": "skill2",
+      "name": "Prompt Engineer",
+      "description": "Reach level 15 in Prompt Engineering",
+      "type": "skill",
+      "requirement": "Prompt Engineering:15"
+    },
+    {
+      "id": "skill3",
+      "name": "Creative Genius",
+      "description": "Reach level 20 in Creativity",
+      "type": "skill",
+      "requirement": "Creativity:20"
+    },
+    {
+      "id": "skill4",
+      "name": "Sarcasm Detector",
+      "description": "Reach level 25 in Sarcasm Detection",
+      "type": "skill",
+      "requirement": "Sarcasm Detection:25"
+    },
+    {
+      "id": "age1",
+      "name": "Quarter-Life Crisis",
+      "description": "Reach age 25",
+      "type": "age",
+      "requirement": 25
+    },
+    {
+      "id": "age2",
+      "name": "Midlife Crisis",
+      "description": "Reach age 40",
+      "type": "age",
+      "requirement": 40
+    },
+    {
+      "id": "age3",
+      "name": "Golden Years",
+      "description": "Reach age 60",
+      "type": "age",
+      "requirement": 60
+    },
+    {
+      "id": "job1",
+      "name": "Geography Whiz",
+      "description": "Become a GeoGuessr Champion",
+      "type": "job",
+      "requirement": "GeoGuessr Champion"
+    },
+    {
+      "id": "job2",
+      "name": "AI Whisperer",
+      "description": "Become an AI Prompt Whisperer",
+      "type": "job",
+      "requirement": "AI Prompt Whisperer"
+    },
+    {
+      "id": "job3",
+      "name": "Master of Excuses",
+      "description": "Become a Spin Class Ghosting Expert",
+      "type": "job",
+      "requirement": "Spin Class Ghosting Expert"
+    },
+    {
+      "id": "job4",
+      "name": "Communication Guru",
+      "description": "Become an Internal Chat Translator",
+      "type": "job",
+      "requirement": "Internal Chat Translator"
+    },
+    {
+      "id": "events1",
+      "name": "Life Happens",
+      "description": "Experience 5 random events",
+      "type": "events",
+      "requirement": 5
+    },
+    {
+      "id": "events2",
+      "name": "Eventful Life",
+      "description": "Experience 20 random events",
+      "type": "events",
+      "requirement": 20
+    }
+  ]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "map_awareness",
+    "name": "Map Awareness",
+    "description": "Your ability to read and understand maps."
+  },
+  {
+    "id": "navigation",
+    "name": "Navigation",
+    "description": "Your ability to find your way in various environments."
+  },
+  {
+    "id": "communication",
+    "name": "Communication",
+    "description": "Your ability to effectively communicate with others."
+  },
+  {
+    "id": "technical_drawing",
+    "name": "Technical Drawing",
+    "description": "Your ability to create technical diagrams and plans."
+  },
+  {
+    "id": "data_analysis",
+    "name": "Data Analysis",
+    "description": "Your ability to analyze and interpret data."
+  },
+  {
+    "id": "programming",
+    "name": "Programming",
+    "description": "Your ability to write and understand code."
+  }
+]

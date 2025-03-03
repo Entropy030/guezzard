@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Game</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Corrected CSS path - assuming styles.css in src -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
+
+
+
+
+    <script src="config.js"></script> <!-- Corrected Config Path - assuming config.js in src -->
+    <script src="enhanced-script.js"></script> <!-- Corrected Main Script Path - assuming enhanced-script.js in src -->
+
+
+    <!-- --- ADDED SCRIPT TAGS FOR MODULES BELOW --- -->
+    <script src="game-state.js"></script>
+    <script src="game-init.js"></script>
+    <script src="tab-navigation.js"></script>
+    <script src="notifications.js"></script>
+    <script src="audio.js"></script>
+    <script src="save-system.js"></script>
+    <script src="prestige.js"></script>
+    <script src="weather.js"></script>
+    <script src="relationships.js"></script>
+    <script src="pet.js"></script>
+    <script src="economy.js"></script>
+    <script src="skills.js"></script>
+    <script src="life-quality.js"></script>
+    <script src="achievements.js"></script>
+    <script src="events.js"></script>
+    <script src="daily-rewards.js"></script>
+    <script src="game-loop.js"></script>
+    <script src="settings.js"></script>
+    <script src="mobile-support.js"></script>
+    <script src="career-summary.js"></script>
+    <!-- --- ADDED SCRIPT TAGS ABOVE --- -->
+   
+    <script src="enhanced-script.js"></script> <!-- Your main game script (now in src) -->
+</head>
+<body>
+<div class="game-overlay" style="display: none;">
+    <!-- Content for the overlay -->
+</div>
+<div id="game-container">
+    <h1>Career Game</h1>
+    <div id="resources">
+        <div>Gold: <span id="gold">0</span></div>
+        <div>Age: <span id="age">18</span></div>
+        <div>Life Quality: <span id="lifeQuality">50</span></div>
+    </div>
+    <div id="activeJobContainer">
+        <h3>Active Job:</h3>
+        <div id="activeJob">Unemployed</div>
+    </div>
+
+    <div id="gameControls">
+        <button id="pauseButton" class="action-button"><i class="fas fa-pause"></i> Pause</button>
+        <button id="speedButton" class="action-button"><i class="fas fa-forward"></i> 1x Speed</button>
+    </div>
+
+    <div id="tabMenu">
+        <button class="tab-button active" data-tab="jobsTab">Jobs</button>
+        <button class="tab-button" data-tab="skillsTab">Skills</button>
+        <button class="tab-button" data-tab="shopTab">Shop</button>
+        <button class="tab-button" data-tab="achievementsTab">Achievements</button>
+        <button class="tab-button" data-tab="relationships-tab">Relationships</button>  <!-- ADDED Relationships Tab -->
+        <button class="tab-button" data-tab="pet-tab">Pet</button>  <!-- ADDED Pet Tab -->
+        <button class="tab-button" data-tab="prestige-tab">Prestige</button>  <!-- ADDED Prestige Tab -->
+    </div>
+
+    <div id="tabContent">
+        <div id="jobsTab" class="tab-content active">
+            <h2>Available Jobs</h2>
+            <div id="jobs"></div>
+        </div>
+
+        <div id="skillsTab" class="tab-content">
+            <h2>Skills</h2>
+            <div id="skills"></div>
+        </div>
+
+        <div id="shopTab" class="tab-content">
+            <h2>Shop</h2>
+            <div id="shop">
+                <div class="shop-items"></div>
+            </div>
+        </div>
+
+        <div id="achievementsTab" class="tab-content">
+            <h2>Achievements</h2>
+            <div id="achievements"></div>
+        </div>
+
+        <!-- --- ADDED Tab Content Areas Below --- -->
+        <div id="relationships-tab" class="tab-content">
+            <h2>Relationships</h2>
+            <div class="relationships-header">
+                <h3>Relationships</h3>
+                <button id="add-relationship" class="secondary-button">
+                    <i class="fas fa-plus"></i> Meet Someone
+                </button>
+            </div>
+            <div id="relationships-container" class="relationships-container">
+                <!-- Relationship cards will be loaded here -->
+            </div>
+        </div>
+
+        <div id="pet-tab" class="tab-content">
+            <h2>Pet</h2>
+            <!-- Pet adoption options or pet info will be loaded here -->
+        </div>
+
+        <div id="prestige-tab" class="tab-content">
+            <h2>Prestige</h2>
+            <!-- Prestige system content will be loaded here -->
+        </div>
+        <!-- --- ADDED Tab Content Areas Above --- -->
+
+    </div>
+
+    <div id="eventLog">
+        <h3>
+            Event Log
+            <button id="toggleEventLog" class="small-button"><i class="fas fa-chevron-up"></i></button>
+        </h3>
+        <div id="eventEntries" id="event-log-container"></div>  <!-- Corrected Event Log Container ID -->
+    </div>
+
+    <div id="notification-container" class="notification-area"></div>  <!-- ADDED Notification Container -->
+
+    <div id="settings-menu" class="modal settings-modal" style="display: none;">  <!-- Example Settings Modal Structure -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close-button" onclick="closeSettingsMenu()">×</span>
+                <h2>Settings</h2>
+            </div>
+            <div class="modal-body">
+                <!-- Settings content here (sliders, checkboxes, buttons) -->
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
