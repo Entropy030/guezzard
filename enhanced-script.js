@@ -552,7 +552,7 @@ function tick() {
     currentTick++;
 
     // Check if a game day has passed (5 ticks)
-    if (currentTick % ticksInOneGameDay === 0) {
+    if (currentTick % CONFIG.settings.ticksInOneGameDay === 0) {  // <-- CORRECTED LINE
 
         //Run every 1 game day
     }
