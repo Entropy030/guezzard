@@ -593,31 +593,32 @@ function tick() {
 
 async function loadGameDataFromServer() {
     try {
-        const baseUrl = CONFIG.baseUrl;
+        // --- MODIFIED URLS - DIRECT ROOT-RELATIVE PATHS ---
         const [loadedSkills, loadedJobs, loadedAchievements] = await Promise.all([
-            fetch(baseUrl + "skills.json").then(response => response.json()),
-            fetch(baseUrl + "jobs.json").then(response => response.json()),
-            fetch(baseUrl + "achievements.json").then(response => response.json())
+            fetch("skills.json").then(response => response.json()), // DIRECT PATH - skills.json in root
+            fetch("jobs.json").then(response => response.json()),   // DIRECT PATH - jobs.json in root
+            fetch("achievements.json").then(response => response.json()) // DIRECT PATH - achievements.json in root
         ]);
+        // --- END MODIFIED URLS ---
 
         console.log("Skills data:", loadedSkills);
         console.log("Jobs data:", loadedJobs);
         console.log("Achievements data:", loadedAchievements);
 
         // Initialize skills from loaded data
-        gameState.skills = {}; // Accessing skills via gameState
+        gameState.skills = {};
         loadedSkills.forEach(skill => {
-            gameState.skills[skill.name] = skill.level || 0; // Accessing skills via gameState
+            gameState.skills[skill.name] = skill.level || 0;
         });
-        if (!gameState.skills.hasOwnProperty("Map Awareness")) { // Accessing skills via gameState
-            gameState.skills["Map Awareness"] = 0; // Accessing skills via gameState
+        if (!gameState.skills.hasOwnProperty("Map Awareness")) {
+            gameState.skills["Map Awareness"] = 0;
         }
 
-        gameState.jobs = loadedJobs; // Accessing jobs via gameState
-        gameState.achievements = loadedAchievements; // Accessing achievements via gameState
+        gameState.jobs = loadedJobs;
+        gameState.achievements = loadedAchievements;
 
         CONFIG.shopItems.forEach(item => {
-            gameState.purchasedItems[item.id] = 0; // Accessing purchasedItems via gameState
+            gameState.purchasedItems[item.id] = 0;
         });
 
         setInitialJob();
@@ -630,7 +631,7 @@ async function loadGameDataFromServer() {
         setupEventLog();
         updateDisplay();
         logEvent("Started career as a Google Maps User.");
-        gameState.tickIntervalId = setInterval(tick, tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState
+        gameState.tickIntervalId = setInterval(tick, tickInterval / speedMultiplier);
 
     } catch (error) {
         console.error("Error loading game data:", error);
