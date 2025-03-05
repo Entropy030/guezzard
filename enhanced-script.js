@@ -1,7 +1,7 @@
 // enhanced-script.js
 
 
-window.currentJobTier = 0; // The index of the tier the player is currently in.
+
 // -----------------------------------------------------------------------------
 // 3. Utility Functions (Notifications, Logging)
 // -----------------------------------------------------------------------------
@@ -42,29 +42,29 @@ function logEvent(message, type = 'info') {
 // -----------------------------------------------------------------------------
 
 function addResources(job) {
-    if (!job || !job.tiers || !job.tiers[gameState.currentJobTier]) {
-        console.warn("Invalid job or tier:", job, gameState.currentJobTier);
+    if (!job || !job.tiers || !job.tiers[gameState.gameState.currentJobTier]) {
+        console.warn("Invalid job or tier:", job, gameState.gameState.currentJobTier);
         return 0;
     }
 
-    const currentTier = job.tiers[gameState.currentJobTier];
+    const currentTier = job.tiers[gameState.gameState.currentJobTier];
     // Distribute total revenue for the job for every tick in 1 year
-    const goldGainPerTick = (currentTier.incomePerYear / ticksInOneGameYear) * multipliers.gold;
+    const goldGainPerTick = (currentTier.incomePerYear / ticksInOneGameYear) * gameState.multipliers.gold;
     gameState.gold += goldGainPerTick; // Accessing gold via gameState
     return goldGainPerTick;
 }
 
 function increaseSkills(job) {
-    if (!job || !job.tiers || !job.tiers[gameState.currentJobTier]) {
-        console.warn("Invalid job or tier:", job, gameState.currentJobTier);
+    if (!job || !job.tiers || !job.tiers[gameState.gameState.currentJobTier]) {
+        console.warn("Invalid job or tier:", job, gameState.gameState.currentJobTier);
         return;
     }
 
-    const currentTier = job.tiers[gameState.currentJobTier];
+    const currentTier = job.tiers[gameState.gameState.currentJobTier];
     if (currentTier.skillReward) {
         for (const skillName in currentTier.skillReward) {
             // Distribute total skill exp for the job for every tick in 1 year
-            const skillGainPerTick = (currentTier.skillReward[skillName] / ticksInOneGameYear) * multipliers.skill
+            const skillGainPerTick = (currentTier.skillReward[skillName] / ticksInOneGameYear) * gameState.gameState.gameState.multipliers.skill
             gameState.skills[skillName] = (gameState.skills[skillName] || 0) + skillGainPerTick; // Accessing skills via gameState
             gameState.skills[skillName] = Math.min(gameState.skills[skillName], CONFIG.skillConfig[skillName]?.maxLevel || 100); // Accessing skills via gameState
         }
@@ -113,7 +113,7 @@ function checkForCareerUpgrade() {
         }
 
         gameState.activeJob = newJob; // Accessing activeJob via gameState
-        gameState.currentJobTier = 0;
+        gameState.gameState.currentJobTier = 0;
         logEvent(`You were promoted to ${newCareer.title}! New income: ${newCareer.incomePerYear}€ per year.`);
         setupJobsUI();
         updateDisplay();
@@ -527,12 +527,12 @@ function purchaseItem(item) {
                 showNotification("Life Extended!", `Your maximum age is now ${gameState.maxAge}!`, "success"); // Accessing maxAge via gameState
                 break;
             case 'goldMultiplier':
-                multipliers.gold += effectValue;
-                showNotification("Gold Multiplier Increased!", `Your gold earnings are now ${(multipliers.gold * 100).toFixed(0)}% of base earnings!`, "success");
+                gameState.multipliers.gold += effectValue;
+                showNotification("Gold Multiplier Increased!", `Your gold earnings are now ${(gameState.multipliers.gold * 100).toFixed(0)}% of base earnings!`, "success");
                 break;
             case 'skillMultiplier':
-                multipliers.skill += effectValue;
-                showNotification("Skill Multiplier Increased!", `Your skill gain is now ${(multipliers.skill * 100).toFixed(0)}% of base gain!`, "success");
+                gameState.gameState.gameState.multipliers.skill += effectValue;
+                showNotification("Skill Multiplier Increased!", `Your skill gain is now ${(gameState.gameState.gameState.multipliers.skill * 100).toFixed(0)}% of base gain!`, "success");
                 break;
             default:
                 if (CONFIG.skillConfig[effectType]) {
@@ -642,7 +642,7 @@ function setInitialJob() {
     const googleMapsJob = gameState.jobs.find(job => job.name === "Google Maps User"); // Accessing jobs via gameState
     if (googleMapsJob) {
         gameState.activeJob = googleMapsJob; // Accessing activeJob via gameState
-        gameState.currentJobTier = 0;
+        gameState.gameState.currentJobTier = 0;
     } else {
         const newJob = {
             id: "google_maps_user",
@@ -660,7 +660,7 @@ function setInitialJob() {
         };
         gameState.jobs.push(newJob); // Accessing jobs via gameState
         gameState.activeJob = newJob; // Accessing activeJob via gameState
-        gameState.currentJobTier = 0;
+        gameState.gameState.currentJobTier = 0;
     }
 }
 
@@ -694,6 +694,6 @@ function initializeGame() {
 // -----------------------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
-    initializeGame();
-    loadGameData();
+    loadGameDataFromServer();  // Call this first
+    initializeGame();          // Call this after
 });
