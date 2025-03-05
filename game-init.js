@@ -1,11 +1,15 @@
  // game-init.js
- function initializeGame() {
-    // Try to load saved game data (placeholder function in save-system.js for now)
-    const savedGame = loadGameData();
+// game-init.js (Modified initializeGame function)
+function initializeGame() {
+    // Try to load saved game data from localStorage FIRST - using renamed function
+    const savedGame = loadSavedGameData(); // Call loadSavedGameData (from save-system.js)
     if (savedGame) {
         // Merge saved data with default state, keeping saved values
         Object.assign(gameState, savedGame);
-        console.log("Game loaded successfully!"); // Placeholder notification for now
+        displayNotification("Game loaded successfully!", "success");
+    } else {
+        // If no saved game data, load fresh game data from server - using renamed function
+        loadGameDataFromServer(); // Call loadGameDataFromServer (from enhanced-script.js)
     }
 
     // Initialize UI components (placeholder functions for now)
@@ -14,13 +18,13 @@
     initializeTabSystem();
     checkDeviceType();
 
-    // Set up auto-save (placeholder function in save-system.js for now)
+    // Set up auto-save
     setInterval(saveGameData, gameState.settings.autoSaveInterval * 1000);
 
-    // Initialize audio system (placeholder function in audio.js for now)
+    // Initialize audio system
     initializeAudio();
 
-    // Start game loop (placeholder function in game-loop.js for now)
+    // Start game loop
     gameLoop();
 }
 

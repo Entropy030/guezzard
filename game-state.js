@@ -41,40 +41,6 @@ const gameState = {
         prestigeCount: 0
     }
 };
-function getDefaultGameState() {
-    return {
-        // Player resources (reset to default)
-        gold: 0,
-        energy: 100,
-        maxEnergy: 100,
-
-        // Skills and attributes (reset to default levels and experience, keep multipliers - prestige bonus)
-        skills: {
-            coding: { level: 0, experience: 0, multiplier: gameState.skills.coding.multiplier }, // Keep multiplier
-            design: { level: 0, experience: 0, multiplier: gameState.skills.design.multiplier }, // Keep multiplier
-            marketing: { level: 0, experience: 0, multiplier: gameState.skills.marketing.multiplier }, // Keep multiplier
-            management: { level: 0, experience: 0, multiplier: gameState.skills.management.multiplier } // Keep multiplier
-        },
-
-        // Progression trackers (reset)
-        day: 1,
-        lifeQualityScore: 0,
-        unlockedFeatures: {}, // Reset feature unlocks if needed
-
-        // Achievements and prestige level/points/stats are kept
-        achievements: gameState.achievements, // Keep achievements
-        prestigePoints: gameState.prestigePoints, // Keep prestige points
-        prestigeLevel: gameState.prestigeLevel, // Keep prestige level
-        statistics: gameState.statistics, // Keep statistics
-        settings: gameState.settings, // Keep settings
-
-        // Settings (keep settings) - already handled by prestigeKeepData, but explicitly include for clarity
-        // settings: gameState.settings, // Already kept via prestigeKeepData
-
-        // Statistics (keep statistics) - already handled by prestigeKeepData, but explicitly include for clarity
-        // statistics: gameState.statistics // Already kept via prestigeKeepData
-    };
-}
 
 function getDefaultGameState() {
     return {

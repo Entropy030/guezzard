@@ -1,5 +1,7 @@
 // enhanced-script.js
 
+
+window.currentJobTier = 0; // The index of the tier the player is currently in.
 // -----------------------------------------------------------------------------
 // 3. Utility Functions (Notifications, Logging)
 // -----------------------------------------------------------------------------
@@ -589,7 +591,7 @@ function tick() {
     updateDisplay();
 }
 
-async function loadGameData() {
+async function loadGameDataFromServer() {
     try {
         const baseUrl = CONFIG.baseUrl;
         const [loadedSkills, loadedJobs, loadedAchievements] = await Promise.all([

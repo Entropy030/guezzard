@@ -21,7 +21,7 @@
     }
 }
 
-function loadGameData() {
+function loadSavedGameData () {
     try {
         // Get save data from localStorage
         const saveData = localStorage.getItem('incrementalGameSave');
