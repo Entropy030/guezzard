@@ -1,3 +1,4 @@
+
 // enhanced-script.js
 
 
@@ -49,7 +50,7 @@ function addResources(job) {
 
     const currentTier = job.tiers[gameState.currentJobTier];
     // Distribute total revenue for the job for every tick in 1 year
-    const goldGainPerTick = (currentTier.incomePerYear / ticksInOneGameYear) * gameState.multipliers.gold;
+    const goldGainPerTick = (currentTier.incomePerYear / CONFIG.settings.ticksInOneGameYear) * gameState.multipliers.gold;
     gameState.gold += goldGainPerTick; // Accessing gold via gameState
     return goldGainPerTick;
 }
@@ -64,7 +65,7 @@ function increaseSkills(job) {
     if (currentTier.skillReward) {
         for (const skillName in currentTier.skillReward) {
             // Distribute total skill exp for the job for every tick in 1 year
-            const skillGainPerTick = (currentTier.skillReward[skillName] / ticksInOneGameYear) * gameState.gameState.gameState.multipliers.skill
+            const skillGainPerTick = (currentTier.skillReward[skillName] / CONFIG.settings.ticksInOneGameYear) * gameState.gameState.gameState.multipliers.skill
             gameState.skills[skillName] = (gameState.skills[skillName] || 0) + skillGainPerTick; // Accessing skills via gameState
             gameState.skills[skillName] = Math.min(gameState.skills[skillName], CONFIG.skillConfig[skillName]?.maxLevel || 100); // Accessing skills via gameState
         }
@@ -222,7 +223,7 @@ function toggleGamePause() {
         clearInterval(gameState.tickIntervalId); // Accessing tickIntervalId via gameState
         pauseButton.innerHTML = `<i class="fas fa-play"></i> ${CONFIG.uiText.resumeButton}`;
     } else {
-        gameState.tickIntervalId = setInterval(tick, tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState
+        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState
         pauseButton.innerHTML = `<i class="fas fa-pause"></i> ${CONFIG.uiText.pauseButton}`;
     }
 }
@@ -234,7 +235,7 @@ function cycleGameSpeed() {
 
     if (!gameState.isPaused) { // Accessing isPaused via gameState
         clearInterval(gameState.tickIntervalId); // Accessing tickIntervalId via gameState
-        gameState.tickIntervalId = setInterval(tick, tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState
+        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState
     }
 
     const speedButton = document.getElementById('speedButton');
@@ -572,7 +573,7 @@ function tick() {
             triggerRandomNewsTickerEvent();
         }
 
-        if (gameState.age % achievementCheckInterval === 0) { // Accessing age via gameState
+        if (gameState.age % CONFIG.settings.achievementCheckInterval === 0) { // Accessing age via gameState
             checkAchievements();
         }
     }
