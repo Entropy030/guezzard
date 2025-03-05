@@ -42,12 +42,12 @@ function logEvent(message, type = 'info') {
 // -----------------------------------------------------------------------------
 
 function addResources(job) {
-    if (!job || !job.tiers || !job.tiers[gameState.gameState.currentJobTier]) {
-        console.warn("Invalid job or tier:", job, gameState.gameState.currentJobTier);
+    if (!job || !job.tiers || !job.tiers[gameState.currentJobTier]) {
+        console.warn("Invalid job or tier:", job, gameState.currentJobTier);
         return 0;
     }
 
-    const currentTier = job.tiers[gameState.gameState.currentJobTier];
+    const currentTier = job.tiers[gameState.currentJobTier];
     // Distribute total revenue for the job for every tick in 1 year
     const goldGainPerTick = (currentTier.incomePerYear / ticksInOneGameYear) * gameState.multipliers.gold;
     gameState.gold += goldGainPerTick; // Accessing gold via gameState
@@ -55,12 +55,12 @@ function addResources(job) {
 }
 
 function increaseSkills(job) {
-    if (!job || !job.tiers || !job.tiers[gameState.gameState.currentJobTier]) {
-        console.warn("Invalid job or tier:", job, gameState.gameState.currentJobTier);
+    if (!job || !job.tiers || !job.tiers[gameState.currentJobTier]) {
+        console.warn("Invalid job or tier:", job, gameState.currentJobTier);
         return;
     }
 
-    const currentTier = job.tiers[gameState.gameState.currentJobTier];
+    const currentTier = job.tiers[gameState.currentJobTier];
     if (currentTier.skillReward) {
         for (const skillName in currentTier.skillReward) {
             // Distribute total skill exp for the job for every tick in 1 year
@@ -113,7 +113,7 @@ function checkForCareerUpgrade() {
         }
 
         gameState.activeJob = newJob; // Accessing activeJob via gameState
-        gameState.gameState.currentJobTier = 0;
+        gameState.currentJobTier = 0;
         logEvent(`You were promoted to ${newCareer.title}! New income: ${newCareer.incomePerYear}€ per year.`);
         setupJobsUI();
         updateDisplay();
@@ -643,7 +643,7 @@ function setInitialJob() {
     const googleMapsJob = gameState.jobs.find(job => job.name === "Google Maps User"); // Accessing jobs via gameState
     if (googleMapsJob) {
         gameState.activeJob = googleMapsJob; // Accessing activeJob via gameState
-        gameState.gameState.currentJobTier = 0;
+        gameState.currentJobTier = 0;
     } else {
         const newJob = {
             id: "google_maps_user",
@@ -661,7 +661,7 @@ function setInitialJob() {
         };
         gameState.jobs.push(newJob); // Accessing jobs via gameState
         gameState.activeJob = newJob; // Accessing activeJob via gameState
-        gameState.gameState.currentJobTier = 0;
+        gameState.currentJobTier = 0;
     }
 }
 
