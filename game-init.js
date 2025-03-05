@@ -10,6 +10,19 @@ function initializeGame() {
     } else {
         // If no saved game data, load fresh game data from server - using renamed function
         loadGameDataFromServer(); // Call loadGameDataFromServer (from enhanced-script.js)
+
+        // --- MOVE INITIALIZATION LOGIC FROM enhanced-script.js HERE ---
+        setInitialJob();
+        setupTabNavigation();
+        setupJobsUI();
+        updateSkillDisplay();
+        setupShopUI();
+        setupAchievementsUI();
+        setupGameControls();
+        setupEventLog();
+        updateDisplay();
+        logEvent("Started career as a Google Maps User.");
+        // --- END MOVED INITIALIZATION LOGIC ---
     }
 
     // Initialize UI components (placeholder functions for now)
@@ -24,7 +37,7 @@ function initializeGame() {
     // Initialize audio system
     initializeAudio();
 
-    // Start game loop
+    // Start game loop - MOVE THIS LINE HERE FROM enhanced-script.js
     gameLoop();
 }
 

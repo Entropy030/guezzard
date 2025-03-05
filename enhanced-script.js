@@ -621,17 +621,7 @@ async function loadGameDataFromServer() {
             gameState.purchasedItems[item.id] = 0;
         });
 
-        setInitialJob();
-        setupTabNavigation();
-        setupJobsUI();
-        updateSkillDisplay();
-        setupShopUI();
-        setupAchievementsUI();
-        setupGameControls();
-        setupEventLog();
-        updateDisplay();
-        logEvent("Started career as a Google Maps User.");
-        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState  <-- CORRECTED LINE
+
     } catch (error) {
         console.error("Error loading game data:", error);
         showErrorNotification("Failed to load game data:", error);
@@ -694,6 +684,6 @@ function initializeGame() {
 // -----------------------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
-    loadGameDataFromServer();  // Call this first
-    initializeGame();          // Call this after
+    loadGameDataFromServer();  // Call loadGameDataFromServer() - WHICH WILL THEN CALL initializeGame()
+
 });
