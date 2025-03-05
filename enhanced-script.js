@@ -552,13 +552,12 @@ function tick() {
     currentTick++;
 
     // Check if a game day has passed (5 ticks)
-    if (currentTick % CONFIG.settings.ticksInOneGameDay === 0) {  // <-- CORRECTED LINE
+    if (currentTick % CONFIG.settings.ticksInOneGameDay === 0) {
 
         //Run every 1 game day
     }
 
-    if (currentTick >= ticksInOneGameYear) {
-
+    if (currentTick >= CONFIG.settings.ticksInOneGameYear) { // <-- CORRECTED LINE
         //Run every 1 game year
         gameState.age++; // Accessing age via gameState
         currentTick = 0;
