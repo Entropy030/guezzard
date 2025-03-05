@@ -21,7 +21,7 @@ const CONFIG = {
     // 2. Base URL Configuration
     // =========================================================================
 
-    baseUrl: "", // If files are all in root, leave empty.  Otherwise "https://yourusername.github.io/yourRepo/"
+    baseUrl: "/", // Explicitly set baseUrl to root path
 
     // =========================================================================
     // 3. Skill Configuration
