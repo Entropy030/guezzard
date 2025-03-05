@@ -29,7 +29,16 @@ function initializeGame() {
 }
 
 // Placeholder UI initialization functions (define in respective modules later)
-function updateResourceDisplay() { console.log("updateResourceDisplay Placeholder"); }
+// game-init.js (Temporarily modify updateResourceDisplay for testing)
+function updateResourceDisplay() { 
+    console.log("updateResourceDisplay Placeholder"); // Keep the console.log for now
+
+    document.getElementById('gold').textContent = Math.floor(gameState.gold); // TEMPORARY - Update gold display
+    document.getElementById('age').textContent = Math.floor(gameState.age);   // TEMPORARY - Update age display
+    document.getElementById('lifeQuality').textContent = gameState.lifeQuality; // TEMPORARY - Update lifeQuality display
+}
+
+{ console.log("updateResourceDisplay Placeholder"); }
 function setupEventListeners() { console.log("setupEventListeners Placeholder"); }
 function initializeTabSystem() { console.log("initializeTabSystem Placeholder"); }
 function checkDeviceType() { console.log("checkDeviceType Placeholder"); }
