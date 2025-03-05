@@ -595,7 +595,7 @@ async function loadGameDataFromServer() {
     try {
         // --- MODIFIED URLS - DIRECT ROOT-RELATIVE PATHS ---
         const [loadedSkills, loadedJobs, loadedAchievements] = await Promise.all([
-            fetch("skills.json").then(response => response.json()), // DIRECT PATH - skills.json in root
+            fetch("skills").then(response => response.json()), // DIRECT PATH - skills.json in root
             fetch("jobs.json").then(response => response.json()),   // DIRECT PATH - jobs.json in root
             fetch("achievements.json").then(response => response.json()) // DIRECT PATH - achievements.json in root
         ]);
