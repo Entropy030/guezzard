@@ -4,6 +4,7 @@ const TICK_RATE = 1000; // milliseconds per tick
 
 
 function gameLoop(timestamp) {
+    console.log("gameLoop tick - VERY IMPORTANT CHECK");
     // Calculate delta time (time since last frame)
     const deltaTime = timestamp - lastTimestamp;
     
