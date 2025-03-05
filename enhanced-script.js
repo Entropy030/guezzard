@@ -631,8 +631,7 @@ async function loadGameDataFromServer() {
         setupEventLog();
         updateDisplay();
         logEvent("Started career as a Google Maps User.");
-        gameState.tickIntervalId = setInterval(tick, tickInterval / speedMultiplier);
-
+        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState  <-- CORRECTED LINE
     } catch (error) {
         console.error("Error loading game data:", error);
         showErrorNotification("Failed to load game data:", error);
