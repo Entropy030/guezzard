@@ -652,9 +652,12 @@ async function loadGameDataFromServer() {
         gameState.jobs = loadedJobs;
         gameState.achievements = loadedAchievements;
 
-        CONFIG.shopItems.forEach(item => {
-            gameState.purchasedItems[item.id] = 0;
-        });
+        gameState.jobs = loadedJobs;
+        gameState.achievements = loadedAchievements;
+
+        // CONFIG.shopItems.forEach(item => {  // <-- Comment out this line
+        //     gameState.purchasedItems[item.id] = 0; // <-- Comment out this line
+        // });                                      // <-- Comment out this line
 
         console.log("loadGameDataFromServer() - enhanced-script.js - END of TRY"); // <-- END LOG INSIDE TRY
 
