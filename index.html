@@ -9,26 +9,23 @@
           integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
+    
     <!-- --- SCRIPT TAGS WITH RELATIVE PATHS  --- -->
-<script src="config.js"></script>
-<script src="enhanced-script.js"></script>
-<script src="game-state.js"></script>
-<script src="game-init.js"></script>
-<script src="tab-navigation.js"></script>
-<script src="notifications.js"></script>
-<script src="audio.js"></script>
-<script src="save-system.js"></script>
-<script src="prestige.js"></script>
-<script src="weather.js"></script>
-<script src="relationships.js"></script>
-<script src="pet.js"></script>
-<script src="economy.js"></script>
-<script src="life-quality.js"></script>
-<script src="daily-rewards.js"></script>
-<script src="game-loop.js"></script>
-<script src="settings.js"></script>
-<script src="mobile-support.js"></script>
-<script src="career-summary.js"></script>
+    <script src="config.js"></script>
+    <script src="game-init.js"></script>
+    <script src="game-state.js"></script>  <!--  game-state.js is now BEFORE enhanced-script.js -->
+    <script src="enhanced-script.js"></script>
+    <script src="tab-navigation.js"></script>
+    <script src="notifications.js"></script>
+    <script src="save-system.js"></script>
+    <script src="prestige.js"></script>
+    <script src="weather.js"></script>
+    <script src="game-loop.js"></script>
+
+<!--removed in phase 2 to reduce console error - used for later implementation
+relationships.js, pet.js, economy.js, life-quality.js, settings.js, daily-rewards.js,
+ mobile-support.js, and career-summary.js.-->
+
 
     <!-- No changes needed to main game script tag as it's already relative: -->
     <script src="enhanced-script.js"></script> <!-- Your main game script  -->

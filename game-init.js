@@ -1,8 +1,7 @@
  // game-init.js
  function initializeGame() {
     console.log("initializeGame() - game-init.js - START"); // <-- START LOG
-
-    // Initialize gameState.purchasedItems FIRST - to prevent undefined errors
+// Initialize gameState.purchasedItems FIRST - to prevent undefined errors
     gameState.purchasedItems = {}; // Ensure this is initialized here - INITIALIZE purchasedItems
 
     // Initialize basic game state values
@@ -38,8 +37,7 @@
     // Set up auto-save
     setInterval(saveGameData, gameState.settings.autoSaveInterval * 1000);
 
-    // Initialize audio system
-    initializeAudio();
+  
 
     // Start game loop - This is now the central place to start the game loop - USING requestAnimationFrame
     startGameLoop(); // Call startGameLoop to initiate the animation loop
@@ -62,8 +60,6 @@ function checkDeviceType() { console.log("checkDeviceType Placeholder"); }
 // Placeholder energy display update function (define in display.js later in Phase 2)
 function updateEnergyDisplay() { console.log("updateEnergyDisplay Placeholder"); }
 
-// Placeholder audio initialization function (define in audio.js later)
-function initializeAudio() { console.log("initializeAudio Placeholder"); }
 
 
 // --- MODIFIED gameLoop FUNCTION - Now only starts the animation loop ---

@@ -70,5 +70,3 @@ function switchToPreviousTab() {
     tabButtons[prevIndex].click();
 }
 
-// Placeholder playSound function (define in audio.js later)
-function playSound(soundName) { console.log(`playSound Placeholder - Sound: ${soundName}`); }

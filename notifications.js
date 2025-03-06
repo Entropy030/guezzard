@@ -59,6 +59,4 @@ function updateEventLogDisplay() {
     console.log("updateEventLogDisplay Placeholder - Updating Event Log Display...");
 }
 
-// Placeholder playSound function (define in audio.js later)
-function playSound(soundName) { console.log(`playSound Placeholder - Sound: ${soundName}`); }
 
