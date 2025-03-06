@@ -10,6 +10,12 @@ function calculatePrestigePoints() {
     return Math.max(1, basePoints);
 }
 
+// Placeholder - implement in skills.js later (Phase 2 - Part 2 or Phase 3)
+function calculateTotalSkillLevels() {
+    console.log("calculateTotalSkillLevels() - Placeholder function called");
+    return 0; // Placeholder - returns 0 for now
+}
+
 function performPrestige() {
     // Calculate prestige points to be awarded
     const pointsToAward = calculatePrestigePoints();

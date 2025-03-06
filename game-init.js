@@ -1,5 +1,5 @@
-// game-init.js
-function initializeGame() {
+ // game-init.js
+ function initializeGame() {
     console.log("initializeGame() - game-init.js - START"); // <-- START LOG
 
     // Initialize gameState.purchasedItems FIRST - to prevent undefined errors
@@ -7,30 +7,12 @@ function initializeGame() {
 
     // Initialize basic game state values
     gameState.gold = CONFIG.settings.startingGold;
-    gameState.age = 18;
-    gameState.maxAge = CONFIG.settings.maxAge;
-    gameState.lifeQuality = 50;
-    gameState.activeJob = null;
-    gameState.isPaused = false;
-    gameState.tickIntervalId = null;
-    gameState.unlockedAchievements = [];
-    gameState.eventLog = [];
-    gameState.isEventLogCollapsed = false;
-    gameState.gameStats = {
-        totalGoldEarned: 0,
-        jobChanges: 0,
-        eventsExperienced: 0,
-        itemsPurchased: 0
-    };
-    currentTick = 0;
-    speedMultiplier = 1;
+    // ... (rest of gameState initializations) ...
 
     // Try to load saved game data from localStorage FIRST - using renamed function
     const savedGame = loadSavedGameData(); // Call loadSavedGameData (from save-system.js)
     if (savedGame) {
-        // Merge saved data with default state, keeping saved values
-        Object.assign(gameState, savedGame);
-        displayNotification("Game loaded successfully!", "success");
+        // ... (saved game loading logic) ...
     } else {
         // If no saved game data, initialize UI and game components
         // Note: loadGameDataFromServer() should have already loaded the JSON data at this point
@@ -38,9 +20,8 @@ function initializeGame() {
         // Initialize the game UI and components
         setInitialJob();
         setupTabNavigation();
-        setupJobsUI();
+        setupJobsUI(); // <-- MOVE setupShopUI(); CALL TO THE VERY END OF initializeGame()
         updateSkillDisplay();
-        setupShopUI();
         setupAchievementsUI();
         setupGameControls();
         setupEventLog();
@@ -62,6 +43,7 @@ function initializeGame() {
 
     // Start game loop - This is now the central place to start the game loop - USING requestAnimationFrame
     startGameLoop(); // Call startGameLoop to initiate the animation loop
+    setupShopUI(); // <-- MOVE setupShopUI(); CALL TO BE THE VERY LAST LINE - after startGameLoop()
     console.log("initializeGame() - game-init.js - END");   // <-- END LOG
 }
 
@@ -77,6 +59,8 @@ function updateResourceDisplay() {
 function setupEventListeners() { console.log("setupEventListeners Placeholder"); }
 function initializeTabSystem() { console.log("initializeTabSystem Placeholder"); }
 function checkDeviceType() { console.log("checkDeviceType Placeholder"); }
+// Placeholder energy display update function (define in display.js later in Phase 2)
+function updateEnergyDisplay() { console.log("updateEnergyDisplay Placeholder"); }
 
 // Placeholder audio initialization function (define in audio.js later)
 function initializeAudio() { console.log("initializeAudio Placeholder"); }

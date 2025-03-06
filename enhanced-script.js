@@ -138,7 +138,11 @@ function triggerRandomNewsTickerEvent() {
 
 function checkAchievements() {
     gameState.achievements.forEach(achievement => { // Accessing achievements via gameState
-        if (gameState.unlockedAchievements.includes(achievement.id)) return; // Accessing unlockedAchievements via gameState
+        if (!gameState.unlockedAchievements) { // <-- ADD THIS NULL CHECK - Temporary safety measure
+            console.warn("gameState.unlockedAchievements is undefined in checkAchievements() - Potential scope issue"); // Optional warning log
+            return; // Skip this iteration if gameState.unlockedAchievements is undefined
+        }
+        if (gameState.unlockedAchievements.includes(achievement.id)) return; // Accessing unlockedAchievements via gameState  <-- LINE 141 - ERROR POINT
 
         let isUnlocked = false;
 
@@ -318,7 +322,13 @@ function setupShopUI() {
 
     shopDiv.innerHTML = '';
 
+    
     CONFIG.shopItems.forEach(item => {
+        if (!gameState.purchasedItems) { // <-- ADD THIS NULL CHECK - Temporary safety measure
+            console.warn("gameState.purchasedItems is undefined in setupShopUI() - Potential timing issue"); // Optional warning log
+            return; // Skip this iteration if gameState.purchasedItems is undefined
+        }
+
         const timesUsed = gameState.purchasedItems[item.id] || 0; // Accessing purchasedItems via gameState
         const isDisabled = item.maxPurchases && timesUsed >= item.maxPurchases;
 
@@ -620,9 +630,9 @@ async function loadGameDataFromServer() {
     try {
         // --- MODIFIED URLS - DIRECT ROOT-RELATIVE PATHS ---
         const [loadedSkills, loadedJobs, loadedAchievements] = await Promise.all([
-            fetch("skills.json").then(response => response.json()), // DIRECT PATH - skills.json in root
-            fetch("jobs.json").then(response => response.json()),   // DIRECT PATH - jobs.json in root
-            fetch("achievements.json").then(response => response.json()) // DIRECT PATH - achievements.json in root
+            fetch("skills.json").then(response => response.json()),
+            fetch("jobs.json").then(response => response.json()),
+            fetch("achievements.json").then(response => response.json())
         ]);
         // --- END MODIFIED URLS ---
 
@@ -646,13 +656,14 @@ async function loadGameDataFromServer() {
             gameState.purchasedItems[item.id] = 0;
         });
 
-        // Call the initializeGame function from game-init.js after data loading is complete
-        initializeGame();
+        console.log("loadGameDataFromServer() - enhanced-script.js - END of TRY"); // <-- END LOG INSIDE TRY
 
     } catch (error) {
         console.error("Error loading game data:", error);
         showErrorNotification("Failed to load game data:", error);
     }
+    initializeGame(); // <-- MOVE initializeGame() CALL *OUTSIDE* THE try-catch BLOCK - AFTER try-catch
+    console.log("loadGameDataFromServer() - enhanced-script.js - FUNCTION BODY END");
 }
 
 // -----------------------------------------------------------------------------
