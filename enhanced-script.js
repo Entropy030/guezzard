@@ -652,13 +652,13 @@ async function loadGameDataFromServer() {
         gameState.jobs = loadedJobs;
         gameState.achievements = loadedAchievements;
 
-        gameState.jobs = loadedJobs;
-        gameState.achievements = loadedAchievements;
+        console.log("loadGameDataFromServer() - Before shopItems loop - gameState:", gameState); // <-- ADD THIS LOG
+        console.log("loadGameDataFromServer() - Before shopItems loop - gameState.purchasedItems:", gameState.purchasedItems); // <-- ADD THIS LOG
 
-        // CONFIG.shopItems.forEach(item => {  // <-- Comment out this line
-        //     gameState.purchasedItems[item.id] = 0; // <-- Comment out this line
-        // });                                      // <-- Comment out this line
-
+        CONFIG.shopItems.forEach(item => { // <-- Your shopItems loop
+            gameState.purchasedItems[item.id] = 0;
+        }); 
+        
         console.log("loadGameDataFromServer() - enhanced-script.js - END of TRY"); // <-- END LOG INSIDE TRY
 
     } catch (error) {
