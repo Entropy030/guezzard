@@ -1,4 +1,3 @@
-
 // enhanced-script.js
 
 
@@ -65,7 +64,7 @@ function increaseSkills(job) {
     if (currentTier.skillReward) {
         for (const skillName in currentTier.skillReward) {
             // Distribute total skill exp for the job for every tick in 1 year
-            const skillGainPerTick = (currentTier.skillReward[skillName] / CONFIG.settings.ticksInOneGameYear) * gameState.gameState.gameState.multipliers.skill
+            const skillGainPerTick = (currentTier.skillReward[skillName] / CONFIG.settings.ticksInOneGameYear) * gameState.multipliers.skill
             gameState.skills[skillName] = (gameState.skills[skillName] || 0) + skillGainPerTick; // Accessing skills via gameState
             gameState.skills[skillName] = Math.min(gameState.skills[skillName], CONFIG.skillConfig[skillName]?.maxLevel || 100); // Accessing skills via gameState
         }
@@ -532,8 +531,8 @@ function purchaseItem(item) {
                 showNotification("Gold Multiplier Increased!", `Your gold earnings are now ${(gameState.multipliers.gold * 100).toFixed(0)}% of base earnings!`, "success");
                 break;
             case 'skillMultiplier':
-                gameState.gameState.gameState.multipliers.skill += effectValue;
-                showNotification("Skill Multiplier Increased!", `Your skill gain is now ${(gameState.gameState.gameState.multipliers.skill * 100).toFixed(0)}% of base gain!`, "success");
+                gameState.multipliers.skill += effectValue;
+                showNotification("Skill Multiplier Increased!", `Your skill gain is now ${(gameState.multipliers.skill * 100).toFixed(0)}% of base gain!`, "success");
                 break;
             default:
                 if (CONFIG.skillConfig[effectType]) {
@@ -591,6 +590,32 @@ function tick() {
     updateDisplay();
 }
 
+function setInitialJob() {
+    const googleMapsJob = gameState.jobs.find(job => job.name === "Google Maps User"); // Accessing jobs via gameState
+    if (googleMapsJob) {
+        gameState.activeJob = googleMapsJob; // Accessing activeJob via gameState
+        gameState.currentJobTier = 0;
+    } else {
+        const newJob = {
+            id: "google_maps_user",
+            name: "Google Maps User",
+            description: "Navigate the digital world by helping improve maps data.",
+            tiers: [
+                {
+                    name: "Beginner",
+                    incomePerYear: 2,
+                    skillReward: {
+                        "Map Awareness": 0.5
+                    }
+                }
+            ]
+        };
+        gameState.jobs.push(newJob); // Accessing jobs via gameState
+        gameState.activeJob = newJob; // Accessing activeJob via gameState
+        gameState.currentJobTier = 0;
+    }
+}
+
 async function loadGameDataFromServer() {
     try {
         // --- MODIFIED URLS - DIRECT ROOT-RELATIVE PATHS ---
@@ -621,62 +646,13 @@ async function loadGameDataFromServer() {
             gameState.purchasedItems[item.id] = 0;
         });
 
+        // Call the initializeGame function from game-init.js after data loading is complete
+        initializeGame();
 
     } catch (error) {
         console.error("Error loading game data:", error);
         showErrorNotification("Failed to load game data:", error);
     }
-}
-
-function setInitialJob() {
-    const googleMapsJob = gameState.jobs.find(job => job.name === "Google Maps User"); // Accessing jobs via gameState
-    if (googleMapsJob) {
-        gameState.activeJob = googleMapsJob; // Accessing activeJob via gameState
-        gameState.currentJobTier = 0;
-    } else {
-        const newJob = {
-            id: "google_maps_user",
-            name: "Google Maps User",
-            description: "Navigate the digital world by helping improve maps data.",
-            tiers: [
-                {
-                    name: "Beginner",
-                    incomePerYear: 2,
-                    skillReward: {
-                        "Map Awareness": 0.5
-                    }
-                }
-            ]
-        };
-        gameState.jobs.push(newJob); // Accessing jobs via gameState
-        gameState.activeJob = newJob; // Accessing activeJob via gameState
-        gameState.currentJobTier = 0;
-    }
-}
-
-function initializeGame() {
-    gameState.gold = CONFIG.settings.startingGold; // Accessing gold via gameState
-    gameState.age = 18; // Accessing age via gameState
-    gameState.maxAge = CONFIG.settings.maxAge; // Accessing maxAge via gameState
-    gameState.lifeQuality = 50; // Accessing lifeQuality via gameState
-    gameState.activeJob = null; // Accessing activeJob via gameState
-    // gameState.skills = { "Map Awareness": 0 }; // Corrected name - THIS IS NOW HANDLED DYNAMICALLY
-    speedMultiplier = 1;
-    gameState.isPaused = false; // Accessing isPaused via gameState
-    gameState.tickIntervalId = null; // Accessing tickIntervalId via gameState
-    gameState.jobs = []; // Accessing jobs via gameState
-    gameState.achievements = []; // Accessing achievements via gameState
-    gameState.unlockedAchievements = []; // Accessing unlockedAchievements via gameState
-    gameState.purchasedItems = {}; // Accessing purchasedItems via gameState
-    gameState.eventLog = []; // Accessing eventLog via gameState
-    gameState.isEventLogCollapsed = false; // Accessing isEventLogCollapsed via gameState
-    gameState.gameStats = { // Accessing gameStats via gameState
-        totalGoldEarned: 0,
-        jobChanges: 0,
-        eventsExperienced: 0,
-        itemsPurchased: 0
-    };
-    currentTick = 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -685,5 +661,4 @@ function initializeGame() {
 
 document.addEventListener("DOMContentLoaded", () => {
     loadGameDataFromServer();  // Call loadGameDataFromServer() - WHICH WILL THEN CALL initializeGame()
-
 });
