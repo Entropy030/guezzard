@@ -576,3 +576,54 @@ h2 {
   background-color: #555;
   cursor: not-allowed;
 }
+
+/* --- Sidebar Styling --- */
+#progress-sidebar {
+  width: 250px; /* Adjust sidebar width as needed */
+  padding: 15px;
+  background-color: #f0f0f0; /* Light grey background for sidebar */
+  border-left: 1px solid #ccc; /* Separator line from main content */
+  box-sizing: border-box; /* Include padding in width calculation */
+  float: right; /* Float to the right */
+  height: 100vh; /* Make it full viewport height - adjust if needed */
+}
+
+#progress-sidebar h3, #progress-sidebar h4 {
+  margin-top: 0; /* Remove top margin from headings */
+  margin-bottom: 10px;
+}
+
+#job-progress-container, #skill-progress-container {
+  margin-bottom: 20px; /* Spacing between job and skill sections */
+}
+
+
+/* --- Progress Bar Styling (from Progress Knight, adjusted) --- */
+.progress-text {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  padding: 5px;
+  color: white;
+  text-align: center; /* Center text */
+  width: 100%;       /* Span full width */
+  font-size: 0.8em; /* Slightly smaller font */
+  line-height: 1.2em; /* Adjust line height */
+}
+
+.progress-bar {
+  position: relative;
+  background-color: rgb(12, 101, 173); /* Base bar color */
+  border-radius: 5px; /* Rounded corners */
+  overflow: hidden;    /* Clip overflow for rounded corners */
+  width: 100%;        /* Fill container width */
+  height: 20px;       /* Adjust bar height */
+  margin-bottom: 5px; /* Spacing below bar */
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: rgb(46, 148, 231); /* Fill color */
+  width: 0%;         /* Initial fill width */
+  transition: width 0.3s ease; /* Smooth width animation */
+}
