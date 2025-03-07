@@ -1,6 +1,8 @@
-// enhanced-script.js
+// enhanced-script.js - VERY TOP OF FILE
+console.log("enhanced-script.js - File LOADED and EXECUTING - Top of File");
+console.log("enhanced-script.js - Checking gameState at very top:", gameState);
 
-
+gameState.purchasedItems = {}; // <-- ADD THIS LINE - Forcefully initialize gameState.purchasedItems VERY EARLY
 
 // -----------------------------------------------------------------------------
 // 3. Utility Functions (Notifications, Logging)
@@ -22,53 +24,30 @@ function logEvent(message, type = 'info') {
     };
     gameState.eventLog.push(event); // Accessing eventLog via gameState
 
+    // Limit eventLog to last 5 messages - ADD THESE LINES
+    const maxLogEntries = 5;
+    if (gameState.eventLog.length > maxLogEntries) {
+        gameState.eventLog.shift(); // Remove the oldest entry
+    }
+
     const eventLogElement = document.getElementById('eventLog');
-    const eventElement = document.createElement('div');
-    eventElement.classList.add('event-log-entry');
+    eventLogElement.innerHTML = ''; // Clear the event log display
 
-    if (type === 'promotion') {
-        eventElement.classList.add('promotion-event');
-    } else if (type === 'news') {
-        eventElement.classList.add('news-event');
-    }
-
-    eventElement.textContent = `${event.timestamp}: ${event.message}`;
-    eventLogElement.appendChild(eventElement);
-    eventLogElement.scrollTop = eventLogElement.scrollHeight;
-}
-
-// -----------------------------------------------------------------------------
-// 4. Game Mechanics Functions (Resource Management, Skill Progression, Job Management)
-// -----------------------------------------------------------------------------
-
-function addResources(job) {
-    if (!job || !job.tiers || !job.tiers[gameState.currentJobTier]) {
-        console.warn("Invalid job or tier:", job, gameState.currentJobTier);
-        return 0;
-    }
-
-    const currentTier = job.tiers[gameState.currentJobTier];
-    // Distribute total revenue for the job for every tick in 1 year
-    const goldGainPerTick = (currentTier.incomePerYear / CONFIG.settings.ticksInOneGameYear) * gameState.multipliers.gold;
-    gameState.gold += goldGainPerTick; // Accessing gold via gameState
-    return goldGainPerTick;
-}
-
-function increaseSkills(job) {
-    if (!job || !job.tiers || !job.tiers[gameState.currentJobTier]) {
-        console.warn("Invalid job or tier:", job, gameState.currentJobTier);
-        return;
-    }
-
-    const currentTier = job.tiers[gameState.currentJobTier];
-    if (currentTier.skillReward) {
-        for (const skillName in currentTier.skillReward) {
-            // Distribute total skill exp for the job for every tick in 1 year
-            const skillGainPerTick = (currentTier.skillReward[skillName] / CONFIG.settings.ticksInOneGameYear) * gameState.multipliers.skill
-            gameState.skills[skillName] = (gameState.skills[skillName] || 0) + skillGainPerTick; // Accessing skills via gameState
-            gameState.skills[skillName] = Math.min(gameState.skills[skillName], CONFIG.skillConfig[skillName]?.maxLevel || 100); // Accessing skills via gameState
+    // Re-render only the last 'maxLogEntries' events - MODIFY THIS LOOP
+    const startIdx = Math.max(0, gameState.eventLog.length - maxLogEntries);
+    for (let i = startIdx; i < gameState.eventLog.length; i++) {
+        const eventEntry = gameState.eventLog[i];
+        const eventElement = document.createElement('div');
+        eventElement.classList.add('event-log-entry');
+        if (type === 'promotion') {
+            eventElement.classList.add('promotion-event');
+        } else if (type === 'news') {
+            eventElement.classList.add('news-event');
         }
+        eventElement.textContent = `${eventEntry.timestamp}: ${eventEntry.message}`;
+        eventLogElement.appendChild(eventElement);
     }
+    eventLogElement.scrollTop = eventLogElement.scrollHeight;
 }
 
 function checkForCareerUpgrade() {
@@ -657,15 +636,15 @@ async function loadGameDataFromServer() {
 
         CONFIG.shopItems.forEach(item => { // <-- Your shopItems loop
             gameState.purchasedItems[item.id] = 0;
-        }); 
-        
+        });
+
         console.log("loadGameDataFromServer() - enhanced-script.js - END of TRY"); // <-- END LOG INSIDE TRY
 
     } catch (error) {
         console.error("Error loading game data:", error);
         showErrorNotification("Failed to load game data:", error);
     }
-    initializeGame(); // <-- MOVE initializeGame() CALL *OUTSIDE* THE try-catch BLOCK - AFTER try-catch
+    // REMOVE THIS LINE: initializeGame(); // <-- PROBLEM: REMOVE THIS LINE - Incorrect placement
     console.log("loadGameDataFromServer() - enhanced-script.js - FUNCTION BODY END");
 }
 
@@ -673,6 +652,10 @@ async function loadGameDataFromServer() {
 // 7. Start the Game
 // -----------------------------------------------------------------------------
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadGameDataFromServer();  // Call loadGameDataFromServer() - WHICH WILL THEN CALL initializeGame()
+console.log("enhanced-script.js - Just BEFORE calling loadGameDataFromServer()"); // Add log before function call
+loadGameDataFromServer(); // Call to loadGameDataFromServer
+
+document.addEventListener("DOMContentLoaded", async () => { // <-- ADD async keyword here
+    await loadGameDataFromServer();  // <-- ADD await here - WAIT for loadGameDataFromServer() to complete
+    initializeGame(); // <-- Call initializeGame() *AFTER* loadGameDataFromServer() has finished
 });

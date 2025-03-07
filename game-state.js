@@ -1,10 +1,15 @@
 // game-state.js
 const gameState = {
+
+    eventLog: [],  // <--- INITIALIZE eventLog as an EMPTY ARRAY!
+
+
     // Player resources
     gold: 0,
     energy: 100,
     maxEnergy: 100,
     currentJobTier: 0,
+    age: 1, // <-- ADD THIS LINE - Initialize age to 1
 
     // Skills and attributes
     skills: {
