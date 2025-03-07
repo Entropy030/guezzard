@@ -1,135 +1,176 @@
 body {
-  font-family: 'Arial', sans-serif;
-  background-color: #222; /* Dark background */
-  color: #eee; /* Light text color */
+  font-family: 'Montserrat', 'Arial', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: #eee;
   margin: 0;
   padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background-attachment: fixed;
 }
 
 #game-container {
-  background-color: #333; /* Slightly lighter container background */
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-  width: 95%; /* Responsive width */
-  max-width: 900px; /* Maximum width */
-  box-sizing: border-box; /* Include padding in width */
+  background-color: rgba(30, 30, 40, 0.85);
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 0 30px rgba(123, 104, 238, 0.3);
+  width: 95%;
+  max-width: 900px;
+  box-sizing: border-box;
+  border: 1px solid rgba(123, 104, 238, 0.4);
 }
 
 /* --- Revised Top Bar Styling --- */
 #top-bar {
-  display: flex;             /* Enable Flexbox */
-  flex-wrap: wrap;          /* Allow items to wrap on smaller screens */
-  justify-content: space-around; /* Distribute space evenly */
-  align-items: center;       /* Vertically align items in the center */
-  background-color: #333;     /* Dark background for top bar - same as container */
-  color: #eee;               /* Light text color */
-  padding: 10px 15px;         /* Padding around top bar */
-  box-sizing: border-box;    /* Include padding in width */
-  margin-bottom: 20px;       /* Add margin below top bar */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+  background-color: rgba(20, 20, 30, 0.7);
+  color: #eee;
+  padding: 15px;
+  box-sizing: border-box;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(123, 104, 238, 0.3);
 }
 
 #top-bar h3 {
-  margin: 0 0 10px 0; /* Specific margin for top-bar h3 if needed */
+  margin: 0 0 10px 0;
   font-size: 1.2em;
+  color: #a496ff;
 }
-
 
 #game-state-indicators,
 #active-job-display,
 #job-progress-bar-container,
 #skill-progress-bar-container,
 #game-controls {
-  margin: 5px;             /* Spacing between top bar items */
-  text-align: center;       /* Center text within each item */
+  margin: 8px;
+  text-align: center;
 }
 
 .indicator {
-  display: inline-block;    /* Display indicators in a row */
-  margin-right: 15px;      /* Spacing between indicators */
+  display: inline-block;
+  margin-right: 15px;
+  background-color: rgba(40, 40, 60, 0.7);
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(123, 104, 238, 0.3);
 }
 
 .indicator-label {
   font-weight: bold;
   margin-right: 5px;
+  color: #a496ff;
+}
+
+#active-job-display {
+  background-color: rgba(40, 40, 60, 0.7);
+  padding: 8px 15px;
+  border-radius: 20px;
+  border: 1px solid rgba(123, 104, 238, 0.3);
 }
 
 #active-job-display .label {
   font-weight: bold;
   margin-right: 5px;
+  color: #a496ff;
+}
+
+#current-job-name {
+  color: #ffffff;
+  text-shadow: 0 0 5px rgba(123, 104, 238, 0.5);
 }
 
 /* --- Progress Bar Container Styling (shared) --- */
 .progress-bar-container {
-  width: 180px; /* Adjust progress bar container width */
+  width: 200px;
+  margin: 10px;
 }
 
-
-/* --- Progress Bar Styling  --- */
+/* --- Progress Bar Styling --- */
 .progress-text {
   position: absolute;
-  top: 0px;
-  bottom: 0px;
-  padding: 3px; /* Reduced padding */
+  top: 0;
+  bottom: 0;
+  padding: 4px;
   color: white;
   text-align: center;
   width: 100%;
-  font-size: 0.75em; /* Further reduced font size */
-  line-height: 1em;
+  font-size: 0.8em;
+  line-height: 1.2em;
+  font-weight: bold;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+  z-index: 5;
 }
 
 .progress-bar {
   position: relative;
-  background-color: rgb(12, 101, 173);
-  border-radius: 4px; /* Slightly less rounded */
+  background-color: rgba(12, 21, 43, 0.8);
+  border-radius: 20px;
   overflow: hidden;
   width: 100%;
-  height: 16px; /* Reduced height */
-  margin-top: 3px; /* Spacing above bar */
+  height: 20px;
+  margin-top: 3px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(123, 104, 238, 0.4);
 }
 
 .progress-fill {
   height: 100%;
-  background-color: rgb(46, 148, 231);
+  background: linear-gradient(90deg, #4776E6, #8E54E9);
   width: 0%;
-  transition: width 0.3s ease;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(123, 104, 238, 0.7);
+}
+
+#skill-progress-fill {
+  background: linear-gradient(90deg, #11998e, #38ef7d);
 }
 
 /* --- Game Controls (Buttons) Styling --- */
 #game-controls button {
-  padding: 8px 12px;
+  padding: 8px 15px;
   font-size: 0.9em;
   border: none;
-  border-radius: 5px;
-  background-color: #555; /* Darker button background */
-  color: #eee;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #4b4283, #2b2444);
+  color: #fff;
   cursor: pointer;
   margin: 0 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(123, 104, 238, 0.4);
+  transition: all 0.2s ease;
 }
 
 #game-controls button:hover {
-  background-color: #777;
+  background: linear-gradient(135deg, #5d53a3, #3b3260);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
-
 
 /* --- Event Log --- */
 #event-log {
-  background-color: #444;
-  border-radius: 5px;
+  background-color: rgba(20, 20, 30, 0.7);
+  border-radius: 8px;
   padding: 15px;
   margin-bottom: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  max-height: 200px; /* Limit height of event log */
-  overflow-y: auto; /* Enable vertical scroll if content overflows */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid rgba(123, 104, 238, 0.3);
 }
 
 #event-log h3 {
   margin-top: 0;
-  font-size: 1.1em;
+  font-size: 1.2em;
+  color: #a496ff;
+  border-bottom: 1px solid rgba(123, 104, 238, 0.4);
+  padding-bottom: 8px;
 }
 
 #event-log-list {
@@ -140,73 +181,137 @@ body {
 
 #event-log-list li {
   font-size: 0.9em;
-  line-height: 1.4;
-  padding: 2px 0;
-  border-bottom: 1px dotted #666;
+  line-height: 1.5;
+  padding: 8px 0;
+  border-bottom: 1px dotted rgba(123, 104, 238, 0.3);
+  transition: background-color 0.2s ease;
 }
 
 #event-log-list li:last-child {
-  border-bottom: none; /* Remove border from last item */
+  border-bottom: none;
+  animation: newEvent 1s ease;
 }
 
+@keyframes newEvent {
+  0% { background-color: rgba(123, 104, 238, 0.2); }
+  100% { background-color: transparent; }
+}
 
 /* --- Action Buttons --- */
 #action-buttons {
-  background-color: #444;
-  border-radius: 5px;
-  padding: 15px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  text-align: center; /* Center buttons horizontally */
+  background-color: rgba(20, 20, 30, 0.7);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  border: 1px solid rgba(123, 104, 238, 0.3);
 }
 
 #action-buttons h3 {
   margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 1.1em;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+  color: #a496ff;
+  border-bottom: 1px solid rgba(123, 104, 238, 0.4);
+  padding-bottom: 8px;
 }
 
 #action-buttons button {
-  padding: 10px 15px;
+  padding: 12px 20px;
   font-size: 1em;
   border: none;
-  border-radius: 5px;
-  background-color: #e74c3c; /* Reddish button color */
+  border-radius: 25px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
   color: white;
   cursor: pointer;
-  margin: 5px;
-  display: inline-block; /* Ensure inline display for multiple buttons */
+  margin: 8px;
+  display: inline-block;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
 #action-buttons button:hover {
-  background-color: #c0392b; /* Darker red on hover */
+  transform: translateY(-3px);
+  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.4);
 }
 
+#action-buttons button:active {
+  transform: translateY(1px);
+}
+
+/* Job button */
+#job-button {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+/* Skill button */
+#skill-button {
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+}
+
+/* Shop button */
+#shop-button {
+  background: linear-gradient(135deg, #F2994A, #F2C94C);
+}
+
+/* Achievements button */
+#achievements-button {
+  background: linear-gradient(135deg, #8E2DE2, #4A00E0);
+}
+
+/* Relationships button */
+#relationships-button {
+  background: linear-gradient(135deg, #FF5F6D, #FFC371);
+}
+
+/* Pet button */
+#pet-button {
+  background: linear-gradient(135deg, #00C9FF, #92FE9D);
+}
+
+/* Prestige button */
+#prestige-button {
+  background: linear-gradient(135deg, #8A2387, #E94057, #F27121);
+}
 
 /* --- Hidden Panels (Jobs, Skills, Shop etc.) --- */
 .hidden-panel {
-  display: none; /* Initially hidden */
-  position: fixed; /* Fixed position relative to viewport */
+  display: none;
+  position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); /* Center the panel */
-  background-color: #444;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-  z-index: 1000; /* Ensure it's on top of other content */
-  max-height: 80vh; /* Max height to prevent overflowing viewport */
-  overflow-y: auto; /* Enable vertical scrolling if needed */
-  width: 80%; /* Responsive width for panels */
-  max-width: 600px; /* Max width for panels */
-  box-sizing: border-box; /* Include padding in width */
+  transform: translate(-50%, -50%);
+  background-color: rgba(30, 30, 45, 0.95);
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(123, 104, 238, 0.4);
+  z-index: 1000;
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 80%;
+  max-width: 600px;
+  box-sizing: border-box;
+  border: 1px solid rgba(123, 104, 238, 0.5);
+  animation: panelAppear 0.3s ease;
 }
 
+@keyframes panelAppear {
+  from { opacity: 0; transform: translate(-50%, -48%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
 
 .hidden-panel h3 {
   margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 1.3em;
-  text-align: center; /* Center panel titles */
+  margin-bottom: 20px;
+  font-size: 1.4em;
+  text-align: center;
+  color: #a496ff;
+  border-bottom: 1px solid rgba(123, 104, 238, 0.5);
+  padding-bottom: 10px;
+  text-shadow: 0 0 10px rgba(123, 104, 238, 0.5);
 }
 
 .hidden-panel ul {
@@ -216,86 +321,126 @@ body {
 }
 
 .hidden-panel li {
-  padding: 8px 10px;
-  margin-bottom: 5px;
-  background-color: #555;
-  border-radius: 4px;
-  font-size: 0.95em;
-  cursor: pointer; /* Indicate clickable items in lists */
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  background-color: rgba(60, 60, 80, 0.6);
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(123, 104, 238, 0.3);
 }
 
 .hidden-panel li:hover {
-  background-color: #666;
+  background-color: rgba(70, 70, 100, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border-color: rgba(123, 104, 238, 0.6);
 }
 
-
 .close-button {
-  display: block; /* Make it take full width */
-  margin-top: 20px;
-  padding: 10px 15px;
+  display: block;
+  margin-top: 25px;
+  padding: 12px 20px;
   font-size: 1em;
   border: none;
-  border-radius: 5px;
-  background-color: #777; /* Grey close button */
+  border-radius: 25px;
+  background: linear-gradient(135deg, #4b4283, #2b2444);
   color: #eee;
   cursor: pointer;
-  width: 100%; /* Full width within panel */
-  box-sizing: border-box; /* Include padding in width */
+  width: 100%;
+  box-sizing: border-box;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .close-button:hover {
-  background-color: #888;
+  background: linear-gradient(135deg, #5d53a3, #3b3260);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
-
 
 /* --- Jobs/Skills List Styling (within panels) --- */
-#jobs-list li, #skills-list li, #shop-items-list li, #achievements-list li, #relationships-list li, #pet-area, #prestige-area {
-  padding: 10px; /* Slightly increased padding for list items */
-  margin-bottom: 8px; /* Slightly increased margin */
-  background-color: #555;
-  border-radius: 4px;
-  font-size: 1em; /* Slightly larger font size */
+#jobs-list li, #skills-list li, #shop-items-list li, #achievements-list li, #relationships-list li {
+  padding: 15px;
+  margin-bottom: 12px;
+  background-color: rgba(60, 60, 80, 0.6);
+  border-radius: 8px;
+  font-size: 1em;
   cursor: pointer;
-  transition: background-color 0.2s ease; /* Smooth hover transition */
-  display: flex; /* Enable flexbox for list items */
-  justify-content: space-between; /* Distribute space between text and price/cost */
-  align-items: center; /* Vertically align items */
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(123, 104, 238, 0.3);
 }
-
 
 #jobs-list li:hover, #skills-list li:hover, #shop-items-list li:hover, #achievements-list li:hover, #relationships-list li:hover {
-  background-color: #666;
+  background-color: rgba(70, 70, 100, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border-color: rgba(123, 104, 238, 0.6);
 }
 
-/* --- Shop Item Styling (example - adjust as needed) --- */
+/* --- Shop Item Styling --- */
 .shop-item-details {
-  flex-grow: 1; /* Allow item details to take up available space */
+  flex-grow: 1;
 }
 
 .shop-item-price {
-  margin-left: 15px; /* Spacing between details and price */
+  margin-left: 15px;
   font-weight: bold;
-  color: gold; /* Example price color */
+  color: #FFD700;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
 }
 
+/* Pet & Prestige Area */
+#pet-area, #prestige-area {
+  padding: 20px;
+  background-color: rgba(60, 60, 80, 0.6);
+  border-radius: 8px;
+  font-size: 1em;
+  border: 1px solid rgba(123, 104, 238, 0.3);
+  margin-bottom: 15px;
+  text-align: center;
+}
 
-/* --- Media Queries for Responsiveness (Example) --- */
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar {
+  width: 10px;
+}
 
-/* For smaller screens (e.g., mobile) */
+::-webkit-scrollbar-track {
+  background: rgba(30, 30, 45, 0.8);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4776E6, #8E54E9);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #5d8bff, #9d69ff);
+}
+
+/* --- Media Queries for Responsiveness --- */
 @media (max-width: 768px) {
   #game-container {
-      padding: 15px; /* Reduce padding on smaller screens */
-      border-radius: 0; /* Remove border-radius on smaller screens */
-      box-shadow: none; /* Remove shadow on smaller screens */
-      width: 100%; /* Full width on smaller screens */
-      max-width: none; /* Remove max-width on smaller screens */
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: none;
   }
 
   #top-bar {
-      padding: 10px; /* Reduce top bar padding on smaller screens */
-      flex-direction: column; /* Stack top bar items vertically on small screens */
-      align-items: stretch; /* Stretch items to full width of top bar */
-      text-align: center; /* Center text in top bar items */
+      padding: 10px;
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
   }
 
   #game-state-indicators,
@@ -303,30 +448,37 @@ body {
   #job-progress-bar-container,
   #skill-progress-bar-container,
   #game-controls {
-      margin: 5px 0; /* Adjust vertical margin for stacked items */
+      margin: 5px 0;
+      width: 100%;
+  }
+
+  .progress-bar-container {
+      width: 100%;
+      margin: 10px 0;
   }
 
   .indicator {
-      display: block; /* Stack indicators vertically */
-      margin-right: 0;
-      margin-bottom: 5px; /* Add bottom margin between stacked indicators */
+      display: inline-block;
+      margin-right: 5px;
+      margin-bottom: 5px;
+      font-size: 0.9em;
   }
 
   #action-buttons {
-      padding: 10px; /* Reduce action buttons padding on smaller screens */
+      padding: 15px;
   }
 
   #action-buttons button {
-      display: block; /* Stack buttons vertically on smaller screens */
-      width: 100%; /* Full width buttons on smaller screens */
-      margin: 5px 0; /* Adjust vertical margin for stacked buttons */
+      width: calc(50% - 16px);
+      padding: 10px;
+      margin: 5px;
+      font-size: 0.9em;
   }
 
   .hidden-panel {
-      width: 95%; /* Wider panels on smaller screens */
-      max-width: none; /* Remove max-width for panels on smaller screens */
-      padding: 15px; /* Reduce panel padding on smaller screens */
-      border-radius: 0; /* Remove border-radius for panels on smaller screens */
-      box-shadow: none; /* Remove shadow for panels on smaller screens */
+      width: 95%;
+      max-width: none;
+      padding: 15px;
+      border-radius: 8px;
   }
 }

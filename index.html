@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guezzard - Career Game</title>
+    <title>Guezzard - Master Your Career</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- Favicon - might give 404, that's okay for now -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div id="game-container">
-        <!-- Revised Top Bar -->
+        <!-- Top Bar with Game Stats -->
         <div id="top-bar">
             <div id="game-state-indicators">
                 <div class="indicator">
@@ -54,7 +55,8 @@
         <div id="event-log">
             <h3>Event Log</h3>
             <ul id="event-log-list">
-                <li>Welcome to Guezzard!</li>
+                <li>Welcome to Guezzard, the Career Master Game!</li>
+                <li>Your journey begins at 18 years old. What will you become?</li>
             </ul>
         </div>
 
@@ -69,64 +71,70 @@
             <button id="prestige-button">Prestige</button>
         </div>
 
+        <!-- Hidden Panels -->
         <div id="jobs-panel" class="hidden-panel">
-            <h3>Jobs</h3>
+            <h3>Available Jobs</h3>
             <ul id="jobs-list">
-                </ul>
+                <!-- Jobs will be loaded here -->
+            </ul>
             <button class="close-button" data-panel="jobs-panel">Close</button>
         </div>
 
         <div id="skills-panel" class="hidden-panel">
-            <h3>Skills</h3>
+            <h3>Skills Training</h3>
             <ul id="skills-list">
-                </ul>
+                <!-- Skills will be loaded here -->
+            </ul>
             <button class="close-button" data-panel="skills-panel">Close</button>
         </div>
 
         <div id="shop-panel" class="hidden-panel">
-            <h3>Shop</h3>
+            <h3>Item Shop</h3>
             <ul id="shop-items-list">
-                </ul>
+                <!-- Shop items will be loaded here -->
+            </ul>
             <button class="close-button" data-panel="shop-panel">Close</button>
         </div>
 
-         <div id="achievements-panel" class="hidden-panel">
-            <h3>Achievements</h3>
+        <div id="achievements-panel" class="hidden-panel">
+            <h3>Career Achievements</h3>
             <ul id="achievements-list">
-                </ul>
+                <!-- Achievements will be loaded here -->
+            </ul>
             <button class="close-button" data-panel="achievements-panel">Close</button>
         </div>
 
         <div id="relationships-panel" class="hidden-panel">
-            <h3>Relationships</h3>
+            <h3>Social Connections</h3>
             <ul id="relationships-list">
-                </ul>
+                <!-- Relationships will be loaded here -->
+            </ul>
             <button class="close-button" data-panel="relationships-panel">Close</button>
         </div>
 
         <div id="pet-panel" class="hidden-panel">
-            <h3>Pet</h3>
+            <h3>Your Companion</h3>
             <div id="pet-area">
+                Your pet will appear here once you adopt one from the shop.
             </div>
             <button class="close-button" data-panel="pet-panel">Close</button>
         </div>
 
         <div id="prestige-panel" class="hidden-panel">
-            <h3>Prestige</h3>
-             <div id="prestige-area">
+            <h3>Career Legacy</h3>
+            <div id="prestige-area">
+                Prestige options will unlock after you reach retirement age.
             </div>
             <button class="close-button" data-panel="prestige-panel">Close</button>
         </div>
-
-
     </div>
 
+    <!-- Scripts -->
     <script src="config.js"></script>
     <script src="game-state.js"></script>
     <script src="data-loader.js"></script>
     <script src="game-init.js"></script>
     <script src="game-loop.js"></script>
     <script src="enhanced-script.js"></script>
-
 </body>
 </html>
