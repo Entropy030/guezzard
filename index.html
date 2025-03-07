@@ -3,164 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Career Game</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Relative path to CSS (in src folder) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-          integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
-
-    
-    <!-- --- SCRIPT TAGS WITH RELATIVE PATHS  --- -->
-<script src="config.js"></script>
-<script src="game-state.js"></script>  <!--  game-state.js is BEFORE enhanced-script.js -->
-<script src="enhanced-script.js"></script>
-<script src="game-init.js"></script>
-    <script src="tab-navigation.js"></script>
-    <script src="notifications.js"></script>
-    <script src="save-system.js"></script>
-    <script src="prestige.js"></script>
-    <script src="weather.js"></script>
-    <script src="game-loop.js"></script>
-
-<!--removed in phase 2 to reduce console error - used for later implementation
-relationships.js, pet.js, economy.js, life-quality.js, settings.js, daily-rewards.js,
- mobile-support.js, and career-summary.js.-->
-
-
-    <!-- No changes needed to main game script tag as it's already relative: -->
-    <script src="enhanced-script.js"></script> <!-- Your main game script  -->
+    <title>Guezzard - Career Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- Favicon - might give 404, that's okay for now -->
 </head>
 <body>
-<div class="game-overlay" style="display: none;">
-    <!-- Content for the overlay -->
-</div>
-<div id="game-container">
-    <h1>Career Game</h1>
-    <div id="resources">
-        <div>Gold: <span id="gold">0</span></div>
-        <div>Age: <span id="age">18</span></div>
-        <div>Life Quality: <span id="lifeQuality">50</span></div>
-    </div>
-    <div id="activeJobContainer">
-        <h3>Active Job:</h3>
-        <div id="activeJob">Unemployed</div>
-    </div>
-
-    <div id="gameControls">
-        <button id="pauseButton" class="action-button"><i class="fas fa-pause"></i> Pause</button>
-        <button id="speedButton" class="action-button"><i class="fas fa-forward"></i> 1x Speed</button>
-    </div>
-
-    <div id="tabMenu">
-        <button class="tab-button active" data-tab="jobsTab">Jobs</button>
-        <button class="tab-button" data-tab="skillsTab">Skills</button>
-        <button class="tab-button" data-tab="shopTab">Shop</button>
-        <button class="tab-button" data-tab="achievementsTab">Achievements</button>
-        <button class="tab-button" data-tab="relationships-tab">Relationships</button> <!-- ADDED Relationships Tab -->
-        <button class="tab-button" data-tab="pet-tab">Pet</button> <!-- ADDED Pet Tab -->
-        <button class="tab-button" data-tab="prestige-tab">Prestige</button> <!-- ADDED Prestige Tab -->
-    </div>
-
-    <div id="tabContent">
-        <div id="jobsTab" class="tab-content active">
-            <h2>Available Jobs</h2>
-            <div id="jobs"></div>
-        </div>
-
-        <div id="skillsTab" class="tab-content">
-            <h2>Skills</h2>
-            <div id="skills"></div>
-        </div>
-
-        <div id="shopTab" class="tab-content">
-            <h2>Shop</h2>
-            <div id="shop">
-                <div class="shop-items"></div>
-            </div>
-        </div>
-
-        <div id="achievementsTab" class="tab-content">
-            <h2>Achievements</h2>
-            <div id="achievements"></div>
-        </div>
-
-        <!-- --- ADDED Tab Content Areas Below --- -->
-        <div id="relationships-tab" class="tab-content">
-            <h2>Relationships</h2>
-            <div class="relationships-header">
-                <h3>Relationships</h3>
-                <button id="add-relationship" class="secondary-button">
-                    <i class="fas fa-plus"></i> Meet Someone
-                </button>
-            </div>
-            <div id="relationships-container" class="relationships-container">
-                <!-- Relationship cards will be loaded here -->
-            </div>
-        </div>
-
-        <div id="pet-tab" class="tab-content">
-            <h2>Pet</h2>
-            <!-- Pet adoption options or pet info will be loaded here -->
-        </div>
-
-        <div id="prestige-tab" class="tab-content">
-            <h2>Prestige</h2>
-            <!-- Prestige system content will be loaded here -->
-        </div>
-        <!-- --- ADDED Tab Content Areas Above --- -->
-
-    </div>
-
-    <div id="eventLog">
-        <h3>
-            Event Log
-            <button id="toggleEventLog" class="small-button"><i class="fas fa-chevron-up"></i></button>
-        </h3>
-        <div id="eventEntries" id="event-log-container"></div>  <!-- Corrected Event Log Container ID -->
-    </div>
-
-    <div id="notification-container" class="notification-area"></div>  <!-- ADDED Notification Container -->
-
-    <div id="settings-menu" class="modal settings-modal" style="display: none;">  <!-- Example Settings Modal Structure -->
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="close-button" onclick="closeSettingsMenu()">×</span>
-                <h2>Settings</h2>
-            </div>
-            <div class="modal-body">
-                <!-- Settings content here (sliders, checkboxes, buttons) -->
-            </div>
-        </div>
-    </div>
-
-
     <div id="game-container">
-        <!-- Existing game content (event log, action buttons etc.) will be here -->
-        <div id="event-log">
-            <!-- Event log content -->
-        </div>
-        <div id="action-buttons">
-            <!-- Action buttons -->
-        </div>
-    
-        <!-- New Sidebar for Progress Bars -->
-        <div id="progress-sidebar">
-            <h3>Current Progress</h3>
-            <div id="job-progress-container">
-                <h4>Current Job</h4>
+        <!-- Revised Top Bar -->
+        <div id="top-bar">
+            <div id="game-state-indicators">
+                <div class="indicator">
+                    <span class="indicator-label">Gold:</span>
+                    <span id="gold-display">0</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">Age:</span>
+                    <span id="age-display">18</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">Life Quality:</span>
+                    <span id="life-quality-display">50</span>
+                </div>
+            </div>
+
+            <div id="active-job-display">
+                <span class="label">Active Job:</span>
+                <span id="current-job-name">Unemployed</span>
+            </div>
+
+            <div id="job-progress-bar-container" class="progress-bar-container">
                 <div class="progress-bar progressBar">
                     <div class="progress-fill progressFill" id="job-progress-fill"></div>
                     <div class="progress-text name" id="job-progress-text">No Job</div>
                 </div>
             </div>
-            <div id="skill-progress-container">
-                <h4>Current Skill</h4>
+
+            <div id="skill-progress-bar-container" class="progress-bar-container">
                 <div class="progress-bar progressBar">
                     <div class="progress-fill progressFill" id="skill-progress-fill"></div>
                     <div class="progress-text name" id="skill-progress-text">No Skill</div>
                 </div>
             </div>
+
+            <div id="game-controls">
+                <button id="pause-button">|| Pause</button>
+                <button id="speed-button">▶ 1x Speed</button>
+            </div>
         </div>
+
+        <div id="event-log">
+            <h3>Event Log</h3>
+            <ul id="event-log-list">
+                <li>Welcome to Guezzard!</li>
+            </ul>
+        </div>
+
+        <div id="action-buttons">
+            <h3>Actions</h3>
+            <button id="job-button">Jobs</button>
+            <button id="skill-button">Skills</button>
+            <button id="shop-button">Shop</button>
+            <button id="achievements-button">Achievements</button>
+            <button id="relationships-button">Relationships</button>
+            <button id="pet-button">Pet</button>
+            <button id="prestige-button">Prestige</button>
+        </div>
+
+        <div id="jobs-panel" class="hidden-panel">
+            <h3>Jobs</h3>
+            <ul id="jobs-list">
+                </ul>
+            <button class="close-button" data-panel="jobs-panel">Close</button>
+        </div>
+
+        <div id="skills-panel" class="hidden-panel">
+            <h3>Skills</h3>
+            <ul id="skills-list">
+                </ul>
+            <button class="close-button" data-panel="skills-panel">Close</button>
+        </div>
+
+        <div id="shop-panel" class="hidden-panel">
+            <h3>Shop</h3>
+            <ul id="shop-items-list">
+                </ul>
+            <button class="close-button" data-panel="shop-panel">Close</button>
+        </div>
+
+         <div id="achievements-panel" class="hidden-panel">
+            <h3>Achievements</h3>
+            <ul id="achievements-list">
+                </ul>
+            <button class="close-button" data-panel="achievements-panel">Close</button>
+        </div>
+
+        <div id="relationships-panel" class="hidden-panel">
+            <h3>Relationships</h3>
+            <ul id="relationships-list">
+                </ul>
+            <button class="close-button" data-panel="relationships-panel">Close</button>
+        </div>
+
+        <div id="pet-panel" class="hidden-panel">
+            <h3>Pet</h3>
+            <div id="pet-area">
+            </div>
+            <button class="close-button" data-panel="pet-panel">Close</button>
+        </div>
+
+        <div id="prestige-panel" class="hidden-panel">
+            <h3>Prestige</h3>
+             <div id="prestige-area">
+            </div>
+            <button class="close-button" data-panel="prestige-panel">Close</button>
+        </div>
+
+
     </div>
+
+    <script src="config.js"></script>
+    <script src="game-state.js"></script>
+    <script src="data-loader.js"></script>
+    <script src="game-init.js"></script>
+    <script src="game-loop.js"></script>
+    <script src="enhanced-script.js"></script>
+
 </body>
 </html>

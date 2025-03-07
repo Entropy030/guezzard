@@ -1,629 +1,332 @@
-/* Base Styles */
-* {
-  box-sizing: border-box;
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #222; /* Dark background */
+  color: #eee; /* Light text color */
   margin: 0;
   padding: 0;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 10px;
-  background-color: #1e1e1e;
-  color: #e0e0e0;
-  touch-action: manipulation;
-}
-
-h1 {
-  text-align: center;
-  color: #f0f0f0;
-  margin: 15px 0 20px;
-  font-size: 1.8em;
-}
-
-h2 {
-  color: #f0f0f0;
-  border-bottom: 2px solid #444;
-  padding-bottom: 10px;
-  margin-top: 20px;
-  margin-bottom: 15px;
-  font-size: 1.4em;
-}
-
-/* Reusable styles */
-.panel {
-  background-color: #2a2a2a;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  padding: 15px;
-  margin-bottom: 20px;
-  border: 1px solid #444;
-}
-
-/* Resource display */
-#resources {
-  display: flex;
-  justify-content: space-around;
-  background-color: #2a2a2a;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  margin-bottom: 20px;
-}
-
-#resources div {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 10px;
-}
-
-#resources span {
-  font-size: 1.4em;
-  font-weight: bold;
-  color: #e63946;
-  margin-top: 5px;
-}
-
-/* Active job display */
-#activeJobContainer {
-  background-color: #2a2a2a;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 15px 0;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  text-align: center;
-}
-
-#activeJobContainer h3 {
-  margin-top: 0;
-  color: #bbb;
-  font-size: 1.1em;
-}
-
-#activeJob {
-  font-size: 1.3em;
-  font-weight: bold;
-  color: #e63946;
-  margin-top: 5px;
-}
-
-/* Game Controls */
-#gameControls {
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-/* Tab Menu */
-#tabMenu {
-  display: flex;
-  justify-content: space-around;
-  background-color: #2a2a2a;
-  border-radius: 50px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  margin-bottom: 20px;
-  padding: 5px;
-}
-
-.tab-button {
-  background: none;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-  font-size: 1em;
-  color: #aaa;
-}
-
-.tab-button:hover {
-  background-color: #3a3a3a;
-}
-
-.tab-button.active {
-  background-color: #e63946;
-  color: white;
-}
-
-/* Tab Content */
-#tabContent > div {
-  display: none;
-}
-
-#tabContent > div.active {
-  display: block;
-}
-
-/* Jobs section */
-#jobs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 12px;
-  margin-bottom: 25px;
-}
-
-.job {
-  background-color: #2a2a2a;
-  border-radius: 10px;
-  border: 1px solid #444;
-  padding: 15px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-  cursor: pointer;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.job:active {
-  transform: scale(0.98);
-  background-color: #333;
-}
-
-.job.active {
-  border-color: #e63946;
-  background-color: #3a3a3a;
-}
-
-.job-name {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #f0f0f0;
-  font-size: 1.1em;
-}
-
-.job-desc {
-  font-size: 0.9em;
-  color: #bbb;
-  margin-bottom: 10px;
-}
-
-.job-rate {
-  font-size: 0.9em;
-  color: #e63946;
-  font-weight: bold;
-}
-
-.job-skill {
-  font-size: 0.8em;
-  color: #aaa;
-  margin-top: 5px;
-}
-
-/* Skills section */
-#skills {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
-}
-
-.skill {
-  background-color: #2a2a2a;
-  border-radius: 10px;
-  border: 1px solid #444;
-  padding: 15px;
-  text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-.skill-name {
-  font-weight: bold;
-  color: #f0f0f0;
-  margin-bottom: 5px;
-  font-size: 1em;
-}
-
-.skill-level {
-  position: relative;
-  height: 10px;
-  background-color: #444;
-  border-radius: 10px;
-  overflow: hidden;
-  margin: 8px 0;
-}
-
-.skill-progress {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background-color: #e63946;
-  border-radius: 10px;
-  transition: width 0.5s ease;
-}
-
-.skill-value {
-  font-size: 0.9em;
-  color: #bbb;
-}
-
-/* Education with special Master class */
-.skill.education-skill .skill-progress {
-  background: linear-gradient(to right, #e63946, #c62e3a);
-}
-
-.master-certification {
-  color: #e63946;
-  font-weight: bold;
-  font-size: 0.8em;
-  margin-top: 5px;
-}
-
-/* Event notification */
-.event-notification {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #2a2a2a;
-  border-radius: 15px;
-  box-shadow: 0 5px 25px rgba(0,0,0,0.4);
-  padding: 20px;
-  max-width: 90%;
-  width: 350px;
-  z-index: 1000;
-  text-align: center;
-  border: 1px solid #444;
-}
-
-.event-notification h3 {
-  color: #e63946;
-  margin-top: 0;
-  font-size: 1.3em;
-}
-
-.event-notification p {
-  margin: 15px 0;
-  line-height: 1.5;
-  color: #e0e0e0;
-}
-
-.event-notification .event-effects {
-  font-weight: bold;
-  color: #f0f0f0;
-  margin-top: 10px;
-}
-
-.event-notification button {
-  background-color: #e63946;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 50px;
-  cursor: pointer;
-  margin-top: 15px;
-  transition: background-color 0.2s;
-  font-weight: bold;
-  font-size: 1em;
-  min-width: 120px;
-}
-
-.event-notification button:active {
-  transform: scale(0.95);
-  background-color: #c62e3a;
-}
-
-/* Success notification style */
-.event-notification.success h3 {
-  color: #e63946;
-}
-
-/* Warning notification style */
-.event-notification.warning h3 {
-  color: #e9c46a;
-}
-
-/* Error notification style */
-.event-notification.error h3 {
-  color: #e63946;
-}
-
-/* Achievement notification */
-.achievement-notification {
-  background-color: #3a3a3a !important;
-  border: 1px solid #e63946 !important;
-}
-
-.achievement-notification h3 {
-  color: #e63946 !important;
-}
-
-/* Shop section */
-#shop {
-  margin-top: 20px;
-}
-
-.shop-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.shop-item {
-  background-color: #2a2a2a;
-  border-radius: 10px;
-  border: 1px solid #444;
-  padding: 15px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  text-align: center;
-  position: relative;
-}
-
-.shop-item:active {
-  transform: scale(0.98);
-  background-color: #333;
-}
-
-.shop-item.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.shop-item-name {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #f0f0f0;
-}
-
-.shop-item-desc {
-  font-size: 0.9em;
-  color: #bbb;
-  margin-bottom: 10px;
-}
-
-.shop-item-price {
-  font-weight: bold;
-  color: #e63946;
-}
-
-.shop-item-effect {
-  font-size: 0.8em;
-  color: #aaa;
-  margin-top: 5px;
-}
-
-/* Event Log */
-#eventLog {
-  background-color: #2a2a2a;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  margin-top: 20px;
-  padding: 15px;
-  border: 1px solid #444;
-}
-
-#eventLog h3 {
-  font-size: 1.1em;
-  color: #f0f0f0;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#eventEntries {
-  max-height: 150px;
-  overflow-y: auto;
-  padding-right: 10px;
-  scrollbar-width: thin;
-  scrollbar-color: #555 #2a2a2a;
-}
-
-#eventEntries::-webkit-scrollbar {
-  width: 8px;
-}
-
-#eventEntries::-webkit-scrollbar-track {
-  background: #2a2a2a;
-}
-
-#eventEntries::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 10px;
-}
-
-.event-entry {
-  font-size: 0.9em;
-  color: #bbb;
-  margin-bottom: 5px;
-  line-height: 1.4;
-}
-
-.timestamp {
-  font-style: italic;
-  color: #999;
-  margin-right: 5px;
-}
-
-#eventLog.collapsed #eventEntries {
-  display: none;
-}
-
-.small-button {
-  background: none;
-  border: none;
-  color: #e63946;
-  cursor: pointer;
-  font-size: 1em;
-  transition: color 0.3s;
-}
-
-.small-button:hover {
-  color: #c62e3a;
-}
-
-/* Game overlay */
-.game-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.8);
-  z-index: 900;
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 100vh;
 }
 
-/* Mobile optimizations */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 1.6em;
-    margin-bottom: 15px;
-  }
-  
-  h2 {
-    font-size: 1.2em;
-  }
-  
-  #resources {
-    padding: 10px;
-  }
-  
-  #resources span {
-    font-size: 1.2em;
-  }
-  
-  #jobs, #skills, .shop-items {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  
-  .job, .skill, .shop-item {
-    padding: 12px;
-  }
-  
-  .event-notification {
-    width: 85%;
-    padding: 15px;
-  }
-  
-  .event-notification h3 {
-    font-size: 1.1em;
-  }
-  
-  .event-notification button {
-    padding: 10px 20px;
-  }
-
-  #tabMenu {
-    flex-direction: column;
-    align-items: stretch;
-    border-radius: 10px;
-  }
-
-  .tab-button {
-    padding: 8px 12px;
-    margin: 2px 0;
-    border-radius: 5px;
-    text-align: center;
-  }
+#game-container {
+  background-color: #333; /* Slightly lighter container background */
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+  width: 95%; /* Responsive width */
+  max-width: 900px; /* Maximum width */
+  box-sizing: border-box; /* Include padding in width */
 }
 
-/* Animations */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+/* --- Revised Top Bar Styling --- */
+#top-bar {
+  display: flex;             /* Enable Flexbox */
+  flex-wrap: wrap;          /* Allow items to wrap on smaller screens */
+  justify-content: space-around; /* Distribute space evenly */
+  align-items: center;       /* Vertically align items in the center */
+  background-color: #333;     /* Dark background for top bar - same as container */
+  color: #eee;               /* Light text color */
+  padding: 10px 15px;         /* Padding around top bar */
+  box-sizing: border-box;    /* Include padding in width */
+  margin-bottom: 20px;       /* Add margin below top bar */
 }
 
-.pulse {
-  animation: pulse 0.6s ease-in-out;
+#top-bar h3 {
+  margin: 0 0 10px 0; /* Specific margin for top-bar h3 if needed */
+  font-size: 1.2em;
 }
 
-/* Touch-friendly button */
-.action-button {
-  background-color: #e63946;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 50px;
-  cursor: pointer;
+
+#game-state-indicators,
+#active-job-display,
+#job-progress-bar-container,
+#skill-progress-bar-container,
+#game-controls {
+  margin: 5px;             /* Spacing between top bar items */
+  text-align: center;       /* Center text within each item */
+}
+
+.indicator {
+  display: inline-block;    /* Display indicators in a row */
+  margin-right: 15px;      /* Spacing between indicators */
+}
+
+.indicator-label {
   font-weight: bold;
-  font-size: 1em;
-  transition: transform 0.2s, background-color 0.3s;
-  display: inline-block;
-  margin: 5px;
-  min-width: 120px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  margin-right: 5px;
 }
 
-.action-button:active {
-  transform: scale(0.95);
-  background-color: #c62e3a;
+#active-job-display .label {
+  font-weight: bold;
+  margin-right: 5px;
 }
 
-.action-button.green {
-  background-color: #2a9d8f;
-}
-
-.action-button.green:active {
-  background-color: #238579;
-}
-
-.action-button.red {
-  background-color: #e63946;
-}
-
-.action-button.red:active {
-  background-color: #c62e3a;
-}
-
-.action-button.disabled {
-  background-color: #555;
-  cursor: not-allowed;
-}
-
-/* --- Sidebar Styling --- */
-#progress-sidebar {
-  width: 250px; /* Adjust sidebar width as needed */
-  padding: 15px;
-  background-color: #f0f0f0; /* Light grey background for sidebar */
-  border-left: 1px solid #ccc; /* Separator line from main content */
-  box-sizing: border-box; /* Include padding in width calculation */
-  float: right; /* Float to the right */
-  height: 100vh; /* Make it full viewport height - adjust if needed */
-}
-
-#progress-sidebar h3, #progress-sidebar h4 {
-  margin-top: 0; /* Remove top margin from headings */
-  margin-bottom: 10px;
-}
-
-#job-progress-container, #skill-progress-container {
-  margin-bottom: 20px; /* Spacing between job and skill sections */
+/* --- Progress Bar Container Styling (shared) --- */
+.progress-bar-container {
+  width: 180px; /* Adjust progress bar container width */
 }
 
 
-/* --- Progress Bar Styling (from Progress Knight, adjusted) --- */
+/* --- Progress Bar Styling  --- */
 .progress-text {
   position: absolute;
   top: 0px;
   bottom: 0px;
-  padding: 5px;
+  padding: 3px; /* Reduced padding */
   color: white;
-  text-align: center; /* Center text */
-  width: 100%;       /* Span full width */
-  font-size: 0.8em; /* Slightly smaller font */
-  line-height: 1.2em; /* Adjust line height */
+  text-align: center;
+  width: 100%;
+  font-size: 0.75em; /* Further reduced font size */
+  line-height: 1em;
 }
 
 .progress-bar {
   position: relative;
-  background-color: rgb(12, 101, 173); /* Base bar color */
-  border-radius: 5px; /* Rounded corners */
-  overflow: hidden;    /* Clip overflow for rounded corners */
-  width: 100%;        /* Fill container width */
-  height: 20px;       /* Adjust bar height */
-  margin-bottom: 5px; /* Spacing below bar */
+  background-color: rgb(12, 101, 173);
+  border-radius: 4px; /* Slightly less rounded */
+  overflow: hidden;
+  width: 100%;
+  height: 16px; /* Reduced height */
+  margin-top: 3px; /* Spacing above bar */
 }
 
 .progress-fill {
   height: 100%;
-  background-color: rgb(46, 148, 231); /* Fill color */
-  width: 0%;         /* Initial fill width */
-  transition: width 0.3s ease; /* Smooth width animation */
+  background-color: rgb(46, 148, 231);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* --- Game Controls (Buttons) Styling --- */
+#game-controls button {
+  padding: 8px 12px;
+  font-size: 0.9em;
+  border: none;
+  border-radius: 5px;
+  background-color: #555; /* Darker button background */
+  color: #eee;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+#game-controls button:hover {
+  background-color: #777;
+}
+
+
+/* --- Event Log --- */
+#event-log {
+  background-color: #444;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  max-height: 200px; /* Limit height of event log */
+  overflow-y: auto; /* Enable vertical scroll if content overflows */
+}
+
+#event-log h3 {
+  margin-top: 0;
+  font-size: 1.1em;
+}
+
+#event-log-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#event-log-list li {
+  font-size: 0.9em;
+  line-height: 1.4;
+  padding: 2px 0;
+  border-bottom: 1px dotted #666;
+}
+
+#event-log-list li:last-child {
+  border-bottom: none; /* Remove border from last item */
+}
+
+
+/* --- Action Buttons --- */
+#action-buttons {
+  background-color: #444;
+  border-radius: 5px;
+  padding: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  text-align: center; /* Center buttons horizontally */
+}
+
+#action-buttons h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+#action-buttons button {
+  padding: 10px 15px;
+  font-size: 1em;
+  border: none;
+  border-radius: 5px;
+  background-color: #e74c3c; /* Reddish button color */
+  color: white;
+  cursor: pointer;
+  margin: 5px;
+  display: inline-block; /* Ensure inline display for multiple buttons */
+}
+
+#action-buttons button:hover {
+  background-color: #c0392b; /* Darker red on hover */
+}
+
+
+/* --- Hidden Panels (Jobs, Skills, Shop etc.) --- */
+.hidden-panel {
+  display: none; /* Initially hidden */
+  position: fixed; /* Fixed position relative to viewport */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the panel */
+  background-color: #444;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+  z-index: 1000; /* Ensure it's on top of other content */
+  max-height: 80vh; /* Max height to prevent overflowing viewport */
+  overflow-y: auto; /* Enable vertical scrolling if needed */
+  width: 80%; /* Responsive width for panels */
+  max-width: 600px; /* Max width for panels */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+
+.hidden-panel h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.3em;
+  text-align: center; /* Center panel titles */
+}
+
+.hidden-panel ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.hidden-panel li {
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  background-color: #555;
+  border-radius: 4px;
+  font-size: 0.95em;
+  cursor: pointer; /* Indicate clickable items in lists */
+}
+
+.hidden-panel li:hover {
+  background-color: #666;
+}
+
+
+.close-button {
+  display: block; /* Make it take full width */
+  margin-top: 20px;
+  padding: 10px 15px;
+  font-size: 1em;
+  border: none;
+  border-radius: 5px;
+  background-color: #777; /* Grey close button */
+  color: #eee;
+  cursor: pointer;
+  width: 100%; /* Full width within panel */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+.close-button:hover {
+  background-color: #888;
+}
+
+
+/* --- Jobs/Skills List Styling (within panels) --- */
+#jobs-list li, #skills-list li, #shop-items-list li, #achievements-list li, #relationships-list li, #pet-area, #prestige-area {
+  padding: 10px; /* Slightly increased padding for list items */
+  margin-bottom: 8px; /* Slightly increased margin */
+  background-color: #555;
+  border-radius: 4px;
+  font-size: 1em; /* Slightly larger font size */
+  cursor: pointer;
+  transition: background-color 0.2s ease; /* Smooth hover transition */
+  display: flex; /* Enable flexbox for list items */
+  justify-content: space-between; /* Distribute space between text and price/cost */
+  align-items: center; /* Vertically align items */
+}
+
+
+#jobs-list li:hover, #skills-list li:hover, #shop-items-list li:hover, #achievements-list li:hover, #relationships-list li:hover {
+  background-color: #666;
+}
+
+/* --- Shop Item Styling (example - adjust as needed) --- */
+.shop-item-details {
+  flex-grow: 1; /* Allow item details to take up available space */
+}
+
+.shop-item-price {
+  margin-left: 15px; /* Spacing between details and price */
+  font-weight: bold;
+  color: gold; /* Example price color */
+}
+
+
+/* --- Media Queries for Responsiveness (Example) --- */
+
+/* For smaller screens (e.g., mobile) */
+@media (max-width: 768px) {
+  #game-container {
+      padding: 15px; /* Reduce padding on smaller screens */
+      border-radius: 0; /* Remove border-radius on smaller screens */
+      box-shadow: none; /* Remove shadow on smaller screens */
+      width: 100%; /* Full width on smaller screens */
+      max-width: none; /* Remove max-width on smaller screens */
+  }
+
+  #top-bar {
+      padding: 10px; /* Reduce top bar padding on smaller screens */
+      flex-direction: column; /* Stack top bar items vertically on small screens */
+      align-items: stretch; /* Stretch items to full width of top bar */
+      text-align: center; /* Center text in top bar items */
+  }
+
+  #game-state-indicators,
+  #active-job-display,
+  #job-progress-bar-container,
+  #skill-progress-bar-container,
+  #game-controls {
+      margin: 5px 0; /* Adjust vertical margin for stacked items */
+  }
+
+  .indicator {
+      display: block; /* Stack indicators vertically */
+      margin-right: 0;
+      margin-bottom: 5px; /* Add bottom margin between stacked indicators */
+  }
+
+  #action-buttons {
+      padding: 10px; /* Reduce action buttons padding on smaller screens */
+  }
+
+  #action-buttons button {
+      display: block; /* Stack buttons vertically on smaller screens */
+      width: 100%; /* Full width buttons on smaller screens */
+      margin: 5px 0; /* Adjust vertical margin for stacked buttons */
+  }
+
+  .hidden-panel {
+      width: 95%; /* Wider panels on smaller screens */
+      max-width: none; /* Remove max-width for panels on smaller screens */
+      padding: 15px; /* Reduce panel padding on smaller screens */
+      border-radius: 0; /* Remove border-radius for panels on smaller screens */
+      box-shadow: none; /* Remove shadow for panels on smaller screens */
+  }
 }
