@@ -6,7 +6,7 @@ let effectiveTickRate; // Declare effectiveTickRate outside the if block
 
 
 function gameLoop(timestamp) {
-    console.log("gameLoop tick - VERY IMPORTANT CHECK"); // KEEP THIS LOG
+    // console.log("gameLoop tick - VERY IMPORTANT CHECK"); // KEEP THIS LOG
 
     // console.log("gameLoop() - gameState:", gameState); // COMMENT OUT - REDUCED LOGS
     // console.log("gameLoop() - gamePaused:", gameState.gamePaused, "gameSpeed:", gameState.gameSpeed); // COMMENT OUT - REDUCED LOGS

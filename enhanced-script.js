@@ -387,68 +387,31 @@ function setupShopUI() {
 }
 
 function setupJobsUI() {
-    console.log("setupJobsUI() - START");
-    const jobsListElement = document.getElementById('jobs-list');
-    if (!jobsListElement) {
-        console.error("Error: #jobs-list element NOT FOUND in setupJobsUI()!");
-        return;
-    }
-    jobsListElement.innerHTML = '';
-
+    console.log("setupJobsUI() - START - SIMPLIFIED");
     const jobsDiv = document.getElementById('jobs-panel');
     if (!jobsDiv) {
         console.error("Error: #jobs-panel element NOT FOUND in setupJobsUI()!");
         return;
     }
-    jobsDiv.innerHTML = '';
+    jobsDiv.innerHTML = ''; // Clear existing content
 
-    let geoguesserJobs = gameState.jobs.filter(job =>
-        ["Google Maps User", "Geoguesser Noob", "Geoguesser Enthusiast", "Geoguesser Champion"].includes(job.name)
-    );
-
-    if (geoguesserJobs.length === 0) {
-        CONFIG.geoguesserCareerPath.forEach(career => {
-            const newJob = {
-                id: career.title.toLowerCase().replace(/\s+/g, '_'),
-                name: career.title,
-                description: `${career.title} earning ${career.incomePerYear}€ per year with ${career.skillGainPerYear} Map Awareness skill gain per year.`,
-                tiers: [{
-                    name: "Standard",
-                    incomePerYear: career.incomePerYear,
-                    skillReward: {
-                        "Map Awareness": career.skillGainPerYear
-                    },
-                    requiredSkill: {
-                        "Map Awareness": career.minSkill
-                    }
-                }]
-            };
-            gameState.jobs.push(newJob);
-            geoguesserJobs.push(newJob);
-        });
-    }
-
-    geoguesserJobs.forEach(job => {
+    if (gameState.activeJob && gameState.activeJob.name === "Google Maps User") { // Check if active job is Google Maps User
         const jobElement = document.createElement('div');
-        jobElement.classList.add('job');
-
-        if (gameState.activeJob && gameState.activeJob.id === job.id) {
-            jobElement.classList.add('active');
-        }
-
-        const careerInfo = CONFIG.geoguesserCareerPath.find(path => path.title === job.name) || {};
+        jobElement.classList.add('job', 'active', 'available'); // Add 'active' and 'available' classes
 
         const jobHTML = `
-            <div class="job-name">${job.name}</div>
-            <div class="job-desc">${job.description || `${careerInfo.incomePerYear}€ per year, +${careerInfo.skillGainPerYear} Map Awareness skill per year`}</div>
-            <div class="job-requirements">Required Map Awareness skill: ${careerInfo.minSkill || 0}</div>
+            <div class="job-name">Google Maps User (Simplified)</div>
+            <div class="job-desc">Simple starting job for testing.</div>
+            <div class="job-requirements">No requirements</div>
         `;
-
         jobElement.innerHTML = jobHTML;
-        jobElement.classList.add(hasRequiredSkillForJob(job) ? 'available' : 'locked');
         jobsDiv.appendChild(jobElement);
-    });
-    console.log("setupJobsUI() - END");
+    } else { // If no active job or not Google Maps User, display a basic "No Job" message
+        const noJobElement = document.createElement('div');
+        noJobElement.textContent = "No Job Available (Simplified)";
+        jobsDiv.appendChild(noJobElement);
+    }
+    console.log("setupJobsUI() - END - SIMPLIFIED");
 }
 
 function hasRequiredSkillForJob(job) {
@@ -602,7 +565,7 @@ function purchaseItem(item) {
 let currentTick = 0;
 
 function tick() {
-    console.log("tick() - START - Game Tick Started"); // <--- START LOG - TICK FUNCTION
+    console.log("tick() - START - Game Tick Started");
 
     if (gameState.isPaused) {
         console.log("tick() - Game is PAUSED - Exiting tick early");
@@ -612,18 +575,29 @@ function tick() {
     currentTick++;
 
     // ... (game day/year logic - No Changes Needed) ...
-    console.log("tick() - Before if (gameState.activeJob) - gameState.activeJob:", gameState.activeJob); // <-- DEBUG LOG - CHECK gameState.activeJob VALUE BEFORE IF
+    console.log("tick() - Before if (gameState.activeJob) - gameState.activeJob:", gameState.activeJob);
 
     if (gameState.activeJob) {
-        console.log("tick() - activeJob is TRUE - Inside IF block!"); // <-- CONFIRM IF BLOCK IS REACHED - ADDED THIS LOG
+        console.log("tick() - activeJob is TRUE - Inside IF block!");
+        console.log("tick() - Player HAS activeJob:", gameState.activeJob.name);
+        console.log("tick() - gameState.activeJob Object:", gameState.activeJob);
 
-        console.log("tick() - Player HAS activeJob:", gameState.activeJob.name); // Log job name (for clarity)
-        console.log("tick() - gameState.activeJob Object:", gameState.activeJob); // <-- INSPECT activeJob OBJECT (DEBUG LOG)
+        console.log("tick() - Before addResources() - Inspecting gameState.activeJob:");
+        console.log("tick() - gameState.activeJob.id:", gameState.activeJob.id);
+        console.log("tick() - gameState.activeJob.name:", gameState.activeJob.name);
+        console.log("tick() - gameState.activeJob.tiers:", gameState.activeJob.tiers);
 
-        const goldGained = addResources(gameState.activeJob); // <-- CORRECT CALL - addResources() with argument
-        gameState.gameStats.totalGoldEarned += goldGained;
+        const goldGained = addResources(gameState.activeJob); // <-- CORRECT CALL - addResources() with argument - LINE 594 NOW
+        // --- ADD THESE NEW LOGS - INSPECT gameState.gameStats ---
+        console.log("tick() - Before totalGoldEarned update - Inspecting gameState.gameStats:");
+        console.log("tick() - gameState.gameStats:", gameState.gameStats); // Log the entire gameState.gameStats object
+        console.log("tick() - gameState.gameStats.totalGoldEarned:", gameState.gameStats.totalGoldEarned); // Log specifically totalGoldEarned
+        // --- END NEW LOGS ---
+
+        gameState.gameStats.totalGoldEarned += goldGained;     // <-- LINE 595 - ERROR WAS HERE
+
         increaseSkills(gameState.activeJob); // <-- CORRECT CALL - increaseSkills() with argument
-        checkForCareerUpgrade();
+        // checkForCareerUpgrade();  <-- COMMENTED OUT IN SIMPLIFIED VERSION
         gameState.lifeQuality = Math.min(100, gameState.lifeQuality + CONFIG.balancing.workingLifeQualityIncrease);
     } else {
         console.log("tick() - Player has NO activeJob");
@@ -631,38 +605,34 @@ function tick() {
     }
 
     updateDisplay();
-    console.log("tick() - END - Game Tick Ended"); // <--- END LOG - TICK FUNCTION
+    console.log("tick() - END - Game Tick Ended");
 }
 
 function setInitialJob() {
-    console.log("setInitialJob() - START");
-    const googleMapsJob = CONFIG.geoguesserCareerPath.find(career => {
-        console.log("setInitialJob() - find() - Comparing career.title:", career.title, "with target:", "Google Maps User"); // <-- ADD THIS LOG
-        return career.title === "Google Maps User";
-    });
-    console.log("setInitialJob() - After find - googleMapsJob:", googleMapsJob); // LOG googleMapsJob
+    console.log("setInitialJob() - START - SIMPLIFIED");
 
-    if (googleMapsJob) {
-        console.log("setInitialJob() - googleMapsJob FOUND"); // LOG FOUND PATH
-        gameState.activeJob = googleMapsJob;
-        gameState.currentJobTier = 0;
-        console.log("setInitialJob() - gameState.activeJob SET to existing job:", gameState.activeJob); // LOG gameState.activeJob
-    } else {
-        console.log("setInitialJob() - googleMapsJob NOT FOUND - Creating new job"); // LOG NOT FOUND PATH
-        const newJob = {
-            // ... (newJob definition) ...
-        };
-        gameState.jobs.push(newJob);
-        gameState.activeJob = newJob;
-        gameState.currentJobTier = 0;
-        console.log("setInitialJob() - gameState.activeJob SET to NEW job:", gameState.activeJob); // LOG gameState.activeJob
-    }
-    console.log("setInitialJob() - END"); // LOG END
+    const googleMapsJob = { // Directly define the job object
+        id: 'google-maps-user',
+        name: "Google Maps User",
+        description: "Starting job - contributing to Google Maps.",
+        tiers: [{
+            name: "Standard",
+            incomePerYear: 2,
+            skillReward: {
+                "Map Awareness": 0.5
+            },
+            requiredSkill: {
+                "Map Awareness": 0
+            }
+        }]
+    };
+
+    gameState.activeJob = googleMapsJob;
+    gameState.currentJobTier = 0;
+
+    console.log("setInitialJob() - gameState.activeJob SET to DIRECTLY CREATED job:", gameState.activeJob); // Log
+    console.log("setInitialJob() - END - SIMPLIFIED");
 }
-
-function tick() {  // <---------------------- ADD THIS TICK() FUNCTION HERE
-    console.log("tick() function called!"); // Debug log to confirm tick is running
-}                  // <---------------------- END OF TICK() FUNCTION
 
 async function loadGameDataFromServer() {
     try {
@@ -732,31 +702,31 @@ function updateSkillProgressBar() {
     console.log("updateSkillProgressBar() - Placeholder function called");
 }
 
-function addResources(job) { // <-- ADD LOG AT START OF FUNCTION
-    //console.log("addResources() - START - Job:", job ? job.name : 'No Job'); // <-- ADD THIS LOG - addResources START
+function addResources(job) {
+    console.log("addResources() - START - Job:", job); // <-- ADD THIS LOG
 
     if (!job || !job.tiers || job.tiers.length === 0) {
         console.error("addResources() - Invalid job data:", job);
-        return 0; // Return 0 gold if job data is invalid
+        return 0;
     }
 
-    const currentTier = job.tiers[gameState.currentJobTier] || job.tiers[0]; // Get current job tier
+    const currentTier = job.tiers[gameState.currentJobTier] || job.tiers[0];
+    console.log("addResources() - currentTier:", currentTier); // <-- ADD THIS LOG
+    console.log("addResources() - currentTier.incomePerYear:", currentTier.incomePerYear); // <-- ADD THIS LOG
+    console.log("addResources() - CONFIG.settings.ticksInOneGameYear:", CONFIG.settings.ticksInOneGameYear); // <-- ADD THIS LOG
 
-    const incomePerTick = currentTier.incomePerYear / CONFIG.settings.ticksInOneGameYear; // Calculate income per tick
+    const incomePerTick = currentTier.incomePerYear / CONFIG.settings.ticksInOneGameYear;
+    console.log("addResources() - incomePerTick:", incomePerTick); // <-- ADD THIS LOG
 
     if (isNaN(incomePerTick)) {
         console.error("addResources() - Invalid incomePerTick calculation - incomePerYear:", currentTier.incomePerYear, "ticksInOneGameYear:", CONFIG.settings.ticksInOneGameYear);
-        return 0; // Return 0 gold if income calculation is invalid
+        return 0;
     }
 
-
-    gameState.gold += incomePerTick; // Add income to gold - FINALLY!
-
-    // --- Progress Bar Update Logic (Placeholder - To be implemented later) ---
-    updateJobProgressBar(); // Call placeholder function - we'll implement real logic soon
-
-    // console.log("addResources() - END - Gold:", gameState.gold); // <-- ADD THIS LOG - addResources END
-    return incomePerTick; // Return the gold gained in this tick
+    gameState.gold += incomePerTick;
+    updateJobProgressBar();
+    console.log("addResources() - END - incomePerTick:", incomePerTick); // <-- ADD THIS LOG
+    return incomePerTick;
 }
 
 function increaseSkills(job) { // <-- ADD LOG AT START OF FUNCTION
