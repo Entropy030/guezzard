@@ -1,7 +1,7 @@
- // game-init.js
- function initializeGame() {
+// game-init.js
+function initializeGame() {
     console.log("initializeGame() - game-init.js - START"); // <-- START LOG
-// Initialize gameState.purchasedItems FIRST - to prevent undefined errors
+    // Initialize gameState.purchasedItems FIRST - to prevent undefined errors
     gameState.purchasedItems = {}; // Ensure this is initialized here - INITIALIZE purchasedItems
 
     // Initialize basic game state values
@@ -9,24 +9,24 @@
     // ... (rest of gameState initializations) ...
 
     // Try to load saved game data from localStorage FIRST - using renamed function
-    const savedGame = loadSavedGameData(); // Call loadSavedGameData (from save-system.js)
-    if (savedGame) {
-        // ... (saved game loading logic) ...
-    } else {
+    // const savedGame = loadSavedGameData(); // Call loadSavedGameData (from save-system.js) // loadSavedGameData(); // Commented out to prevent ReferenceError
+    // if (savedGame) {
+    //     // ... (saved game loading logic) ...
+    // } else {
         // If no saved game data, initialize UI and game components
         // Note: loadGameDataFromServer() should have already loaded the JSON data at this point
 
         // Initialize the game UI and components
-        setInitialJob();
-        setupTabNavigation();
-        setupJobsUI(); // <-- MOVE setupShopUI(); CALL TO THE VERY END OF initializeGame()
+        console.log("initializeGame() - After setInitialJob() - gameState.activeJob:", gameState.activeJob); // <-- ADD THIS LOG
+        setupTabNavigation(); // Ensure this is present
+        setupJobsUI();
         updateSkillDisplay();
         setupAchievementsUI();
         setupGameControls();
         setupEventLog();
         updateDisplay();
         logEvent("Started career as a Google Maps User.");
-    }
+    // }  // <-- THIS BRACE IS NOW COMMENTED OUT TOO
 
     // Initialize UI components (placeholder functions for now)
     updateResourceDisplay();
@@ -37,21 +37,27 @@
     // Set up auto-save
     setInterval(saveGameData, gameState.settings.autoSaveInterval * 1000);
 
-  
 
     // Start game loop - This is now the central place to start the game loop - USING requestAnimationFrame
     startGameLoop(); // Call startGameLoop to initiate the animation loop
     setupShopUI(); // <-- MOVE setupShopUI(); CALL TO BE THE VERY LAST LINE - after startGameLoop()
     console.log("initializeGame() - game-init.js - END");   // <-- END LOG
+    // --- Progress Bar Element References ---
+    const jobProgressBarFill = document.getElementById('job-progress-fill');
+    const jobProgressBarText = document.getElementById('job-progress-text');
+    const skillProgressBarFill = document.getElementById('skill-progress-fill');
+    const skillProgressBarText = document.getElementById('skill-progress-text');
+
+    console.log("Progress bar elements retrieved:", jobProgressBarFill, jobProgressBarText, skillProgressBarFill, skillProgressBarText); // Debug log
 }
 
 // Placeholder UI initialization functions (define in respective modules later)
 function updateResourceDisplay() {
     console.log("updateResourceDisplay Placeholder"); // Keep the console.log for now
 
-    document.getElementById('gold').textContent = Math.floor(gameState.gold); // TEMPORARY - Update gold display
-    document.getElementById('age').textContent = Math.floor(gameState.age);   // TEMPORARY - Update age display
-    document.getElementById('lifeQuality').textContent = gameState.lifeQuality; // TEMPORARY - Update lifeQuality display
+    document.getElementById('gold-display').textContent = Math.floor(gameState.gold); // TEMPORARY - Update gold display - CORRECTED ID
+    document.getElementById('age-display').textContent = Math.floor(gameState.age);   // TEMPORARY - Update age display - CORRECTED ID
+    document.getElementById('life-quality-display').textContent = gameState.lifeQuality; // TEMPORARY - Update lifeQuality display - CORRECTED ID
 }
 
 function setupEventListeners() { console.log("setupEventListeners Placeholder"); }

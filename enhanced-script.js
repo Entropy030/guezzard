@@ -16,42 +16,24 @@ function showErrorNotification(message) {
     alert(`Error: ${message}`);
 }
 
-function logEvent(message, type = 'info') {
-    const event = {
-        message,
-        type,
-        timestamp: `Age ${gameState.age}` // Accessing age via gameState
-    };
-    gameState.eventLog.push(event); // Accessing eventLog via gameState
-
-    // Limit eventLog to last 5 messages - ADD THESE LINES
-    const maxLogEntries = 5;
-    if (gameState.eventLog.length > maxLogEntries) {
-        gameState.eventLog.shift(); // Remove the oldest entry
+function logEvent(message) {
+    console.log("logEvent() - START - Message:", message);
+    const eventLogList = document.getElementById('event-log-list');
+    if (!eventLogList) {
+        console.error("Error: #event-log-list element NOT FOUND in logEvent()! Cannot log event:", message);
+        return;
     }
-
-    const eventLogElement = document.getElementById('eventLog');
-    eventLogElement.innerHTML = ''; // Clear the event log display
-
-    // Re-render only the last 'maxLogEntries' events - MODIFY THIS LOOP
-    const startIdx = Math.max(0, gameState.eventLog.length - maxLogEntries);
-    for (let i = startIdx; i < gameState.eventLog.length; i++) {
-        const eventEntry = gameState.eventLog[i];
-        const eventElement = document.createElement('div');
-        eventElement.classList.add('event-log-entry');
-        if (type === 'promotion') {
-            eventElement.classList.add('promotion-event');
-        } else if (type === 'news') {
-            eventElement.classList.add('news-event');
-        }
-        eventElement.textContent = `${eventEntry.timestamp}: ${eventEntry.message}`;
-        eventLogElement.appendChild(eventElement);
+    const newEventItem = document.createElement('li');
+    newEventItem.textContent = message;
+    eventLogList.prepend(newEventItem);
+    if (eventLogList.children.length > 10) {
+        eventLogList.removeChild(eventLogList.lastElementChild);
     }
-    eventLogElement.scrollTop = eventLogElement.scrollHeight;
+    console.log("logEvent() - END - Message:", message);
 }
 
 function checkForCareerUpgrade() {
-    const mapSkill = gameState.skills["Map Awareness"] || 0; // Accessing skills via gameState
+    const mapSkill = gameState.skills["Map Awareness"] || 0;
     let highestEligibleCareer = null;
     let highestEligibleCareerIndex = -1;
 
@@ -66,11 +48,11 @@ function checkForCareerUpgrade() {
 
     if (!highestEligibleCareer) return;
 
-    const currentCareerIndex = CONFIG.geoguesserCareerPath.findIndex(career => career.title === gameState.activeJob.name); // Accessing activeJob via gameState
+    const currentCareerIndex = CONFIG.geoguesserCareerPath.findIndex(career => career.title === gameState.activeJob.name);
 
     if (highestEligibleCareerIndex > currentCareerIndex) {
         const newCareer = highestEligibleCareer;
-        let newJob = gameState.jobs.find(job => job.name === newCareer.title); // Accessing jobs via gameState
+        let newJob = gameState.jobs.find(job => job.name === newCareer.title);
 
         if (!newJob) {
             newJob = {
@@ -88,10 +70,10 @@ function checkForCareerUpgrade() {
                     }
                 }]
             };
-            gameState.jobs.push(newJob); // Accessing jobs via gameState
+            gameState.jobs.push(newJob);
         }
 
-        gameState.activeJob = newJob; // Accessing activeJob via gameState
+        gameState.activeJob = newJob;
         gameState.currentJobTier = 0;
         logEvent(`You were promoted to ${newCareer.title}! New income: ${newCareer.incomePerYear}€ per year.`);
         setupJobsUI();
@@ -116,35 +98,35 @@ function triggerRandomNewsTickerEvent() {
 }
 
 function checkAchievements() {
-    gameState.achievements.forEach(achievement => { // Accessing achievements via gameState
-        if (!gameState.unlockedAchievements) { // <-- ADD THIS NULL CHECK - Temporary safety measure
-            console.warn("gameState.unlockedAchievements is undefined in checkAchievements() - Potential scope issue"); // Optional warning log
-            return; // Skip this iteration if gameState.unlockedAchievements is undefined
+    gameState.achievements.forEach(achievement => {
+        if (!gameState.unlockedAchievements) {
+            console.warn("gameState.unlockedAchievements is undefined in checkAchievements() - Potential scope issue");
+            return;
         }
-        if (gameState.unlockedAchievements.includes(achievement.id)) return; // Accessing unlockedAchievements via gameState  <-- LINE 141 - ERROR POINT
+        if (gameState.unlockedAchievements.includes(achievement.id)) return;
 
         let isUnlocked = false;
 
         switch (achievement.condition.type) {
             case 'gold':
-                isUnlocked = gameState.gold >= achievement.condition.value; // Accessing gold via gameState
+                isUnlocked = gameState.gold >= achievement.condition.value;
                 break;
             case 'age':
-                isUnlocked = gameState.age >= achievement.condition.value; // Accessing age via gameState
+                isUnlocked = gameState.age >= achievement.condition.value;
                 break;
             case 'skill':
-                isUnlocked = gameState.skills[achievement.condition.skill] >= achievement.condition.value; // Accessing skills via gameState
+                isUnlocked = gameState.skills[achievement.condition.skill] >= achievement.condition.value;
                 break;
             case 'job':
-                isUnlocked = gameState.activeJob && gameState.activeJob.name === achievement.condition.jobName; // Accessing activeJob via gameState
+                isUnlocked = gameState.activeJob && gameState.activeJob.name === achievement.condition.jobName;
                 break;
             case 'mapSkill':
-                isUnlocked = gameState.skills["Map Awareness"] >= achievement.condition.value; // Accessing skills via gameState
+                isUnlocked = gameState.skills["Map Awareness"] >= achievement.condition.value;
                 break;
         }
 
         if (isUnlocked) {
-            gameState.unlockedAchievements.push(achievement.id); // Accessing unlockedAchievements via gameState
+            gameState.unlockedAchievements.push(achievement.id);
             logEvent(`Achievement unlocked: ${achievement.name}`);
             showNotification("Achievement Unlocked", achievement.name, "success");
         }
@@ -154,10 +136,10 @@ function checkAchievements() {
 }
 
 function endGame() {
-    clearInterval(gameState.tickIntervalId); // Accessing tickIntervalId via gameState
+    clearInterval(gameState.tickIntervalId);
     showNotification("Game Over", "You have reached the end of your life.", "info");
 
-    const finalMapSkill = gameState.skills["Map Awareness"] || 0; // Accessing skills via gameState
+    const finalMapSkill = gameState.skills["Map Awareness"] || 0;
     let finalCareerTitle = "Google Maps User";
 
     for (let i = CONFIG.geoguesserCareerPath.length - 1; i >= 0; i--) {
@@ -167,7 +149,7 @@ function endGame() {
         }
     }
 
-    logEvent(`You ended your career as a ${finalCareerTitle} with ${finalMapSkill} map skill and ${Math.floor(gameState.gold)}€.`); // Accessing gold via gameState
+    logEvent(`You ended your career as a ${finalCareerTitle} with ${finalMapSkill} map skill and ${Math.floor(gameState.gold)}€.`);
 }
 
 // -----------------------------------------------------------------------------
@@ -190,22 +172,47 @@ function setupTabNavigation() {
 }
 
 function setupGameControls() {
-    const pauseButton = document.getElementById('pauseButton');
-    const speedButton = document.getElementById('speedButton');
+    console.log("setupGameControls() - START");
+    const pauseButton = document.getElementById('pause-button');
+    const speedButton = document.getElementById('speed-button');
 
-    pauseButton.addEventListener('click', toggleGamePause);
-    speedButton.addEventListener('click', cycleGameSpeed);
+    if (!pauseButton) {
+        console.error("Error: #pause-button element NOT FOUND in setupGameControls()!");
+        return;
+    }
+    if (!speedButton) {
+        console.error("Error: #speed-button element NOT FOUND in setupGameControls()!");
+        return;
+    }
+
+    pauseButton.addEventListener('click', function() {
+        gameState.gamePaused = !gameState.gamePaused;
+        if (gameState.gamePaused) {
+            pauseButton.textContent = '▶ Resume';
+        } else {
+            pauseButton.textContent = '|| Pause';
+        }
+        console.log("Pause button toggled, gamePaused:", gameState.gamePaused);
+    });
+
+    speedButton.addEventListener('click', function() {
+        gameState.gameSpeed = (gameState.gameSpeed % 3) + 1;
+        speedButton.textContent = '▶ ' + gameState.gameSpeed + 'x Speed';
+        console.log("Speed button clicked, gameSpeed:", gameState.gameSpeed);
+    });
+
+    console.log("setupGameControls() - END");
 }
 
 function toggleGamePause() {
-    gameState.isPaused = !gameState.isPaused; // Accessing isPaused via gameState
+    gameState.isPaused = !gameState.isPaused;
     const pauseButton = document.getElementById('pauseButton');
 
-    if (gameState.isPaused) { // Accessing isPaused via gameState
-        clearInterval(gameState.tickIntervalId); // Accessing tickIntervalId via gameState
+    if (gameState.isPaused) {
+        clearInterval(gameState.tickIntervalId);
         pauseButton.innerHTML = `<i class="fas fa-play"></i> ${CONFIG.uiText.resumeButton}`;
     } else {
-        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState
+        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier);
         pauseButton.innerHTML = `<i class="fas fa-pause"></i> ${CONFIG.uiText.pauseButton}`;
     }
 }
@@ -215,9 +222,9 @@ function cycleGameSpeed() {
     const nextIndex = (currentIndex + 1) % CONFIG.settings.speedMultipliers.length;
     speedMultiplier = CONFIG.settings.speedMultipliers[nextIndex];
 
-    if (!gameState.isPaused) { // Accessing isPaused via gameState
-        clearInterval(gameState.tickIntervalId); // Accessing tickIntervalId via gameState
-        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier); // Accessing tickIntervalId via gameState
+    if (!gameState.isPaused) {
+        clearInterval(gameState.tickIntervalId);
+        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier);
     }
 
     const speedButton = document.getElementById('speedButton');
@@ -225,10 +232,22 @@ function cycleGameSpeed() {
 }
 
 function updateSkillDisplay() {
-    const skillsDiv = document.getElementById("skills");
+    console.log("updateSkillDisplay() - START");
+    const skillsListElement = document.getElementById('skills-list');
+    if (!skillsListElement) {
+        console.error("Error: #skills-list element NOT FOUND in updateSkillDisplay()!");
+        return;
+    }
+    skillsListElement.innerHTML = '';
+
+    const skillsDiv = document.getElementById("skills-panel");
+    if (!skillsDiv) {
+        console.error("Error: #skills-panel element NOT FOUND in updateSkillDisplay()!");
+        return;
+    }
     skillsDiv.innerHTML = '';
 
-    const mapSkill = gameState.skills["Map Awareness"] || 0; // Accessing skills via gameState
+    const mapSkill = gameState.skills["Map Awareness"] || 0;
     let currentCareer = CONFIG.geoguesserCareerPath[0];
     let nextCareer = CONFIG.geoguesserCareerPath[1];
 
@@ -250,34 +269,34 @@ function updateSkillDisplay() {
         progressText = `${mapSkill}/${nextCareer.minSkill} to ${nextCareer.title}`;
     }
 
-    const skillElement = document.createElement('div');
-    skillElement.classList.add('skill');
-    skillElement.classList.add('map-skill');
+    const mapSkillLi = document.createElement('li');
+        mapSkillLi.classList.add('skill');
+        mapSkillLi.classList.add('map-skill');
 
-    const skillHTML = `
-        <div class="skill-name"><i class="fas fa-map-marked-alt"></i> Map Awareness</div>
-        <div class="skill-level">
-            <div class="skill-progress" style="width: ${progressPercentage}%"></div>
-        </div>
-        <div class="skill-value">Level ${mapSkill}</div>
-        <div class="skill-progress-text">${progressText}</div>
-    `;
+        const mapSkillHTML = `
+            <div class="skill-name"><i class="fas fa-map-marked-alt"></i> Map Awareness</div>
+            <div class="skill-level">
+                <div class="skill-progress" style="width: ${progressPercentage}%"></div>
+            </div>
+            <div class="skill-value">Level ${mapSkill}</div>
+            <div class="skill-progress-text">${progressText}</div>
+        `;
 
-    skillElement.innerHTML = skillHTML;
-    skillsDiv.appendChild(skillElement);
+        mapSkillLi.innerHTML = mapSkillHTML;
+        skillsListElement.appendChild(mapSkillLi);
 
-    for (const skillName in gameState.skills) { // Accessing skills via gameState
+    for (const skillName in gameState.skills) {
         if (skillName === 'Map Awareness') continue;
 
-        const skillLevel = gameState.skills[skillName]; // Accessing skills via gameState
+        const skillLevel = gameState.skills[skillName];
         const skillConfig = CONFIG.skillConfig[skillName] || {
             description: "Your proficiency in this skill.",
             maxLevel: 100,
             icon: "fa-star"
         };
 
-        const otherSkillElement = document.createElement('div');
-        otherSkillElement.classList.add('skill');
+        const otherSkillLi = document.createElement('li');
+        otherSkillLi.classList.add('skill');
 
         const iconClass = `fas ${skillConfig.icon || 'fa-star'}`;
         const progressWidth = Math.min(skillLevel, 100);
@@ -290,9 +309,11 @@ function updateSkillDisplay() {
             <div class="skill-value">Level ${skillLevel}</div>
         `;
 
-        otherSkillElement.innerHTML = otherSkillHTML;
-        skillsDiv.appendChild(otherSkillElement);
+        otherSkillLi.innerHTML = otherSkillHTML;
+        skillsListElement.appendChild(otherSkillLi);
     }
+
+    console.log("updateSkillDisplay() - END");
 }
 
 function setupShopUI() {
@@ -301,18 +322,17 @@ function setupShopUI() {
 
     shopDiv.innerHTML = '';
 
-    
     CONFIG.shopItems.forEach(item => {
-        if (!gameState.purchasedItems) { // <-- ADD THIS NULL CHECK - Temporary safety measure
-            console.warn("gameState.purchasedItems is undefined in setupShopUI() - Potential timing issue"); // Optional warning log
-            return; // Skip this iteration if gameState.purchasedItems is undefined
+        if (!gameState.purchasedItems) {
+            console.warn("gameState.purchasedItems is undefined in setupShopUI() - Potential timing issue");
+            return;
         }
 
-        const timesUsed = gameState.purchasedItems[item.id] || 0; // Accessing purchasedItems via gameState
+        const timesUsed = gameState.purchasedItems[item.id] || 0;
         const isDisabled = item.maxPurchases && timesUsed >= item.maxPurchases;
 
         let isMissingSkill = false;
-        if (item.requiresSkill && !gameState.skills[item.requiresSkill]) { // Accessing skills via gameState
+        if (item.requiresSkill && !gameState.skills[item.requiresSkill]) {
             isMissingSkill = true;
         }
 
@@ -344,17 +364,17 @@ function setupShopUI() {
                 return;
             }
 
-            if (gameState.gold >= item.price) { // Accessing gold via gameState
+            if (gameState.gold >= item.price) {
                 purchaseItem(item);
                 itemElement.classList.add('pulse');
                 setTimeout(() => itemElement.classList.remove('pulse'), 600);
 
-                if (item.maxPurchases && gameState.purchasedItems[item.id] >= item.maxPurchases) { // Accessing purchasedItems via gameState
+                if (item.maxPurchases && gameState.purchasedItems[item.id] >= item.maxPurchases) {
                     setupShopUI();
                 } else {
                     const effectElement = itemElement.querySelector('.shop-item-effect');
                     if (effectElement && item.maxPurchases) {
-                        effectElement.textContent = `Used: ${gameState.purchasedItems[item.id]}/${item.maxPurchases}`; // Accessing purchasedItems via gameState
+                        effectElement.textContent = `Used: ${gameState.purchasedItems[item.id]}/${item.maxPurchases}`;
                     }
                 }
             } else {
@@ -367,10 +387,22 @@ function setupShopUI() {
 }
 
 function setupJobsUI() {
-    const jobsDiv = document.getElementById('jobs');
+    console.log("setupJobsUI() - START");
+    const jobsListElement = document.getElementById('jobs-list');
+    if (!jobsListElement) {
+        console.error("Error: #jobs-list element NOT FOUND in setupJobsUI()!");
+        return;
+    }
+    jobsListElement.innerHTML = '';
+
+    const jobsDiv = document.getElementById('jobs-panel');
+    if (!jobsDiv) {
+        console.error("Error: #jobs-panel element NOT FOUND in setupJobsUI()!");
+        return;
+    }
     jobsDiv.innerHTML = '';
 
-    let geoguesserJobs = gameState.jobs.filter(job => // Accessing jobs via gameState
+    let geoguesserJobs = gameState.jobs.filter(job =>
         ["Google Maps User", "Geoguesser Noob", "Geoguesser Enthusiast", "Geoguesser Champion"].includes(job.name)
     );
 
@@ -384,14 +416,14 @@ function setupJobsUI() {
                     name: "Standard",
                     incomePerYear: career.incomePerYear,
                     skillReward: {
-                        "Map Awareness": career.skillGainPerYear // Corrected name
+                        "Map Awareness": career.skillGainPerYear
                     },
                     requiredSkill: {
-                        "Map Awareness": career.minSkill // Corrected name
+                        "Map Awareness": career.minSkill
                     }
                 }]
             };
-            gameState.jobs.push(newJob); // Accessing jobs via gameState
+            gameState.jobs.push(newJob);
             geoguesserJobs.push(newJob);
         });
     }
@@ -400,7 +432,7 @@ function setupJobsUI() {
         const jobElement = document.createElement('div');
         jobElement.classList.add('job');
 
-        if (gameState.activeJob && gameState.activeJob.id === job.id) { // Accessing activeJob via gameState
+        if (gameState.activeJob && gameState.activeJob.id === job.id) {
             jobElement.classList.add('active');
         }
 
@@ -416,12 +448,13 @@ function setupJobsUI() {
         jobElement.classList.add(hasRequiredSkillForJob(job) ? 'available' : 'locked');
         jobsDiv.appendChild(jobElement);
     });
+    console.log("setupJobsUI() - END");
 }
 
 function hasRequiredSkillForJob(job) {
     if (job.tiers && job.tiers[0].requiredSkill) {
         for (const skillName in job.tiers[0].requiredSkill) {
-            if (!gameState.skills[skillName] || gameState.skills[skillName] < job.tiers[0].requiredSkill[skillName]) { // Accessing skills via gameState
+            if (!gameState.skills[skillName] || gameState.skills[skillName] < job.tiers[0].requiredSkill[skillName]) {
                 return false;
             }
         }
@@ -430,42 +463,60 @@ function hasRequiredSkillForJob(job) {
 }
 
 function setupAchievementsUI() {
-    const achievementsDiv = document.getElementById('achievements');
-    achievementsDiv.innerHTML = '';
+    console.log("setupAchievementsUI() - START");
+    const achievementsListElement = document.getElementById('achievements-list');
+    if (!achievementsListElement) {
+        console.error("Error: #achievements-list element NOT FOUND in setupAchievementsUI()!");
+        return;
+    }
+    achievementsListElement.innerHTML = '';
 
-    gameState.achievements.forEach(achievement => { // Accessing achievements via gameState
-        const achievementElement = document.createElement('div');
-        achievementElement.classList.add('achievement');
+    gameState.achievements.forEach(achievement => {
+        const listItem = document.createElement('li'); // **DECLARE listItem HERE - BEFORE if statement**
+        listItem.classList.add('achievement-item');
 
-        if (gameState.unlockedAchievements.includes(achievement.id)) { // Accessing unlockedAchievements via gameState
-            achievementElement.classList.add('unlocked');
+        if (gameState.unlockedAchievements.includes(achievement.id)) return; // Now listItem is ALWAYS declared
+
+        let description = achievement.description;
+        if (achievement.type === 'jobTier') {
+            const job = gameState.jobs.find(j => j.id === achievement.jobId);
+            if (job) {
+                const tier = job.tiers.find(t => t.tier === achievement.tier);
+                if (tier) {
+                    description = achievement.description.replace("{}", tier.name);
+                }
+            }
         }
 
-        const achievementHTML = `
+        listItem.innerHTML = `
             <div class="achievement-name">${achievement.name}</div>
-            <div class="achievement-desc">${achievement.description}</div>
+            <div class="achievement-description">${description}</div>
         `;
-
-        achievementElement.innerHTML = achievementHTML;
-        achievementsDiv.appendChild(achievementElement);
+        achievementsListElement.appendChild(listItem);
     });
+
+    console.log("setupAchievementsUI() - END");
 }
 
 function setupEventLog() {
-    const toggleEventLogButton = document.getElementById('toggleEventLog');
-    const eventLogElement = document.getElementById('eventLog');
+    console.log("setupEventLog() - START");
+    const eventLogElement = document.getElementById('event-log');
+    if (!eventLogElement) {
+        console.error("Error: #event-log element NOT FOUND in setupEventLog()!");
+        return;
+    }
 
-    toggleEventLogButton.addEventListener('click', () => {
-        gameState.isEventLogCollapsed = !gameState.isEventLogCollapsed; // Accessing isEventLogCollapsed via gameState
+    const eventLogList = document.getElementById('event-log-list');
+    if (!eventLogList) {
+        console.error("Error: #event-log-list element NOT FOUND in setupEventLog()!");
+        return;
+    }
 
-        if (gameState.isEventLogCollapsed) { // Accessing isEventLogCollapsed via gameState
-            eventLogElement.classList.add('collapsed');
-            toggleEventLogButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
-        } else {
-            eventLogElement.classList.remove('collapsed');
-            toggleEventLogButton.innerHTML = '<i class="fas fa-chevron-up"></i>';
-        }
+    eventLogElement.addEventListener('click', function() {
+        console.log("Event log clicked!");
     });
+
+    console.log("setupEventLog() - END");
 }
 
 // -----------------------------------------------------------------------------
@@ -473,36 +524,49 @@ function setupEventLog() {
 // -----------------------------------------------------------------------------
 
 function updateDisplay() {
-    document.getElementById('gold').textContent = Math.floor(gameState.gold); // Accessing gold via gameState
-    document.getElementById('age').textContent = gameState.age; // Accessing age via gameState
-    document.getElementById('lifeQuality').textContent = gameState.lifeQuality; // Accessing lifeQuality via gameState
+    console.log("updateDisplay() - START");
+    const goldDisplay = document.getElementById('gold-display');
+    const ageDisplay = document.getElementById('age-display');
+    const lifeQualityDisplay = document.getElementById('life-quality-display');
+    const currentJobNameDisplay = document.getElementById('current-job-name');
 
-    const activeJobContainer = document.getElementById('activeJobContainer');
-    const activeJobElement = document.getElementById('activeJob');
-
-    if (gameState.activeJob) { // Accessing activeJob via gameState
-        const currentCareerIndex = CONFIG.geoguesserCareerPath.findIndex(career => career.title === gameState.activeJob.name); // Accessing activeJob via gameState
-        const currentCareer = CONFIG.geoguesserCareerPath[currentCareerIndex];
-
-        if (currentCareer) {
-            activeJobElement.textContent = currentCareer.title;
-            activeJobContainer.style.display = 'block';
-        } else {
-            activeJobElement.textContent = gameState.activeJob.name; // Accessing activeJob via gameState
-            activeJobContainer.style.display = 'block';
-        }
-    } else {
-        activeJobElement.textContent = "None";
-        activeJobContainer.style.display = 'block';
+    if (!goldDisplay) {
+        console.error("Error: #gold-display element NOT FOUND in updateDisplay()!");
+        return;
+    }
+    if (!ageDisplay) {
+        console.error("Error: #age-display element NOT FOUND in updateDisplay()!");
+        return;
+    }
+    if (!lifeQualityDisplay) {
+        console.error("Error: #life-quality-display element NOT FOUND in updateDisplay()!");
+        return;
+    }
+    if (!currentJobNameDisplay) {
+        console.error("Error: #current-job-name element NOT FOUND in updateDisplay()!");
+        return;
     }
 
-    updateSkillDisplay();
+    goldDisplay.textContent = Math.floor(gameState.gold);
+    ageDisplay.textContent = Math.floor(gameState.age);
+    lifeQualityDisplay.textContent = gameState.lifeQuality;
+
+    if (gameState.activeJob) {
+        currentJobNameDisplay.textContent = gameState.activeJob.name;
+    } else {
+        currentJobNameDisplay.textContent = "Unemployed";
+    }
+
+    updateJobProgressBar();
+    updateSkillProgressBar();
+
+    console.log("updateDisplay() - END");
 }
 
 function purchaseItem(item) {
-    gameState.gold -= item.price; // Accessing gold via gameState
-    gameState.gameStats.itemsPurchased++; // Accessing gameStats via gameState
-    gameState.purchasedItems[item.id] = (gameState.purchasedItems[item.id] || 0) + 1; // Accessing purchasedItems via gameState
+    gameState.gold -= item.price;
+    gameState.gameStats.itemsPurchased++;
+    gameState.purchasedItems[item.id] = (gameState.purchasedItems[item.id] || 0) + 1;
 
     logEvent(`You purchased ${item.name}!`);
 
@@ -512,8 +576,8 @@ function purchaseItem(item) {
 
         switch (effectType) {
             case 'maxAge':
-                gameState.maxAge += effectValue; // Accessing maxAge via gameState
-                showNotification("Life Extended!", `Your maximum age is now ${gameState.maxAge}!`, "success"); // Accessing maxAge via gameState
+                gameState.maxAge += effectValue;
+                showNotification("Life Extended!", `Your maximum age is now ${gameState.maxAge}!`, "success");
                 break;
             case 'goldMultiplier':
                 gameState.multipliers.gold += effectValue;
@@ -525,7 +589,7 @@ function purchaseItem(item) {
                 break;
             default:
                 if (CONFIG.skillConfig[effectType]) {
-                    gameState.skills[effectType] = (gameState.skills[effectType] || 0) + effectValue; // Accessing skills via gameState
+                    gameState.skills[effectType] = (gameState.skills[effectType] || 0) + effectValue;
                     showNotification("Skill Increased!", `Your ${effectType} skill increased by ${effectValue}!`, "success");
                 }
                 break;
@@ -535,91 +599,83 @@ function purchaseItem(item) {
     updateDisplay();
 }
 
+let currentTick = 0;
+
 function tick() {
-    if (gameState.isPaused) return; // Accessing isPaused via gameState
+    console.log("tick() - START - Game Tick Started"); // <--- START LOG - TICK FUNCTION
+
+    if (gameState.isPaused) {
+        console.log("tick() - Game is PAUSED - Exiting tick early");
+        return;
+    }
 
     currentTick++;
 
-    // Check if a game day has passed (5 ticks)
-    if (currentTick % CONFIG.settings.ticksInOneGameDay === 0) {
+    // ... (game day/year logic - No Changes Needed) ...
+    console.log("tick() - Before if (gameState.activeJob) - gameState.activeJob:", gameState.activeJob); // <-- DEBUG LOG - CHECK gameState.activeJob VALUE BEFORE IF
 
-        //Run every 1 game day
-    }
+    if (gameState.activeJob) {
+        console.log("tick() - activeJob is TRUE - Inside IF block!"); // <-- CONFIRM IF BLOCK IS REACHED - ADDED THIS LOG
 
-    if (currentTick >= CONFIG.settings.ticksInOneGameYear) { // <-- CORRECTED LINE
-        //Run every 1 game year
-        gameState.age++; // Accessing age via gameState
-        currentTick = 0;
-        gameState.lifeQuality = Math.max(0, gameState.lifeQuality - CONFIG.balancing.baseLifeQualityDecay); // Accessing lifeQuality via gameState
+        console.log("tick() - Player HAS activeJob:", gameState.activeJob.name); // Log job name (for clarity)
+        console.log("tick() - gameState.activeJob Object:", gameState.activeJob); // <-- INSPECT activeJob OBJECT (DEBUG LOG)
 
-        if (gameState.age > gameState.maxAge) { // Accessing age and maxAge via gameState
-            endGame();
-            return;
-        }
-
-        if (Math.random() < CONFIG.settings.eventChance) {
-            triggerRandomNewsTickerEvent();
-        }
-
-        if (gameState.age % CONFIG.settings.achievementCheckInterval === 0) { // Accessing age via gameState
-            checkAchievements();
-        }
-    }
-
-    if (gameState.activeJob) { // Accessing activeJob via gameState
-        const goldGained = addResources(gameState.activeJob); // Accessing activeJob via gameState
-        gameState.gameStats.totalGoldEarned += goldGained; // Accessing gameStats via gameState
-        increaseSkills(gameState.activeJob); // Accessing activeJob via gameState
+        const goldGained = addResources(gameState.activeJob); // <-- CORRECT CALL - addResources() with argument
+        gameState.gameStats.totalGoldEarned += goldGained;
+        increaseSkills(gameState.activeJob); // <-- CORRECT CALL - increaseSkills() with argument
         checkForCareerUpgrade();
-        gameState.lifeQuality = Math.min(100, gameState.lifeQuality + CONFIG.balancing.workingLifeQualityIncrease); // Accessing lifeQuality via gameState
+        gameState.lifeQuality = Math.min(100, gameState.lifeQuality + CONFIG.balancing.workingLifeQualityIncrease);
     } else {
-        gameState.lifeQuality = Math.max(0, gameState.lifeQuality - CONFIG.balancing.unemployedLifeQualityDecay); // Accessing lifeQuality via gameState
+        console.log("tick() - Player has NO activeJob");
+        gameState.lifeQuality = Math.max(0, gameState.lifeQuality - CONFIG.balancing.unemployedLifeQualityDecay);
     }
 
     updateDisplay();
+    console.log("tick() - END - Game Tick Ended"); // <--- END LOG - TICK FUNCTION
 }
 
 function setInitialJob() {
-    const googleMapsJob = gameState.jobs.find(job => job.name === "Google Maps User"); // Accessing jobs via gameState
+    console.log("setInitialJob() - START");
+    const googleMapsJob = CONFIG.geoguesserCareerPath.find(career => {
+        console.log("setInitialJob() - find() - Comparing career.title:", career.title, "with target:", "Google Maps User"); // <-- ADD THIS LOG
+        return career.title === "Google Maps User";
+    });
+    console.log("setInitialJob() - After find - googleMapsJob:", googleMapsJob); // LOG googleMapsJob
+
     if (googleMapsJob) {
-        gameState.activeJob = googleMapsJob; // Accessing activeJob via gameState
+        console.log("setInitialJob() - googleMapsJob FOUND"); // LOG FOUND PATH
+        gameState.activeJob = googleMapsJob;
         gameState.currentJobTier = 0;
+        console.log("setInitialJob() - gameState.activeJob SET to existing job:", gameState.activeJob); // LOG gameState.activeJob
     } else {
+        console.log("setInitialJob() - googleMapsJob NOT FOUND - Creating new job"); // LOG NOT FOUND PATH
         const newJob = {
-            id: "google_maps_user",
-            name: "Google Maps User",
-            description: "Navigate the digital world by helping improve maps data.",
-            tiers: [
-                {
-                    name: "Beginner",
-                    incomePerYear: 2,
-                    skillReward: {
-                        "Map Awareness": 0.5
-                    }
-                }
-            ]
+            // ... (newJob definition) ...
         };
-        gameState.jobs.push(newJob); // Accessing jobs via gameState
-        gameState.activeJob = newJob; // Accessing activeJob via gameState
+        gameState.jobs.push(newJob);
+        gameState.activeJob = newJob;
         gameState.currentJobTier = 0;
+        console.log("setInitialJob() - gameState.activeJob SET to NEW job:", gameState.activeJob); // LOG gameState.activeJob
     }
+    console.log("setInitialJob() - END"); // LOG END
 }
+
+function tick() {  // <---------------------- ADD THIS TICK() FUNCTION HERE
+    console.log("tick() function called!"); // Debug log to confirm tick is running
+}                  // <---------------------- END OF TICK() FUNCTION
 
 async function loadGameDataFromServer() {
     try {
-        // --- MODIFIED URLS - DIRECT ROOT-RELATIVE PATHS ---
         const [loadedSkills, loadedJobs, loadedAchievements] = await Promise.all([
             fetch("skills.json").then(response => response.json()),
             fetch("jobs.json").then(response => response.json()),
             fetch("achievements.json").then(response => response.json())
         ]);
-        // --- END MODIFIED URLS ---
 
         console.log("Skills data:", loadedSkills);
         console.log("Jobs data:", loadedJobs);
         console.log("Achievements data:", loadedAchievements);
 
-        // Initialize skills from loaded data
         gameState.skills = {};
         loadedSkills.forEach(skill => {
             gameState.skills[skill.name] = skill.level || 0;
@@ -631,20 +687,20 @@ async function loadGameDataFromServer() {
         gameState.jobs = loadedJobs;
         gameState.achievements = loadedAchievements;
 
-        console.log("loadGameDataFromServer() - Before shopItems loop - gameState:", gameState); // <-- ADD THIS LOG
-        console.log("loadGameDataFromServer() - Before shopItems loop - gameState.purchasedItems:", gameState.purchasedItems); // <-- ADD THIS LOG
+        console.log("loadGameDataFromServer() - Before shopItems loop - gameState:", gameState);
+        console.log("loadGameDataFromServer() - Before shopItems loop - gameState.purchasedItems:", gameState.purchasedItems);
 
-        CONFIG.shopItems.forEach(item => { // <-- Your shopItems loop
+        CONFIG.shopItems.forEach(item => {
             gameState.purchasedItems[item.id] = 0;
         });
 
-        console.log("loadGameDataFromServer() - enhanced-script.js - END of TRY"); // <-- END LOG INSIDE TRY
+        console.log("loadGameDataFromServer() - enhanced-script.js - END of TRY");
 
     } catch (error) {
         console.error("Error loading game data:", error);
         showErrorNotification("Failed to load game data:", error);
     }
-    // REMOVE THIS LINE: initializeGame(); // <-- PROBLEM: REMOVE THIS LINE - Incorrect placement
+
     console.log("loadGameDataFromServer() - enhanced-script.js - FUNCTION BODY END");
 }
 
@@ -652,10 +708,85 @@ async function loadGameDataFromServer() {
 // 7. Start the Game
 // -----------------------------------------------------------------------------
 
-console.log("enhanced-script.js - Just BEFORE calling loadGameDataFromServer()"); // Add log before function call
-loadGameDataFromServer(); // Call to loadGameDataFromServer
+console.log("enhanced-script.js - Just BEFORE calling loadGameDataFromServer()");
+loadGameDataFromServer();
 
-document.addEventListener("DOMContentLoaded", async () => { // <-- ADD async keyword here
-    await loadGameDataFromServer();  // <-- ADD await here - WAIT for loadGameDataFromServer() to complete
-    initializeGame(); // <-- Call initializeGame() *AFTER* loadGameDataFromServer() has finished
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadGameDataFromServer();
+    initializeGame();
+
+    // --- Progress Bar Element References ---
+const jobProgressBarFill = document.getElementById('job-progress-fill');
+const jobProgressBarText = document.getElementById('job-progress-text');
+const skillProgressBarFill = document.getElementById('skill-progress-fill');
+const skillProgressBarText = document.getElementById('skill-progress-text');
+
+console.log("Progress bar elements retrieved:", jobProgressBarFill, jobProgressBarText, skillProgressBarFill, skillProgressBarText);
 });
+
+function updateJobProgressBar() {
+    console.log("updateJobProgressBar() - Placeholder function called");
+}
+
+function updateSkillProgressBar() {
+    console.log("updateSkillProgressBar() - Placeholder function called");
+}
+
+function addResources(job) { // <-- ADD LOG AT START OF FUNCTION
+    //console.log("addResources() - START - Job:", job ? job.name : 'No Job'); // <-- ADD THIS LOG - addResources START
+
+    if (!job || !job.tiers || job.tiers.length === 0) {
+        console.error("addResources() - Invalid job data:", job);
+        return 0; // Return 0 gold if job data is invalid
+    }
+
+    const currentTier = job.tiers[gameState.currentJobTier] || job.tiers[0]; // Get current job tier
+
+    const incomePerTick = currentTier.incomePerYear / CONFIG.settings.ticksInOneGameYear; // Calculate income per tick
+
+    if (isNaN(incomePerTick)) {
+        console.error("addResources() - Invalid incomePerTick calculation - incomePerYear:", currentTier.incomePerYear, "ticksInOneGameYear:", CONFIG.settings.ticksInOneGameYear);
+        return 0; // Return 0 gold if income calculation is invalid
+    }
+
+
+    gameState.gold += incomePerTick; // Add income to gold - FINALLY!
+
+    // --- Progress Bar Update Logic (Placeholder - To be implemented later) ---
+    updateJobProgressBar(); // Call placeholder function - we'll implement real logic soon
+
+    // console.log("addResources() - END - Gold:", gameState.gold); // <-- ADD THIS LOG - addResources END
+    return incomePerTick; // Return the gold gained in this tick
+}
+
+function increaseSkills(job) { // <-- ADD LOG AT START OF FUNCTION
+    // console.log("increaseSkills() - START - Job:", job ? job.name : 'No Job'); // <-- ADD THIS LOG - increaseSkills START
+
+    if (!job || !job.tiers || job.tiers.length === 0) {
+        console.error("increaseSkills() - Invalid job data:", job);
+        return; // Exit if job data is invalid
+    }
+
+    const currentTier = job.tiers[gameState.currentJobTier] || job.tiers[0]; // Get current job tier
+
+    if (!currentTier.skillReward) {
+        console.warn("increaseSkills() - No skillReward defined for tier:", currentTier);
+        return; // Exit if no skillReward defined for this tier
+    }
+
+    for (const skillName in currentTier.skillReward) {
+        const skillGain = currentTier.skillReward[skillName];
+        if (isNaN(skillGain)) {
+            console.error("increaseSkills() - Invalid skillGain value for skill:", skillName, "skillGain value:", skillGain);
+            continue; // Skip to the next skill if skillGain is invalid
+        }
+
+        gameState.skills[skillName] = (gameState.skills[skillName] || 0) + skillGain; // Increase skill
+        gameState.skillProgress[skillName] = (gameState.skillProgress[skillName] || 0) + skillGain; // Increase skill progress - if you use skillProgress
+
+        // console.log(`increaseSkills() - Skill ${skillName} increased by ${skillGain}. New level: ${gameState.skills[skillName]}`); // Log skill increase - MODIFIED LOG
+        // --- Skill Progress Bar Update Logic (Placeholder - To be implemented later) ---
+        updateSkillProgressBar(); // Call placeholder function - we'll implement real logic soon
+    }
+    // console.log("increaseSkills() - END - Skills:", gameState.skills); // <-- ADD THIS LOG - increaseSkills END
+}

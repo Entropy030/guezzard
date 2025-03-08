@@ -218,7 +218,7 @@ body {
 
 #action-buttons button {
   padding: 12px 20px;
-  font-size: 1em;
+  font-size: 0.8em;
   border: none;
   border-radius: 25px;
   background: linear-gradient(135deg, #e74c3c, #c0392b);
@@ -461,7 +461,7 @@ body {
       display: inline-block;
       margin-right: 5px;
       margin-bottom: 5px;
-      font-size: 0.9em;
+      font-size: 0.8em;
   }
 
   #action-buttons {
@@ -472,7 +472,7 @@ body {
       width: calc(50% - 16px);
       padding: 10px;
       margin: 5px;
-      font-size: 0.9em;
+      font-size: 0.8em;
   }
 
   .hidden-panel {

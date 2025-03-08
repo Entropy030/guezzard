@@ -1,83 +1,57 @@
 // game-state.js
-const gameState = {
+let gameState = {
+    settings: { // Encapsulate settings
+        tickRate: 1000, // Milliseconds per game tick (e.g., 1000ms = 1 second)
+        autoSaveInterval: 30 // Seconds between auto-saves
+    },
+    lastTickTime: 0,
+    gameSpeed: 1, // 1x speed, can be increased for faster game
+    prestigeLevel: 0,  // <-- INITIALIZE gameState.prestigeLevel to 0 - ADDED THIS LINE
 
-    eventLog: [],  // <--- INITIALIZE eventLog as an EMPTY ARRAY!
-
-
-    // Player resources
     gold: 0,
+    age: 18, // Starting age
+    day: 1,   // <--  INITIALIZE gameState.day to 1 (or your desired starting day) - **FIXED!**
+    lifeQuality: 50, // Starting life quality
+
     energy: 100,
     maxEnergy: 100,
+    energyRechargeRate: 0.1, // Energy recharged per tick
+
     currentJobTier: 0,
-    age: 1, // <-- ADD THIS LINE - Initialize age to 1
+    activeJob: null,
+    jobs: [], // Array to hold job data
+    jobLevels: {},
 
-    // Skills and attributes
-    skills: {
-        coding: { level: 0, experience: 0, multiplier: 1 },
-        design: { level: 0, experience: 0, multiplier: 1 },
-        marketing: { level: 0, experience: 0, multiplier: 1 },
-        management: { level: 0, experience: 0, multiplier: 1 }
+    skills: { // Changed skills to an object for easier access and 확장성
+        "Map Awareness": 1, // Initial skill level
+        "Programming": 0,
+        "Endurance": 0,
+        "Charm": 0,
+        "Creativity": 0,
+        "Logic": 0
+    },
+    skillProgress: { // To track progress towards next level, if needed
+        "Map Awareness": 0,
+        "Programming": 0,
+        "Endurance": 0,
+        "Charm": 0,
+        "Creativity": 0,
+        "Logic": 0
     },
 
-    // Progression trackers
-    day: 1,
-    prestigePoints: 0,
-    prestigeLevel: 0,
-    lifeQualityScore: 0,
-
-    // Unlocks and achievements (initially empty)
-    achievements: {},
-    unlockedFeatures: {},
-
-    // Game settings
-    settings: {
-        autoSaveInterval: 60, // seconds
-        soundEnabled: true,
-        musicEnabled: true,
-        notificationsEnabled: true,
-        volume: 0.5
+    achievements: [], // Array to hold achievement definitions
+    unlockedAchievements: [], // Array to hold IDs of unlocked achievements
+    timePlayedSeconds: 0, // Initialize timePlayedSeconds to 0
+    statistics: {      // Initialize gameState.statistics as an OBJECT
+        timePlayedSeconds: 0 // Now initialize timePlayedSeconds INSIDE statistics
     },
 
-    // Statistics for tracking
-    statistics: {
-        totalGoldEarned: 0,
-        actionsPerformed: 0,
-        timePlayedSeconds: 0,
-        prestigeCount: 0
-    }
+    relationships: [],
+    pet: null,
+    inventory: [],
+    purchasedItems: {}, // Shop items purchased, using IDs as keys, e.g., { lifeExtension: 1, goldBooster: 2 }
+
+    eventLog: [],
+    gameActive: true, // Flag to control game loop
+    gamePaused: false // Flag to track pause state
 };
-
-function getDefaultGameState() {
-    return {
-        // Player resources (reset to default)
-        gold: 0,
-        energy: 100,
-        maxEnergy: 100,
-
-        // Skills and attributes (reset to default levels and experience, keep multipliers - prestige bonus)
-        skills: {
-            coding: { level: 0, experience: 0, multiplier: gameState.skills.coding.multiplier }, // Keep multiplier
-            design: { level: 0, experience: 0, multiplier: gameState.skills.design.multiplier }, // Keep multiplier
-            marketing: { level: 0, experience: 0, multiplier: gameState.skills.marketing.multiplier }, // Keep multiplier
-            management: { level: 0, experience: 0, multiplier: gameState.skills.management.multiplier } // Keep multiplier
-        },
-
-        // Progression trackers (reset)
-        day: 1,
-        lifeQualityScore: 0,
-        unlockedFeatures: {}, // Reset feature unlocks if needed
-
-        // Achievements and prestige level/points/stats are kept
-        achievements: gameState.achievements, // Keep achievements
-        prestigePoints: gameState.prestigePoints, // Keep prestige points
-        prestigeLevel: gameState.prestigeLevel, // Keep prestige level
-        statistics: gameState.statistics, // Keep statistics
-        settings: gameState.settings, // Keep settings
-
-        // Settings (keep settings) - already handled by prestigeKeepData, but explicitly include for clarity
-        // settings: gameState.settings, // Already kept via prestigeKeepData
-
-        // Statistics (keep statistics) - already handled by prestigeKeepData, but explicitly include for clarity
-        // statistics: gameState.statistics // Already kept via prestigeKeepData
-    };
-}
