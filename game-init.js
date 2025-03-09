@@ -1,9 +1,19 @@
 // game-init.js
+import { 
+    logEvent,
+    setupJobsUI, 
+    updateSkillDisplay, 
+    setupAchievementsUI, 
+    setupGameControls, 
+    setupEventLog, 
+    updateDisplay 
+} from './ui-setup.js';
+
+import { loadGameDataFromServer } from './enhanced-script.js';
 
 async function initializeGame() {
     console.log("initializeGame() - game-init.js - START");
 
-    // --- UI Setup --- (setInitialJob() is NOT called here anymore)
     if (gameState.activeJob) { // Check for active job to prevent "undefined" errors
         logEvent(`Started career as a ${gameState.activeJob.title}.`, 'game'); // Log only ONCE here
     } else {
@@ -20,17 +30,12 @@ async function initializeGame() {
     console.log("initializeGame() - game-init.js - END");
 }
 
-
-
 // --- DOMContentLoaded Event Listener ---
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOMContentLoaded event - Starting game initialization after DOM is ready.");
 
     // 1. Load Data (Asynchronously)
     await loadGameDataFromServer(); // Await data loading - ONLY ONCE HERE
-
-    // 2. Set Initial Job (AFTER data is loaded!)
-    setInitialJob(); // Call ONLY ONCE and AFTER loading data
 
     // 3. Initialize Game (AFTER data AND initial job are set)
     await initializeGame(); // Await game initialization
@@ -48,9 +53,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOMContentLoaded event - Game initialization completed.");
 });
 
-
 function startGameLoop() {
     console.log("startGameLoop() - Starting game loop with requestAnimationFrame");
     lastTimestamp = performance.now();
     gameLoop(lastTimestamp);
 }
+
+// Make the initialization function available globally
+window.initializeGame = initializeGame;
+window.startGameLoop = startGameLoop;
