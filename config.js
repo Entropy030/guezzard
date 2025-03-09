@@ -5,18 +5,25 @@ const CONFIG = {
     // =========================================================================
 
     settings: {
-        tickInterval: 200,
-        ticksInOneGameDay: 5,
-        ticksInOneGameYear: 5 * 365,
-        maxAge: 65,
+        tickInterval: 25,          //  ~40 ticks per second (Real-time: 0.025 seconds per tick) - Adjusted for 10 min lifespan
+        ticksInOneGameDay: 5,        // 5 ticks per game day - Keep this for now, can adjust
+        seasonDuration: 30 * 5,      // 30 days per season * 5 ticks per day = 150 ticks per season
+        ticksInOneGameYear: 4 * (30 * 5), // 4 seasons * 150 ticks per season = 600 ticks per year (120 days * 5 ticks/day = 600)
+        maxAge: 65,                  // Max age - unchanged
         startingGold: 0,
         eventChance: 0.2,
-        achievementCheckInterval: 365,
+        achievementCheckInterval: 600, // Check achievements every year (600 ticks) - adjust as needed
         speedMultipliers: [1, 2, 4],
         maxEventLogEntries: 5,
-        seasonDuration: 100,
+        // ... (rest of your settings) ...
+        timeUnitsPerSeason: 24,      // <-- NEW SETTING: Total time units per season (unchanged for now)
+        baseRequirements: {         // <-- NEW SETTING: Base time unit requirements (unchanged for now)
+            sleep: 8,
+            commute: 2,
+            meals: 3
+        },
     },
-
+    
     // =========================================================================
     // 2. Base URL Configuration
     // =========================================================================
@@ -24,7 +31,7 @@ const CONFIG = {
     baseUrl: "/",
 
     // =========================================================================
-    // 3. Skill Configuration - SIMPLIFIED to ONE
+    // 3. Skill Configuration - SIMPLIFIED to ONE (Keep Map Awareness for now)
     // =========================================================================
 
     skillConfig: {
@@ -36,7 +43,7 @@ const CONFIG = {
     },
 
     // =========================================================================
-    // 4. Shop Items Configuration - SIMPLIFIED to ONE
+    // 4. Shop Items Configuration - SIMPLIFIED to ONE (Life Extension)
     // =========================================================================
 
     shopItems: [
@@ -52,11 +59,11 @@ const CONFIG = {
     ],
 
     // =========================================================================
-    // 5. UI Text Configuration
+    // 5. UI Text Configuration (unchanged)
     // =========================================================================
 
     uiText: {
-        gameTitle: "BitLife-Inspired Game",
+        gameTitle: "Guezzard - Master Your Career", // Updated game title!
         endGameTitle: "Game Over - Retirement!",
         newLifeButton: "Start New Life",
         achievementUnlocked: "Achievement Unlocked!",
@@ -68,7 +75,7 @@ const CONFIG = {
     },
 
     // =========================================================================
-    // 6. Core Balancing Numbers
+    // 6. Core Balancing Numbers (unchanged)
     // =========================================================================
 
     balancing: {
@@ -78,22 +85,27 @@ const CONFIG = {
     },
 
     // =========================================================================
-    // 7. Job Configuration - SIMPLIFIED to ONE
+    // 7. Job Configuration - SIMPLIFIED to ONE (Google Maps User)
     // =========================================================================
 
     geoguesserCareerPath: [
         {
             title: "Google Maps User",
             minSkill: 0,
-            incomePerYear: 2,
+            incomePerYear: 200,      // Increased income for testing
             skillGainPerYear: {
-                "Map Awareness": 0.5
-            }
+                "Map Awareness": 5  // Increased skill gain for testing
+            },
+            levelBonuses: [ // <-- ADDED levelBonuses ARRAY (as discussed)
+                { level: 5, bonusType: "jobXpMultiplier", bonusValue: 0.05 }, // Level 5: +5% Job XP
+                { level: 10, bonusType: "jobXpMultiplier", bonusValue: 0.1 }, // Level 10: +10% Job XP (cumulative)
+                { level: 20, bonusType: "goldMultiplier", bonusValue: 0.02 }    // Level 20: +2% Gold Multiplier (example)
+            ]
         }
     ],
 
     // =========================================================================
-    // 8. Weather and Seasons Configuration (from weather.js)
+    // 8. Weather and Seasons Configuration (unchanged)
     // =========================================================================
 
     seasonConfig: [
@@ -114,23 +126,21 @@ const CONFIG = {
     },
 
     // =========================================================================
-    // 9. Relationship System Configuration (from relationships.js)
+    // 9. Relationship System Configuration (unchanged for now)
     // =========================================================================
 
     relationshipNames: [
         "Alice", "Bob", "Charlie", "David", "Eve", "Fiona", "George", "Hannah", "Ivy", "Jack"
     ],
-
     relationshipTypes: [
         "Friend", "Colleague", "Mentor", "Acquaintance", "Rival"
     ],
-
     relationshipTraits: [
         "Helpful", "Demanding", "Supportive", "Critical", "Enthusiastic", "Reserved", "Creative", "Practical"
     ],
 
     // =========================================================================
-    // 10. Pet System Configuration (from pet.js)
+    // 10. Pet System Configuration (unchanged for now)
     // =========================================================================
 
     petTypes: [
@@ -145,7 +155,7 @@ const CONFIG = {
     ],
 
     // =========================================================================
-    // 11. Initial Multipliers (from enhanced-script.js)
+    // 11. Initial Multipliers (unchanged)
     // =========================================================================
 
     multipliers: {

@@ -1,237 +1,72 @@
 [
   {
-    "id": "google_maps_user",
+    "id": "google_maps_user",  
     "title": "Google Maps User",
     "description": "You navigate your city using Google Maps.",
-    "income": 1,
-    "skillGains": [
+    "tiers": [
       {
-        "skill": "map_awareness",
-        "amount": 0.1
+        "tier": 0,  
+        "minSkill": 0,
+        "incomePerYear": 200,
+        "skillGainPerYear": {
+          "Map Awareness": 5
+        }
       }
-    ],
-    "requirements": [],
-    "nextJob": "geoguessr_player"
+    ]
   },
   {
-    "id": "geoguessr_player",
+    "id": "geoguessr_player", 
     "title": "GeoGuessr Player",
-    "description": "You play GeoGuessr in your free time, guessing locations around the world.",
-    "income": 2,
-    "skillGains": [
+    "description": "You play GeoGuessr, guessing locations worldwide.",
+    "tiers": [
       {
-        "skill": "map_awareness",
-        "amount": 0.2
+        "tier": 1,
+        "minSkill": 5,
+        "incomePerYear": 500,
+        "skillGainPerYear": {
+          "Map Awareness": 10
+        }
+      } ,
+        {
+        "tier": 2,
+        "minSkill": 20,
+        "incomePerYear": 1000,
+        "skillGainPerYear": {
+          "Map Awareness": 15
+        }
       }
-    ],
-    "requirements": [
-      {
-        "skill": "map_awareness",
-        "level": 5
-      }
-    ],
-    "nextJob": "urban_explorer"
+    ]
   },
   {
-    "id": "urban_explorer",
+    "id": "urban_explorer", 
     "title": "Urban Explorer",
-    "description": "You explore your city and discover hidden spots.",
-    "income": 5,
-    "skillGains": [
+    "description": "You explore your city, discovering hidden spots.",
+    "tiers": [
       {
-        "skill": "map_awareness",
-        "amount": 0.3
-      },
-      {
-        "skill": "navigation",
-        "amount": 0.1
+        "tier": 1,
+        "minSkill": 10,
+        "incomePerYear": 750,
+        "skillGainPerYear": {
+          "Map Awareness": 12
+        }
       }
-    ],
-    "requirements": [
-      {
-        "skill": "map_awareness",
-        "level": 10
-      }
-    ],
-    "nextJob": "tour_guide"
+    ]
   },
-  {
-    "id": "tour_guide",
+ {
+    "id": "tour_guide", 
     "title": "Tour Guide",
-    "description": "You guide tourists around your city, showing them the best spots.",
-    "income": 10,
-    "skillGains": [
+    "description": "You guide tourists, showing them the best spots.",
+    "tiers": [
       {
-        "skill": "map_awareness",
-        "amount": 0.4
-      },
-      {
-        "skill": "navigation",
-        "amount": 0.2
-      },
-      {
-        "skill": "communication",
-        "amount": 0.2
+        "tier": 2,
+        "minSkill": 20,
+        "incomePerYear": 1250,
+        "skillGainPerYear": {
+          "Map Awareness": 14
+        }
       }
-    ],
-    "requirements": [
-      {
-        "skill": "map_awareness",
-        "level": 20
-      },
-      {
-        "skill": "navigation",
-        "level": 5
-      }
-    ],
-    "nextJob": "orienteering_instructor"
-  },
-  {
-    "id": "orienteering_instructor",
-    "title": "Orienteering Instructor",
-    "description": "You teach people how to navigate using a map and compass.",
-    "income": 20,
-    "skillGains": [
-      {
-        "skill": "map_awareness",
-        "amount": 0.5
-      },
-      {
-        "skill": "navigation",
-        "amount": 0.4
-      },
-      {
-        "skill": "communication",
-        "amount": 0.3
-      }
-    ],
-    "requirements": [
-      {
-        "skill": "map_awareness",
-        "level": 30
-      },
-      {
-        "skill": "navigation",
-        "level": 15
-      },
-      {
-        "skill": "communication",
-        "level": 10
-      }
-    ],
-    "nextJob": "cartographer"
-  },
-  {
-    "id": "cartographer",
-    "title": "Cartographer",
-    "description": "You create maps for various purposes, including navigation, urban planning, and more.",
-    "income": 40,
-    "skillGains": [
-      {
-        "skill": "map_awareness",
-        "amount": 0.6
-      },
-      {
-        "skill": "navigation",
-        "amount": 0.5
-      },
-      {
-        "skill": "technical_drawing",
-        "amount": 0.4
-      }
-    ],
-    "requirements": [
-      {
-        "skill": "map_awareness",
-        "level": 50
-      },
-      {
-        "skill": "navigation",
-        "level": 30
-      }
-    ],
-    "nextJob": "gis_specialist"
-  },
-  {
-    "id": "gis_specialist",
-    "title": "GIS Specialist",
-    "description": "You work with Geographic Information Systems to analyze spatial data.",
-    "income": 80,
-    "skillGains": [
-      {
-        "skill": "map_awareness",
-        "amount": 0.7
-      },
-      {
-        "skill": "navigation",
-        "amount": 0.6
-      },
-      {
-        "skill": "technical_drawing",
-        "amount": 0.5
-      },
-      {
-        "skill": "data_analysis",
-        "amount": 0.4
-      }
-    ],
-    "requirements": [
-      {
-        "skill": "map_awareness",
-        "level": 70
-      },
-      {
-        "skill": "navigation",
-        "level": 50
-      },
-      {
-        "skill": "technical_drawing",
-        "level": 30
-      }
-    ],
-    "nextJob": "navigation_app_developer"
-  },
-  {
-    "id": "navigation_app_developer",
-    "title": "Navigation App Developer",
-    "description": "You develop applications that help people navigate the world.",
-    "income": 160,
-    "skillGains": [
-      {
-        "skill": "map_awareness",
-        "amount": 0.8
-      },
-      {
-        "skill": "navigation",
-        "amount": 0.7
-      },
-      {
-        "skill": "technical_drawing",
-        "amount": 0.6
-      },
-      {
-        "skill": "data_analysis",
-        "amount": 0.5
-      },
-      {
-        "skill": "programming",
-        "amount": 0.6
-      }
-    ],
-    "requirements": [
-      {
-        "skill": "map_awareness",
-        "level": 90
-      },
-      {
-        "skill": "navigation",
-        "level": 70
-      },
-      {
-        "skill": "programming",
-        "level": 50
-      }
-    ],
-    "nextJob": null
+    ]
   }
+
+ 
 ]

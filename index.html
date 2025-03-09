@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+
+   
+        <script src="config.js" defer></script>
+        <script src="game-state.js" defer></script>
+        <script src="job-manager.js" defer></script>
+        <script src="game-init.js" defer></script>
+        <script src="game-loop.js" defer></script>
+        <script src="enhanced-script.js" defer></script>
+    
 </head>
 <body>
     <div id="game-container">
@@ -45,6 +55,8 @@
                     <div class="progress-text name" id="skill-progress-text">No Skill</div>
                 </div>
             </div>
+
+            <span id="season-display">Season: Spring, Year 1</span>  <!-- Season display -->
 
             <div id="game-controls">
                 <button id="pause-button">|| Pause</button>
@@ -94,6 +106,9 @@
                 <!-- Shop items will be loaded here -->
             </ul>
             <button class="close-button" data-panel="shop-panel">Close</button>
+            <div id="shop">  <!-- Shop container -->
+                <!-- Shop items will be rendered here by JavaScript -->
+            </div>
         </div>
 
         <div id="achievements-panel" class="hidden-panel">
@@ -129,12 +144,6 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="config.js"></script>
-    <script src="game-state.js"></script>
-    <!--<script src="data-loader.js"></script> -->
-    <script src="game-init.js"></script>
-    <script src="game-loop.js"></script>
-    <script src="enhanced-script.js"></script>
+
 </body>
 </html>

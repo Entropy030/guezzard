@@ -1,23 +1,21 @@
-// enhanced-script.js - VERY TOP OF FILE
+// enhanced-script.js
 console.log("enhanced-script.js - File LOADED and EXECUTING - Top of File");
 console.log("enhanced-script.js - Checking gameState at very top:", gameState);
 
-gameState.purchasedItems = {}; // <-- ADD THIS LINE - Forcefully initialize gameState.purchasedItems VERY EARLY
-
-// -----------------------------------------------------------------------------
-// 3. Utility Functions (Notifications, Logging)
-// -----------------------------------------------------------------------------
+// =========================================================================
+// Utility Functions
+// =========================================================================
 
 function showNotification(title, message, type) {
-    alert(`${title}: ${message}`); // Simple alert for demonstration
+    alert(`${title}: ${message}`); // Keep simple for now
 }
 
 function showErrorNotification(message) {
     alert(`Error: ${message}`);
 }
 
-function logEvent(message) {
-    console.log("logEvent() - START - Message:", message);
+function logEvent(message, category = 'game') {
+    console.log(`logEvent() - ${category.toUpperCase()} - Message:`, message);
     const eventLogList = document.getElementById('event-log-list');
     if (!eventLogList) {
         console.error("Error: #event-log-list element NOT FOUND in logEvent()! Cannot log event:", message);
@@ -25,119 +23,16 @@ function logEvent(message) {
     }
     const newEventItem = document.createElement('li');
     newEventItem.textContent = message;
+    newEventItem.classList.add(`event-log-item`, `event-category-${category}`);
     eventLogList.prepend(newEventItem);
-    if (eventLogList.children.length > 10) {
+    if (eventLogList.children.length > CONFIG.settings.maxEventLogEntries) {
         eventLogList.removeChild(eventLogList.lastElementChild);
     }
-    console.log("logEvent() - END - Message:", message);
-}
-
-function checkForCareerUpgrade() {
-    const mapSkill = gameState.skills["Map Awareness"] || 0;
-    let highestEligibleCareer = null;
-    let highestEligibleCareerIndex = -1;
-
-    for (let i = CONFIG.geoguesserCareerPath.length - 1; i >= 0; i--) {
-        if (mapSkill >= CONFIG.geoguesserCareerPath[i].minSkill) {
-            highestEligibleCareer = CONFIG.geoguesserCareerPath[i];
-            highestEligibleCareerIndex = i;
-        } else {
-            break;
-        }
-    }
-
-    if (!highestEligibleCareer) return;
-
-    const currentCareerIndex = CONFIG.geoguesserCareerPath.findIndex(career => career.title === gameState.activeJob.name);
-
-    if (highestEligibleCareerIndex > currentCareerIndex) {
-        const newCareer = highestEligibleCareer;
-        let newJob = gameState.jobs.find(job => job.name === newCareer.title);
-
-        if (!newJob) {
-            newJob = {
-                id: newCareer.title.toLowerCase().replace(/\s+/g, '_'),
-                name: newCareer.title,
-                description: `${newCareer.title} earning ${newCareer.incomePerYear}€ per year.`,
-                tiers: [{
-                    name: "Standard",
-                    incomePerYear: newCareer.incomePerYear,
-                    skillReward: {
-                        "Map Awareness": newCareer.skillGainPerYear
-                    },
-                    requiredSkill: {
-                        "Map Awareness": newCareer.minSkill
-                    }
-                }]
-            };
-            gameState.jobs.push(newJob);
-        }
-
-        gameState.activeJob = newJob;
-        gameState.currentJobTier = 0;
-        logEvent(`You were promoted to ${newCareer.title}! New income: ${newCareer.incomePerYear}€ per year.`);
-        setupJobsUI();
-        updateDisplay();
-    }
-}
-
-function triggerRandomNewsTickerEvent() {
-    const newsTicker = [
-        "Scientists discover that the Earth is actually round!",
-        "Local man still can't find his way home despite GPS.",
-        "New research suggests staring at maps improves brain function.",
-        "Breaking: Continental drift occurs faster when nobody is looking.",
-        "Survey shows 9 out of 10 Geoguesser players can locate their own country.",
-        "Map enthusiast wins lottery, plans to buy his own island and rename it.",
-        "GPS companies in crisis as more people just 'feel the direction'.",
-        "Geoguesser champion accidentally navigates to parallel dimension."
-    ];
-
-    const randomNews = newsTicker[Math.floor(Math.random() * newsTicker.length)];
-    logEvent(`NEWS: ${randomNews}`, 'news');
-}
-
-function checkAchievements() {
-    gameState.achievements.forEach(achievement => {
-        if (!gameState.unlockedAchievements) {
-            console.warn("gameState.unlockedAchievements is undefined in checkAchievements() - Potential scope issue");
-            return;
-        }
-        if (gameState.unlockedAchievements.includes(achievement.id)) return;
-
-        let isUnlocked = false;
-
-        switch (achievement.condition.type) {
-            case 'gold':
-                isUnlocked = gameState.gold >= achievement.condition.value;
-                break;
-            case 'age':
-                isUnlocked = gameState.age >= achievement.condition.value;
-                break;
-            case 'skill':
-                isUnlocked = gameState.skills[achievement.condition.skill] >= achievement.condition.value;
-                break;
-            case 'job':
-                isUnlocked = gameState.activeJob && gameState.activeJob.name === achievement.condition.jobName;
-                break;
-            case 'mapSkill':
-                isUnlocked = gameState.skills["Map Awareness"] >= achievement.condition.value;
-                break;
-        }
-
-        if (isUnlocked) {
-            gameState.unlockedAchievements.push(achievement.id);
-            logEvent(`Achievement unlocked: ${achievement.name}`);
-            showNotification("Achievement Unlocked", achievement.name, "success");
-        }
-    });
-
-    setupAchievementsUI();
 }
 
 function endGame() {
-    clearInterval(gameState.tickIntervalId);
-    showNotification("Game Over", "You have reached the end of your life.", "info");
+    // clearInterval(gameState.tickIntervalId); // No longer used
+    showNotification(CONFIG.uiText.endGameTitle, "You have reached the end of your life.", "info");
 
     const finalMapSkill = gameState.skills["Map Awareness"] || 0;
     let finalCareerTitle = "Google Maps User";
@@ -152,9 +47,9 @@ function endGame() {
     logEvent(`You ended your career as a ${finalCareerTitle} with ${finalMapSkill} map skill and ${Math.floor(gameState.gold)}€.`);
 }
 
-// -----------------------------------------------------------------------------
-// 5. UI Management Functions (Tab Navigation, Game Controls, Skill Display, Shop, Jobs, Achievements, Event Log)
-// -----------------------------------------------------------------------------
+// =========================================================================
+// UI Management Functions
+// =========================================================================
 
 function setupTabNavigation() {
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -164,7 +59,6 @@ function setupTabNavigation() {
         button.addEventListener('click', () => {
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
-
             button.classList.add('active');
             document.getElementById(button.dataset.tab).classList.add('active');
         });
@@ -177,26 +71,22 @@ function setupGameControls() {
     const speedButton = document.getElementById('speed-button');
 
     if (!pauseButton) {
-        console.error("Error: #pause-button element NOT FOUND in setupGameControls()!");
+        console.error("Pause button not found!");
         return;
     }
     if (!speedButton) {
-        console.error("Error: #speed-button element NOT FOUND in setupGameControls()!");
+        console.error("Speed button not found!");
         return;
     }
 
     pauseButton.addEventListener('click', function() {
         gameState.gamePaused = !gameState.gamePaused;
-        if (gameState.gamePaused) {
-            pauseButton.textContent = '▶ Resume';
-        } else {
-            pauseButton.textContent = '|| Pause';
-        }
-        console.log("Pause button toggled, gamePaused:", gameState.gamePaused);
+        pauseButton.textContent = gameState.gamePaused ? '▶ Resume' : '|| Pause';
+        console.log(`Pause button toggled, gamePaused: ${gameState.gamePaused}`);
     });
 
     speedButton.addEventListener('click', function() {
-        gameState.gameSpeed = (gameState.gameSpeed % 3) + 1;
+        gameState.gameSpeed = (gameState.gameSpeed % 3) + 1; // Cycle through speeds 1, 2, 3
         speedButton.textContent = '▶ ' + gameState.gameSpeed + 'x Speed';
         console.log("Speed button clicked, gameSpeed:", gameState.gameSpeed);
     });
@@ -204,141 +94,33 @@ function setupGameControls() {
     console.log("setupGameControls() - END");
 }
 
-function toggleGamePause() {
-    gameState.isPaused = !gameState.isPaused;
-    const pauseButton = document.getElementById('pauseButton');
-
-    if (gameState.isPaused) {
-        clearInterval(gameState.tickIntervalId);
-        pauseButton.innerHTML = `<i class="fas fa-play"></i> ${CONFIG.uiText.resumeButton}`;
-    } else {
-        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier);
-        pauseButton.innerHTML = `<i class="fas fa-pause"></i> ${CONFIG.uiText.pauseButton}`;
-    }
-}
-
-function cycleGameSpeed() {
-    const currentIndex = CONFIG.settings.speedMultipliers.indexOf(speedMultiplier);
-    const nextIndex = (currentIndex + 1) % CONFIG.settings.speedMultipliers.length;
-    speedMultiplier = CONFIG.settings.speedMultipliers[nextIndex];
-
-    if (!gameState.isPaused) {
-        clearInterval(gameState.tickIntervalId);
-        gameState.tickIntervalId = setInterval(tick, CONFIG.settings.tickInterval / speedMultiplier);
-    }
-
-    const speedButton = document.getElementById('speedButton');
-    speedButton.innerHTML = `<i class="fas fa-forward"></i> ${speedMultiplier}x Speed`;
-}
-
-function updateSkillDisplay() {
-    console.log("updateSkillDisplay() - START");
-    const skillsListElement = document.getElementById('skills-list');
-    if (!skillsListElement) {
-        console.error("Error: #skills-list element NOT FOUND in updateSkillDisplay()!");
-        return;
-    }
-    skillsListElement.innerHTML = '';
-
-    const skillsDiv = document.getElementById("skills-panel");
-    if (!skillsDiv) {
-        console.error("Error: #skills-panel element NOT FOUND in updateSkillDisplay()!");
-        return;
-    }
-    skillsDiv.innerHTML = '';
-
-    const mapSkill = gameState.skills["Map Awareness"] || 0;
-    let currentCareer = CONFIG.geoguesserCareerPath[0];
-    let nextCareer = CONFIG.geoguesserCareerPath[1];
-
-    for (let i = CONFIG.geoguesserCareerPath.length - 1; i >= 0; i--) {
-        if (mapSkill >= CONFIG.geoguesserCareerPath[i].minSkill) {
-            currentCareer = CONFIG.geoguesserCareerPath[i];
-            nextCareer = CONFIG.geoguesserCareerPath[i + 1];
-            break;
-        }
-    }
-
-    let progressPercentage = 100;
-    let progressText = "Max level reached";
-
-    if (nextCareer) {
-        const skillRange = nextCareer.minSkill - currentCareer.minSkill;
-        const currentProgress = mapSkill - currentCareer.minSkill;
-        progressPercentage = Math.min(100, (currentProgress / skillRange) * 100);
-        progressText = `${mapSkill}/${nextCareer.minSkill} to ${nextCareer.title}`;
-    }
-
-    const mapSkillLi = document.createElement('li');
-        mapSkillLi.classList.add('skill');
-        mapSkillLi.classList.add('map-skill');
-
-        const mapSkillHTML = `
-            <div class="skill-name"><i class="fas fa-map-marked-alt"></i> Map Awareness</div>
-            <div class="skill-level">
-                <div class="skill-progress" style="width: ${progressPercentage}%"></div>
-            </div>
-            <div class="skill-value">Level ${mapSkill}</div>
-            <div class="skill-progress-text">${progressText}</div>
-        `;
-
-        mapSkillLi.innerHTML = mapSkillHTML;
-        skillsListElement.appendChild(mapSkillLi);
-
-    for (const skillName in gameState.skills) {
-        if (skillName === 'Map Awareness') continue;
-
-        const skillLevel = gameState.skills[skillName];
-        const skillConfig = CONFIG.skillConfig[skillName] || {
-            description: "Your proficiency in this skill.",
-            maxLevel: 100,
-            icon: "fa-star"
-        };
-
-        const otherSkillLi = document.createElement('li');
-        otherSkillLi.classList.add('skill');
-
-        const iconClass = `fas ${skillConfig.icon || 'fa-star'}`;
-        const progressWidth = Math.min(skillLevel, 100);
-
-        const otherSkillHTML = `
-            <div class="skill-name"><i class="${iconClass}"></i> ${skillName}</div>
-            <div class="skill-level">
-                <div class="skill-progress" style="width: ${progressWidth}%"></div>
-            </div>
-            <div class="skill-value">Level ${skillLevel}</div>
-        `;
-
-        otherSkillLi.innerHTML = otherSkillHTML;
-        skillsListElement.appendChild(otherSkillLi);
-    }
-
-    console.log("updateSkillDisplay() - END");
-}
-
 function setupShopUI() {
     const shopDiv = document.getElementById('shop');
-    if (!shopDiv) return;
+    if (!shopDiv) {
+        console.error("Error: #shop element NOT FOUND in setupShopUI()!");
+        return;
+    }
 
-    shopDiv.innerHTML = '';
+    shopDiv.innerHTML = ''; // Clear existing shop UI
+
+    if (!CONFIG.shopItems || !Array.isArray(CONFIG.shopItems)) {
+        console.error("Error: CONFIG.shopItems is not properly loaded or is not an array.");
+        shopDiv.textContent = "Error loading shop items.";
+        return;
+    }
 
     CONFIG.shopItems.forEach(item => {
         if (!gameState.purchasedItems) {
-            console.warn("gameState.purchasedItems is undefined in setupShopUI() - Potential timing issue");
-            return;
+            gameState.purchasedItems = {}; // Initialize if missing
         }
 
         const timesUsed = gameState.purchasedItems[item.id] || 0;
         const isDisabled = item.maxPurchases && timesUsed >= item.maxPurchases;
-
-        let isMissingSkill = false;
-        if (item.requiresSkill && !gameState.skills[item.requiresSkill]) {
-            isMissingSkill = true;
-        }
+        const isMissingSkill = item.requiresSkill && (!gameState.skills[item.requiresSkill] || gameState.skills[item.requiresSkill] < (item.requiredSkillLevel || 1));
 
         const itemElement = document.createElement('div');
         itemElement.classList.add('shop-item');
-        if (isDisabled) {
+        if (isDisabled || isMissingSkill) {
             itemElement.classList.add('disabled');
         }
 
@@ -349,6 +131,7 @@ function setupShopUI() {
             <div class="shop-item-desc">${item.description}</div>
             <div class="shop-item-price">${item.price} gold</div>
             ${item.maxPurchases ? `<div class="shop-item-effect">Used: ${timesUsed}/${item.maxPurchases}</div>` : ''}
+            ${isMissingSkill ? `<div class="shop-item-requires-skill">Requires: ${item.requiresSkill} Level ${item.requiredSkillLevel || 1}</div>` : ''}
         `;
 
         itemElement.innerHTML = itemHTML;
@@ -358,180 +141,30 @@ function setupShopUI() {
                 showNotification("Purchase Limit", "You've reached the maximum number of purchases for this item.", "warning");
                 return;
             }
-
             if (isMissingSkill) {
-                showNotification("Requirements Not Met", `You need the ${item.requiresSkill} skill to purchase this item.`, "warning");
+                showNotification("Requirements Not Met", `You need ${item.requiresSkill} Level ${item.requiredSkillLevel || 1} to purchase this item.`, "warning");
                 return;
             }
-
-            if (gameState.gold >= item.price) {
-                purchaseItem(item);
-                itemElement.classList.add('pulse');
-                setTimeout(() => itemElement.classList.remove('pulse'), 600);
-
-                if (item.maxPurchases && gameState.purchasedItems[item.id] >= item.maxPurchases) {
-                    setupShopUI();
-                } else {
-                    const effectElement = itemElement.querySelector('.shop-item-effect');
-                    if (effectElement && item.maxPurchases) {
-                        effectElement.textContent = `Used: ${gameState.purchasedItems[item.id]}/${item.maxPurchases}`;
-                    }
-                }
-            } else {
-                showNotification("Insufficient Funds", "You don't have enough gold for this purchase.", "warning");
-            }
+            purchaseItem(item);
+            itemElement.classList.add('pulse');
+            setTimeout(() => itemElement.classList.remove('pulse'), 600);
         });
 
         shopDiv.appendChild(itemElement);
     });
 }
 
-function setupJobsUI() {
-    console.log("setupJobsUI() - START - SIMPLIFIED");
-    const jobsDiv = document.getElementById('jobs-panel');
-    if (!jobsDiv) {
-        console.error("Error: #jobs-panel element NOT FOUND in setupJobsUI()!");
-        return;
-    }
-    jobsDiv.innerHTML = ''; // Clear existing content
-
-    if (gameState.activeJob && gameState.activeJob.name === "Google Maps User") { // Check if active job is Google Maps User
-        const jobElement = document.createElement('div');
-        jobElement.classList.add('job', 'active', 'available'); // Add 'active' and 'available' classes
-
-        const jobHTML = `
-            <div class="job-name">Google Maps User (Simplified)</div>
-            <div class="job-desc">Simple starting job for testing.</div>
-            <div class="job-requirements">No requirements</div>
-        `;
-        jobElement.innerHTML = jobHTML;
-        jobsDiv.appendChild(jobElement);
-    } else { // If no active job or not Google Maps User, display a basic "No Job" message
-        const noJobElement = document.createElement('div');
-        noJobElement.textContent = "No Job Available (Simplified)";
-        jobsDiv.appendChild(noJobElement);
-    }
-    console.log("setupJobsUI() - END - SIMPLIFIED");
-}
-
-function hasRequiredSkillForJob(job) {
-    if (job.tiers && job.tiers[0].requiredSkill) {
-        for (const skillName in job.tiers[0].requiredSkill) {
-            if (!gameState.skills[skillName] || gameState.skills[skillName] < job.tiers[0].requiredSkill[skillName]) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-function setupAchievementsUI() {
-    console.log("setupAchievementsUI() - START");
-    const achievementsListElement = document.getElementById('achievements-list');
-    if (!achievementsListElement) {
-        console.error("Error: #achievements-list element NOT FOUND in setupAchievementsUI()!");
-        return;
-    }
-    achievementsListElement.innerHTML = '';
-
-    gameState.achievements.forEach(achievement => {
-        const listItem = document.createElement('li'); // **DECLARE listItem HERE - BEFORE if statement**
-        listItem.classList.add('achievement-item');
-
-        if (gameState.unlockedAchievements.includes(achievement.id)) return; // Now listItem is ALWAYS declared
-
-        let description = achievement.description;
-        if (achievement.type === 'jobTier') {
-            const job = gameState.jobs.find(j => j.id === achievement.jobId);
-            if (job) {
-                const tier = job.tiers.find(t => t.tier === achievement.tier);
-                if (tier) {
-                    description = achievement.description.replace("{}", tier.name);
-                }
-            }
-        }
-
-        listItem.innerHTML = `
-            <div class="achievement-name">${achievement.name}</div>
-            <div class="achievement-description">${description}</div>
-        `;
-        achievementsListElement.appendChild(listItem);
-    });
-
-    console.log("setupAchievementsUI() - END");
-}
-
-function setupEventLog() {
-    console.log("setupEventLog() - START");
-    const eventLogElement = document.getElementById('event-log');
-    if (!eventLogElement) {
-        console.error("Error: #event-log element NOT FOUND in setupEventLog()!");
-        return;
-    }
-
-    const eventLogList = document.getElementById('event-log-list');
-    if (!eventLogList) {
-        console.error("Error: #event-log-list element NOT FOUND in setupEventLog()!");
-        return;
-    }
-
-    eventLogElement.addEventListener('click', function() {
-        console.log("Event log clicked!");
-    });
-
-    console.log("setupEventLog() - END");
-}
-
-// -----------------------------------------------------------------------------
-// 6. Game Loop and Initialization
-// -----------------------------------------------------------------------------
-
-function updateDisplay() {
-    console.log("updateDisplay() - START");
-    const goldDisplay = document.getElementById('gold-display');
-    const ageDisplay = document.getElementById('age-display');
-    const lifeQualityDisplay = document.getElementById('life-quality-display');
-    const currentJobNameDisplay = document.getElementById('current-job-name');
-
-    if (!goldDisplay) {
-        console.error("Error: #gold-display element NOT FOUND in updateDisplay()!");
-        return;
-    }
-    if (!ageDisplay) {
-        console.error("Error: #age-display element NOT FOUND in updateDisplay()!");
-        return;
-    }
-    if (!lifeQualityDisplay) {
-        console.error("Error: #life-quality-display element NOT FOUND in updateDisplay()!");
-        return;
-    }
-    if (!currentJobNameDisplay) {
-        console.error("Error: #current-job-name element NOT FOUND in updateDisplay()!");
-        return;
-    }
-
-    goldDisplay.textContent = Math.floor(gameState.gold);
-    ageDisplay.textContent = Math.floor(gameState.age);
-    lifeQualityDisplay.textContent = gameState.lifeQuality;
-
-    if (gameState.activeJob) {
-        currentJobNameDisplay.textContent = gameState.activeJob.name;
-    } else {
-        currentJobNameDisplay.textContent = "Unemployed";
-    }
-
-    updateJobProgressBar();
-    updateSkillProgressBar();
-
-    console.log("updateDisplay() - END");
-}
-
 function purchaseItem(item) {
+    if (gameState.gold < item.price) {
+        showNotification("Insufficient Funds", "You don't have enough gold for this purchase.", "warning");
+        return;
+    }
+
     gameState.gold -= item.price;
     gameState.gameStats.itemsPurchased++;
     gameState.purchasedItems[item.id] = (gameState.purchasedItems[item.id] || 0) + 1;
 
-    logEvent(`You purchased ${item.name}!`);
+    logEvent(`You purchased ${item.name}!`, 'shop');
 
     if (item.effect) {
         const [effectType, value] = item.effect.split(':');
@@ -554,87 +187,182 @@ function purchaseItem(item) {
                 if (CONFIG.skillConfig[effectType]) {
                     gameState.skills[effectType] = (gameState.skills[effectType] || 0) + effectValue;
                     showNotification("Skill Increased!", `Your ${effectType} skill increased by ${effectValue}!`, "success");
+                } else {
+                    console.warn(`Unknown item effect type: ${effectType}`);
                 }
                 break;
         }
     }
 
-    updateDisplay();
+    // updateDisplay(); // Now in game-loop.js
+    setupShopUI();
 }
 
-let currentTick = 0;
+function setupJobsUI() {
+    console.log("setupJobsUI() - START");
+    const jobsListDiv = document.getElementById('jobs-list');
+    if (!jobsListDiv) {
+        console.error('Jobs list div not found!');
+        return;
+    }
+    jobsListDiv.innerHTML = '';
 
-function tick() {
-    console.log("tick() - START - Game Tick Started");
+    const availableJobs = gameState.jobs.filter(job => {
+        const jobTierData = job.tiers ? job.tiers.find(tier => tier.tier === gameState.currentJobTier) : null;
+        return jobTierData ? gameState.skills["Map Awareness"].level >= jobTierData.minSkill : false;    
+    });
 
-    if (gameState.isPaused) {
-        console.log("tick() - Game is PAUSED - Exiting tick early");
+    console.log("Available jobs:", availableJobs);
+
+    if (availableJobs.length === 0) {
+        jobsListDiv.innerHTML = '<p>No jobs available at your current skill level.</p>';
         return;
     }
 
-    currentTick++;
+    availableJobs.forEach((job, index) => {  // Use index in forEach
+        const jobTierData = job.tiers.find(tier => tier.tier === gameState.currentJobTier);
+        if (!jobTierData) {
+            return;
+        }
 
-    // ... (game day/year logic - No Changes Needed) ...
-    console.log("tick() - Before if (gameState.activeJob) - gameState.activeJob:", gameState.activeJob);
+        const jobElement = document.createElement('div');
+        jobElement.classList.add('job-item');
+        jobElement.innerHTML = `
+            <h3>${job.title}</h3>
+            <p>Required Skill: ${jobTierData.minSkill}</p>
+            <p>Income: ${jobTierData.incomePerYear} / year</p> <div class="job-description">${job.description}</div>
+            <button class="apply-job-button" data-job-index="${index}">Apply</button> 
+        `;
+        jobsListDiv.appendChild(jobElement);
+    });
 
-    if (gameState.activeJob) {
-        console.log("tick() - activeJob is TRUE - Inside IF block!");
-        console.log("tick() - Player HAS activeJob:", gameState.activeJob.name);
-        console.log("tick() - gameState.activeJob Object:", gameState.activeJob);
-
-        console.log("tick() - Before addResources() - Inspecting gameState.activeJob:");
-        console.log("tick() - gameState.activeJob.id:", gameState.activeJob.id);
-        console.log("tick() - gameState.activeJob.name:", gameState.activeJob.name);
-        console.log("tick() - gameState.activeJob.tiers:", gameState.activeJob.tiers);
-
-        const goldGained = addResources(gameState.activeJob); // <-- CORRECT CALL - addResources() with argument - LINE 594 NOW
-        // --- ADD THESE NEW LOGS - INSPECT gameState.gameStats ---
-        console.log("tick() - Before totalGoldEarned update - Inspecting gameState.gameStats:");
-        console.log("tick() - gameState.gameStats:", gameState.gameStats); // Log the entire gameState.gameStats object
-        console.log("tick() - gameState.gameStats.totalGoldEarned:", gameState.gameStats.totalGoldEarned); // Log specifically totalGoldEarned
-        // --- END NEW LOGS ---
-
-        gameState.gameStats.totalGoldEarned += goldGained;     // <-- LINE 595 - ERROR WAS HERE
-
-        increaseSkills(gameState.activeJob); // <-- CORRECT CALL - increaseSkills() with argument
-        // checkForCareerUpgrade();  <-- COMMENTED OUT IN SIMPLIFIED VERSION
-        gameState.lifeQuality = Math.min(100, gameState.lifeQuality + CONFIG.balancing.workingLifeQualityIncrease);
-    } else {
-        console.log("tick() - Player has NO activeJob");
-        gameState.lifeQuality = Math.max(0, gameState.lifeQuality - CONFIG.balancing.unemployedLifeQualityDecay);
-    }
-
-    updateDisplay();
-    console.log("tick() - END - Game Tick Ended");
+    jobsListDiv.addEventListener('click', (event) => {
+        if (event.target.classList.contains('apply-job-button')) {
+            const jobIndex = parseInt(event.target.dataset.jobIndex, 10); // Parse to integer!
+            if (!isNaN(jobIndex)) { // Check if parsing was successful
+                applyForJob(jobIndex);  // Call applyForJob with the index
+            } else {
+                console.error("Invalid job index:", event.target.dataset.jobIndex);
+            }
+        }
+    });
+    console.log("setupJobsUI() - END");
 }
 
+function applyForJob(jobIndex) {
+    console.log("applyForJob() - START - jobIndex:", jobIndex);
+
+    const newJobData = getJobData(jobIndex, gameState.currentJobTier);
+
+    if (!newJobData) {
+        console.error("applyForJob() - Failed to get job data for index:", jobIndex);
+        return; // Exit if job data is not found
+    }
+
+    if (gameState.skills["Map Awareness"].level >= newJobData.minSkill) {
+        gameState.activeJob = { ...newJobData }; // Use spread for copying
+        logEvent(`Got a new job: ${gameState.activeJob.title}!`, 'job');
+        console.log("applyForJob() - Applied for job successfully:", gameState.activeJob);
+    } else {
+        logEvent(`You don't meet the requirements for ${newJobData.title}.`, 'job');
+        console.log("applyForJob() - Skill requirement not met.");
+    }
+
+    console.log("applyForJob() - END");
+}
+
+function updateSkillDisplay() {
+    console.log("updateSkillDisplay() - START");
+    const skillsListDiv = document.getElementById('skills-list');
+
+    if (!skillsListDiv) {
+        console.error("Error: #skills-list element NOT FOUND in updateSkillDisplay()!");
+        return;
+    }
+
+    skillsListDiv.innerHTML = '';
+
+    for (const skillName in gameState.skills) {
+        if (gameState.skills.hasOwnProperty(skillName)) {
+            const skill = gameState.skills[skillName];
+            const skillLevel = skill.level || 0; // Handle missing level
+            const skillElement = document.createElement('div');
+            skillElement.classList.add('skill-item');
+            skillElement.innerHTML = `
+                <i class="${skill.icon}"></i>
+                <span>${skillName}: ${skillLevel.toFixed(2)}</span>
+                <div class="skill-bar">
+                    <div class="skill-bar-fill" style="width:${skillLevel}%"></div>
+                </div>
+            `;
+            skillsListDiv.appendChild(skillElement);
+        }
+    }
+    console.log("updateSkillDisplay() - END");
+}
+
+function setupAchievementsUI() {
+    console.log("setupAchievementsUI() - START");
+    const achievementsListDiv = document.getElementById('achievements-list');
+
+    if (!achievementsListDiv) {
+        console.error("Error: #achievements-list element not found!");
+        return;
+    }
+
+    achievementsListDiv.innerHTML = '';
+    gameState.achievements.forEach(achievement => {
+        const achievementElement = document.createElement('div');
+        achievementElement.classList.add('achievement-item');
+        const isUnlocked = gameState.unlockedAchievements.includes(achievement.id);
+
+        achievementElement.innerHTML = `
+            <h3>${achievement.name}</h3>
+            <p>${achievement.description}</p>
+            <p>Status: ${isUnlocked ? 'Unlocked' : 'Locked'}</p>
+        `;
+
+        if (isUnlocked) {
+            achievementElement.classList.add('unlocked');
+        }
+        achievementsListDiv.appendChild(achievementElement);
+    });
+    console.log("setupAchievementsUI() - END");
+}
+
+function setupEventLog() {
+    console.log("setupEventLog() - START");
+    const eventLogDiv = document.getElementById('event-log');
+    if (!eventLogDiv) {
+        console.error('Event log div not found!');
+        return;
+    }
+    console.log("setupEventLog() - END");
+}
+
+// =========================================================================
+// Data Loading and Initialization
+// =========================================================================
+
 function setInitialJob() {
-    console.log("setInitialJob() - START - SIMPLIFIED");
+    console.log("setInitialJob() - START - Setting initial job");
+    const initialJobIndex = 0; // Google Maps User is at index 0
+    gameState.activeJob = getJobData(initialJobIndex, gameState.currentJobTier); // Use getJobData()
 
-    const googleMapsJob = { // Directly define the job object
-        id: 'google-maps-user',
-        name: "Google Maps User",
-        description: "Starting job - contributing to Google Maps.",
-        tiers: [{
-            name: "Standard",
-            incomePerYear: 2,
-            skillReward: {
-                "Map Awareness": 0.5
-            },
-            requiredSkill: {
-                "Map Awareness": 0
-            }
-        }]
-    };
+    if (!gameState.activeJob) { // Check if getJobData returned a valid job
+        console.error("setInitialJob() - Failed to get initial job data!");
+        // Handle the error, maybe set a default job
+        gameState.activeJob = { title: "Unemployed", incomePerYear: 0 };
+    }
 
-    gameState.activeJob = googleMapsJob;
-    gameState.currentJobTier = 0;
 
-    console.log("setInitialJob() - gameState.activeJob SET to DIRECTLY CREATED job:", gameState.activeJob); // Log
-    console.log("setInitialJob() - END - SIMPLIFIED");
+    logEvent(`Started career as a ${gameState.activeJob.title}.`, 'game'); // Use .title
+    console.log("setInitialJob() - gameState.activeJob SET:", gameState.activeJob);
+    console.log("setInitialJob() - END");
 }
 
 async function loadGameDataFromServer() {
+    console.log("enhanced-script.js - Just BEFORE calling loadGameDataFromServer()");
     try {
         const [loadedSkills, loadedJobs, loadedAchievements] = await Promise.all([
             fetch("skills.json").then(response => response.json()),
@@ -642,121 +370,30 @@ async function loadGameDataFromServer() {
             fetch("achievements.json").then(response => response.json())
         ]);
 
-        console.log("Skills data:", loadedSkills);
-        console.log("Jobs data:", loadedJobs);
-        console.log("Achievements data:", loadedAchievements);
+        console.log("Skills data loaded:", loadedSkills);
+        console.log("Jobs data loaded:", loadedJobs);
+        console.log("Achievements data loaded:", loadedAchievements);
 
+        // Initialize skills
         gameState.skills = {};
         loadedSkills.forEach(skill => {
-            gameState.skills[skill.name] = skill.level || 0;
+            gameState.skills[skill.name] = {
+                level: skill.level || 0, // Default to 0 if level is not provided
+                description: skill.description,
+                icon: skill.icon
+             };
         });
         if (!gameState.skills.hasOwnProperty("Map Awareness")) {
-            gameState.skills["Map Awareness"] = 0;
+            gameState.skills["Map Awareness"] = { level: 0 }; // Ensure Map Awareness exists
         }
 
         gameState.jobs = loadedJobs;
         gameState.achievements = loadedAchievements;
 
-        console.log("loadGameDataFromServer() - Before shopItems loop - gameState:", gameState);
-        console.log("loadGameDataFromServer() - Before shopItems loop - gameState.purchasedItems:", gameState.purchasedItems);
-
-        CONFIG.shopItems.forEach(item => {
-            gameState.purchasedItems[item.id] = 0;
-        });
-
-        console.log("loadGameDataFromServer() - enhanced-script.js - END of TRY");
+        console.log("loadGameDataFromServer() - Game data loaded and processed successfully.");
 
     } catch (error) {
         console.error("Error loading game data:", error);
-        showErrorNotification("Failed to load game data:", error);
+        showErrorNotification("Failed to load game data. Please check console for details.");
     }
-
-    console.log("loadGameDataFromServer() - enhanced-script.js - FUNCTION BODY END");
-}
-
-// -----------------------------------------------------------------------------
-// 7. Start the Game
-// -----------------------------------------------------------------------------
-
-console.log("enhanced-script.js - Just BEFORE calling loadGameDataFromServer()");
-loadGameDataFromServer();
-
-document.addEventListener("DOMContentLoaded", async () => {
-    await loadGameDataFromServer();
-    initializeGame();
-
-    // --- Progress Bar Element References ---
-const jobProgressBarFill = document.getElementById('job-progress-fill');
-const jobProgressBarText = document.getElementById('job-progress-text');
-const skillProgressBarFill = document.getElementById('skill-progress-fill');
-const skillProgressBarText = document.getElementById('skill-progress-text');
-
-console.log("Progress bar elements retrieved:", jobProgressBarFill, jobProgressBarText, skillProgressBarFill, skillProgressBarText);
-});
-
-function updateJobProgressBar() {
-    console.log("updateJobProgressBar() - Placeholder function called");
-}
-
-function updateSkillProgressBar() {
-    console.log("updateSkillProgressBar() - Placeholder function called");
-}
-
-function addResources(job) {
-    console.log("addResources() - START - Job:", job); // <-- ADD THIS LOG
-
-    if (!job || !job.tiers || job.tiers.length === 0) {
-        console.error("addResources() - Invalid job data:", job);
-        return 0;
-    }
-
-    const currentTier = job.tiers[gameState.currentJobTier] || job.tiers[0];
-    console.log("addResources() - currentTier:", currentTier); // <-- ADD THIS LOG
-    console.log("addResources() - currentTier.incomePerYear:", currentTier.incomePerYear); // <-- ADD THIS LOG
-    console.log("addResources() - CONFIG.settings.ticksInOneGameYear:", CONFIG.settings.ticksInOneGameYear); // <-- ADD THIS LOG
-
-    const incomePerTick = currentTier.incomePerYear / CONFIG.settings.ticksInOneGameYear;
-    console.log("addResources() - incomePerTick:", incomePerTick); // <-- ADD THIS LOG
-
-    if (isNaN(incomePerTick)) {
-        console.error("addResources() - Invalid incomePerTick calculation - incomePerYear:", currentTier.incomePerYear, "ticksInOneGameYear:", CONFIG.settings.ticksInOneGameYear);
-        return 0;
-    }
-
-    gameState.gold += incomePerTick;
-    updateJobProgressBar();
-    console.log("addResources() - END - incomePerTick:", incomePerTick); // <-- ADD THIS LOG
-    return incomePerTick;
-}
-
-function increaseSkills(job) { // <-- ADD LOG AT START OF FUNCTION
-    // console.log("increaseSkills() - START - Job:", job ? job.name : 'No Job'); // <-- ADD THIS LOG - increaseSkills START
-
-    if (!job || !job.tiers || job.tiers.length === 0) {
-        console.error("increaseSkills() - Invalid job data:", job);
-        return; // Exit if job data is invalid
-    }
-
-    const currentTier = job.tiers[gameState.currentJobTier] || job.tiers[0]; // Get current job tier
-
-    if (!currentTier.skillReward) {
-        console.warn("increaseSkills() - No skillReward defined for tier:", currentTier);
-        return; // Exit if no skillReward defined for this tier
-    }
-
-    for (const skillName in currentTier.skillReward) {
-        const skillGain = currentTier.skillReward[skillName];
-        if (isNaN(skillGain)) {
-            console.error("increaseSkills() - Invalid skillGain value for skill:", skillName, "skillGain value:", skillGain);
-            continue; // Skip to the next skill if skillGain is invalid
-        }
-
-        gameState.skills[skillName] = (gameState.skills[skillName] || 0) + skillGain; // Increase skill
-        gameState.skillProgress[skillName] = (gameState.skillProgress[skillName] || 0) + skillGain; // Increase skill progress - if you use skillProgress
-
-        // console.log(`increaseSkills() - Skill ${skillName} increased by ${skillGain}. New level: ${gameState.skills[skillName]}`); // Log skill increase - MODIFIED LOG
-        // --- Skill Progress Bar Update Logic (Placeholder - To be implemented later) ---
-        updateSkillProgressBar(); // Call placeholder function - we'll implement real logic soon
-    }
-    // console.log("increaseSkills() - END - Skills:", gameState.skills); // <-- ADD THIS LOG - increaseSkills END
 }

@@ -1,120 +1,167 @@
 // game-loop.js
-let lastTimestamp = 0;
-const BASE_TICK_RATE = 1000; // milliseconds per base game tick
-let TICK_RATE = BASE_TICK_RATE; // Initialize TICK_RATE with BASE_TICK_RATE
-let effectiveTickRate; // Declare effectiveTickRate outside the if block
 
+// game-loop.js
+
+let lastTimestamp = performance.now(); // Initialize lastTimestamp *outside* gameLoop
 
 function gameLoop(timestamp) {
-    // console.log("gameLoop tick - VERY IMPORTANT CHECK"); // KEEP THIS LOG
-
-    // console.log("gameLoop() - gameState:", gameState); // COMMENT OUT - REDUCED LOGS
-    // console.log("gameLoop() - gamePaused:", gameState.gamePaused, "gameSpeed:", gameState.gameSpeed); // COMMENT OUT - REDUCED LOGS
-    // console.log("gameLoop() - effectiveTickRate:", effectiveTickRate); // COMMENT OUT - REDUCED LOGS
-    // console.log("gameLoop() - TICK_RATE:", TICK_RATE); // COMMENT OUT - REDUCED LOGS
-    // console.log("gameLoop() - deltaTime:", deltaTime); // COMMENT OUT - REDUCED LOGS
-    // console.log("gameLoop() - lastTimestamp:", lastTimestamp); // COMMENT OUT - REDUCED LOGS
-
+    console.log("gameLoop tick"); // Keep this for debugging
 
     if (gameState.gamePaused) {
-        console.log("gameLoop() - Game is PAUSED - Exiting tick early");
         requestAnimationFrame(gameLoop);
         return;
     }
 
-    // --- SPEED CONTROL LOGIC ---
-    effectiveTickRate = BASE_TICK_RATE / gameState.gameSpeed; // Calculate effective tick rate
-
+    const effectiveTickRate = 1000 / (CONFIG.settings.tickInterval * gameState.gameSpeed);
     const deltaTime = timestamp - lastTimestamp;
-    // console.log("gameLoop() - deltaTime:", deltaTime); // COMMENT OUT - REDUCED LOGS
-    // console.log("gameLoop() - lastTimestamp:", lastTimestamp); // COMMENT OUT - REDUCED LOGS
 
+    console.log("deltaTime:", deltaTime, "effectiveTickRate:", effectiveTickRate); // Log these values
 
-    if (deltaTime >= effectiveTickRate) { // Use effectiveTickRate in deltaTime check
-        // Update game time
-        lastTimestamp = timestamp;
+    if (deltaTime >= effectiveTickRate) {
+        lastTimestamp = timestamp;  // Update lastTimestamp ONLY when a tick occurs
 
-        regenerateEnergy(); // Call energy regeneration  <--- regenerateEnergy() is called HERE
+        regenerateEnergy();
 
-        advanceDay(); // Advance the game day
+        if (gameState.seasonTimeLeft > 0) {
+            // ... (Your existing time allocation logic within a season)
+        } else {
+            // Season End & Transition
+            gameState.seasonTimeLeft = CONFIG.settings.seasonDuration; 
+        }
+        gameState.ticksSinceDayStart +=1;
+        advanceDay(); // Call this every tick
 
-        tick(); // <---------------------- TICK() FUNCTION CALL HERE
-
-        updateDisplay(); // Update UI elements
+        updateDisplay();
+        updateGameSpeedUI();
+        checkAchievements();
+        runEvents();
     }
 
-    // Continue the game loop
     requestAnimationFrame(gameLoop);
 }
 
-function regenerateEnergy() {
-    console.log("regenerateEnergy() - START - Current energy:", gameState.energy, "maxEnergy:", gameState.maxEnergy); // LOG START VALUES
+function startGameLoop() {
+    console.log("startGameLoop() - Starting game loop with requestAnimationFrame");
+    gameLoop(performance.now()); // Start game loop with the initial timestamp
+}
 
-    // Calculate energy regen rate (base + bonuses)
+function regenerateEnergy() {
+    // console.log("regenerateEnergy() - START - Current energy:", gameState.energy, "maxEnergy:", gameState.maxEnergy);
+
     const energyRegenBase = 1;
     const prestigeBonus = gameState.prestigeLevel * 0.2;
     const regenRate = energyRegenBase + prestigeBonus;
-    console.log("regenerateEnergy() - Calculated regenRate:", regenRate); // LOG regenRate
+    // console.log("regenerateEnergy() - Calculated regenRate:", regenRate);
 
-    // Add energy
-    let newEnergy = gameState.energy + regenRate; // Calculate new energy value
-    console.log("regenerateEnergy() - Calculated newEnergy (before min/max):", newEnergy); // LOG newEnergy before min/max
+    let newEnergy = gameState.energy + regenRate;
+    // console.log("regenerateEnergy() - Calculated newEnergy (before min/max):", newEnergy);
 
-    gameState.energy = Math.min(gameState.maxEnergy, newEnergy); // Apply min/max and update gameState.energy
-    console.log("regenerateEnergy() - Calculated gameState.energy (after min/max):", gameState.energy); // LOG gameState.energy AFTER UPDATE
+    gameState.energy = Math.min(gameState.maxEnergy, newEnergy);
+    // console.log("regenerateEnergy() - Calculated gameState.energy (after min/max):", gameState.energy);
 
-    // Update energy display - Placeholder function in game-init.js for now
-    updateEnergyDisplay(); // Make sure this is defined or remove call if not needed in Phase 1
+    updateEnergyDisplay();
 
-    console.log("regenerateEnergy() - END - New energy:", gameState.energy); // LOG END VALUE
+    // console.log("regenerateEnergy() - END - New energy:", gameState.energy);
 }
-
 
 function advanceDay() {
-    console.log("advanceDay() - START - Current Day:", gameState.day, "Current Age:", gameState.age); // LOG START VALUES
+    console.log("advanceDay() - START - day:", gameState.day, "ticksSinceDayStart:", gameState.ticksSinceDayStart, "seasonTimeLeft:", gameState.seasonTimeLeft, "ticks in one day:" , CONFIG.settings.ticksInOneGameDay);
 
-    console.log("advanceDay() - Incrementing day...");
-    gameState.day++; // Increment day
-    console.log("advanceDay() - Day incremented - New Day (before year check):", gameState.day); // LOG DAY AFTER INCREMENT
-
-    if (gameState.day > 365) { // Add age increment logic here
-        console.log("advanceDay() - Day > 365 - Incrementing age...");
-        gameState.age++;       // Increment age by 1 year
-        gameState.day = 1;     // Reset day to 1 for the new year
-        logEvent(`Year ${gameState.age - 18 + 1999} begins. Age ${gameState.age}.`, 'time'); // Log year and age - MODIFIED LOG MESSAGE
-        console.log("advanceDay() - Age incremented, Day reset - New Age:", gameState.age, "New Day:", gameState.day); // LOG AGE AND DAY AFTER YEAR INCREMENT
-    } else {
-        logEvent(`Day ${gameState.day} begins.`, 'time'); // Keep existing day log
+    if (gameState.gamePaused) {
+        console.log("advanceDay() - Game is paused");
+        return;
     }
 
-    // Update game state for new day
-    gameState.statistics.timePlayedSeconds += TICK_RATE / 1000;
-    console.log("advanceDay() - Updated timePlayedSeconds:", gameState.statistics.timePlayedSeconds); // LOG timePlayedSeconds
+    gameState.ticksSinceDayStart++; // Increment at the beginning
 
-    // Auto-save game data on day change
-    saveGameData(); // Call saveGameData to auto-save on day change
+    if (gameState.ticksSinceDayStart >= CONFIG.settings.ticksInOneGameDay) {
+        gameState.day++;
+        gameState.ticksSinceDayStart = 0; // Reset at the START of the new day
+        logEvent(`Day ${gameState.day} begins. Season: ${gameState.currentSeason}, Year ${gameState.year}`, 'time');
+        console.log("advanceDay() - Day advanced to:", gameState.day);
+    }
 
-    console.log("advanceDay() - END - New Day:", gameState.day, "New Age:", gameState.age); // LOG END VALUES
+    // Calculate season length in days
+    const seasonLengthInDays = CONFIG.settings.seasonDuration / CONFIG.settings.ticksInOneGameDay;
+
+
+    if (gameState.day > seasonLengthInDays) {
+        console.log("advanceDay() - End of season reached", gameState.day, gameState.currentSeason, gameState.year);
+        gameState.day = 1; // Reset day
+        gameState.seasonNumber++;
+
+        const seasons = ["Spring", "Summer", "Autumn", "Winter"]; // Array for easier cycling
+
+        gameState.currentSeason = seasons[(gameState.seasonNumber) % seasons.length];
+
+        if (gameState.currentSeason === "Spring") {
+           gameState.year++; // New year starts in Spring
+            if (gameState.age >= CONFIG.settings.maxAge) {
+               endGame();
+               return; // Stop after endgame
+            }
+         }
+        
+        gameState.seasonTimeLeft = CONFIG.settings.seasonDuration; // Reset at the END of season
+        logEvent(`Season changed to ${gameState.currentSeason}, Year ${gameState.year}. Day 1 of new season.`, 'season');
+        console.log("advanceDay() - New Season:", gameState.currentSeason, "New Year:", gameState.year);
+    }
+
+    gameState.timePlayedSeconds++;
+    saveGameData();
+
+    console.log("advanceDay() - END - day:", gameState.day, "ticksSinceDayStart:", gameState.ticksSinceDayStart, "seasonTimeLeft:", gameState.seasonTimeLeft);
 }
 
+function updateDisplay() {
+    // console.log("updateDisplay() - START");
+    const goldDisplay = document.getElementById('gold-display');
+    const ageDisplay = document.getElementById('age-display');
+    const lifeQualityDisplay = document.getElementById('life-quality-display');
+    const currentJobNameDisplay = document.getElementById('current-job-name');
+    const seasonDisplay = document.getElementById('season-display');
 
-function updateTimeDisplay() {
-    const dayDisplay = document.getElementById('day-counter');
-    if (dayDisplay) {
-        dayDisplay.textContent = `Day ${gameState.day}`;
+    if (!goldDisplay) console.error("Error: #gold-display element NOT FOUND in updateDisplay()!");
+    if (!ageDisplay) console.error("Error: #age-display element NOT FOUND in updateDisplay()!");
+    if (!lifeQualityDisplay) console.error("Error: #life-quality-display element NOT FOUND in updateDisplay()!");
+    if (!currentJobNameDisplay) console.error("Error: #current-job-name element NOT FOUND in updateDisplay()!");
+    if (!seasonDisplay) console.error("Error: #season-display element NOT FOUND in updateDisplay()!");
+
+    if (goldDisplay) goldDisplay.textContent = Math.floor(gameState.gold);
+    if (ageDisplay) ageDisplay.textContent = Math.floor(gameState.age);
+    if (lifeQualityDisplay) lifeQualityDisplay.textContent = gameState.lifeQuality.toFixed(2);
+    if (currentJobNameDisplay) {
+        currentJobNameDisplay.textContent = gameState.activeJob ? gameState.activeJob.name : "Unemployed";
     }
+    if (seasonDisplay) seasonDisplay.textContent = `Season: ${gameState.currentSeason}, Year ${gameState.year}`;
+
+    updateJobProgressBar();
+    updateSkillProgressBar();
+    updateGameSpeedUI();
+    // console.log("updateDisplay() - END");
 }
 
-function updateResourceDisplay() {
-    // Update gold display
-    const goldDisplay = document.getElementById('gold-display'); // CORRECTED ID
-    if (goldDisplay) {
-        goldDisplay.textContent = Math.floor(gameState.gold).toLocaleString();
-    }
+function updateJobProgressBar() {
+    // console.log("updateJobProgressBar() - Placeholder function called");
+}
 
-    // Update energy display
-    const energyDisplay = document.getElementById('energy-display'); // CORRECTED ID
-    if (energyDisplay) {
-        energyDisplay.textContent = Math.floor(gameState.energy) + "/" + gameState.maxEnergy;
-    }
+function updateSkillProgressBar() {
+    // console.log("updateSkillProgressBar() - Placeholder function called");
+}
+
+function updateGameSpeedUI() {
+    // console.log("updateGameSpeedUI Placeholder function called");
+}
+
+function updateEnergyDisplay() {
+    // console.log("updateEnergyDisplay Placeholder");
+}
+
+function checkAchievements() {}
+function runEvents(){}
+
+
+//Placeholder
+function saveGameData() {
+    console.log("saveGameData Placeholder - Auto-saving...");
 }
