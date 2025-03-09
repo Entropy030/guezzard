@@ -1,14 +1,391 @@
 body {
-  font-family: 'Montserrat', 'Arial', sans-serif;
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-  color: #eee;
+  color: #ffd700;
+  background-color: rgba(255, 215, 0, 0.2);
+}
+
+.achievement-item.locked .achievement-icon {
+  color: #6c757d;
+}
+
+.achievement-details {
+  flex-grow: 1;
+}
+
+.achievement-details h3 {
+  margin: 0 0 5px 0 !important;
+  font-size: 1.1em !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+.achievement-details p {
   margin: 0;
-  padding: 0;
+  font-size: 0.9em;
+  color: #e0e0e0;
+}
+
+.achievement-item.unlocked .achievement-details h3 {
+  color: #ffd700 !important;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.3) !important;
+}
+
+/* End Game Modal Styles */
+#end-game-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-attachment: fixed;
+  z-index: 9999;
+}
+
+#end-game-modal > div {
+  background-color: rgba(30, 30, 45, 0.95);
+  border-radius: 12px;
+  padding: 25px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(123, 104, 238, 0.5);
+  border: 1px solid rgba(123, 104, 238, 0.6);
+  animation: modalAppear 0.5s ease;
+}
+
+@keyframes modalAppear {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#end-game-modal h2 {
+  color: #a496ff;
+  margin-top: 0;
+  text-shadow: 0 0 10px rgba(123, 104, 238, 0.5);
+}
+
+#end-game-modal ul {
+  text-align: left;
+  margin: 20px 0;
+  padding-left: 20px;
+}
+
+#end-game-modal li {
+  margin: 8px 0;
+}
+
+#new-life-button {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #4776E6, #8E54E9);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  font-size: 1em;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+#new-life-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, #5d8bff, #9d69ff);
+}
+
+/* Prestige Panel Styles */
+#prestige-panel {
+  max-width: 700px;
+  width: 90%;
+}
+
+#prestige-area {
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.prestige-info {
+  padding: 20px;
+  background-color: rgba(40, 40, 60, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(142, 84, 233, 0.5);
+  box-shadow: 0 0 20px rgba(142, 84, 233, 0.3);
+}
+
+.prestige-info h3 {
+  text-align: center;
+  margin-top: 0;
+  font-size: 1.4em;
+  color: #8e54e9;
+  margin-bottom: 15px;
+  text-shadow: 0 0 10px rgba(142, 84, 233, 0.7);
+}
+
+.prestige-info p {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1em;
+  line-height: 1.5;
+}
+
+.prestige-requirements,
+.prestige-benefits,
+.prestige-current {
+  background-color: rgba(30, 30, 50, 0.7);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.prestige-requirements h4,
+.prestige-benefits h4,
+.prestige-current h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.1em;
+  color: #a496ff;
+  border-bottom: 1px solid rgba(142, 84, 233, 0.3);
+  padding-bottom: 8px;
+}
+
+/* Benefits and current stats styling */
+.prestige-benefits ul,
+.prestige-current ul {
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+
+.prestige-benefits li,
+.prestige-current li {
+  margin: 8px 0;
+  font-size: 0.9em;
+}
+
+/* Prestige button */
+.prestige-button {
+  display: block;
+  width: 80%;
+  max-width: 250px;
+  margin: 25px auto 10px;
+  padding: 12px 25px;
+  text-align: center;
+  background: linear-gradient(135deg, #8a2387, #e94057, #f27121);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.prestige-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(142, 84, 233, 0.4);
+}
+
+.prestige-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Prestige animation - specific styles for the animation */
+@keyframes prestigeGlow {
+  0% { text-shadow: 0 0 20px rgba(142, 84, 233, 0.7); }
+  50% { text-shadow: 0 0 40px rgba(142, 84, 233, 1), 0 0 80px rgba(142, 84, 233, 0.8); }
+  100% { text-shadow: 0 0 20px rgba(142, 84, 233, 0.7); }
+}
+
+/* Prestige indicator in the top bar */
+.prestige-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #8a2387, #e94057, #f27121);
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-right: 5px;
+  box-shadow: 0 0 10px rgba(142, 84, 233, 0.7);
+}
+
+.prestige-display {
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(30, 30, 45, 0.8);
+  padding: 5px 10px;
+  border-radius: 15px;
+  margin-left: 10px;
+  border: 1px solid rgba(142, 84, 233, 0.4);
+}
+
+.prestige-level-text {
+  font-size: 0.8em;
+  color: #a496ff;
+  margin-right: 3px;
+}
+
+/* Notification Styling */
+#notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.notification {
+  margin-bottom: 10px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-width: 350px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.notification-info {
+  background-color: rgba(123, 104, 238, 0.9);
+  border-left: 4px solid #6a5acd;
+}
+
+.notification-success {
+  background-color: rgba(40, 167, 69, 0.9);
+  border-left: 4px solid #28a745;
+}
+
+.notification-error {
+  background-color: rgba(220, 53, 69, 0.9);
+  border-left: 4px solid #dc3545;
+}
+
+.notification-warning {
+  background-color: rgba(255, 193, 7, 0.9);
+  border-left: 4px solid #ffc107;
+  color: #212529;
+}
+
+.notification-enter {
+  animation: notificationEnter 0.3s ease forwards;
+}
+
+.notification-exit {
+  animation: notificationExit 0.3s ease forwards;
+}
+
+@keyframes notificationEnter {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes notificationExit {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(50px); }
+}
+
+/* Dialog Styling */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: overlayFadeIn 0.3s ease;
+}
+
+.dialog-box {
+  background-color: rgba(30, 30, 45, 0.95);
+  border-radius: 12px;
+  padding: 25px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 30px rgba(123, 104, 238, 0.5);
+  border: 1px solid rgba(123, 104, 238, 0.6);
+  animation: dialogAppear 0.3s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialogAppear {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Mobile responsiveness */
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .prestige-info {
+    padding: 15px;
+  }
+  
+  .prestige-button {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 1em;
+  }
+  
+  .prestige-requirements,
+  .prestige-benefits,
+  .prestige-current {
+    padding: 10px;
+  }
+}
+  
+  .notification {
+    max-width: 300px;
+    padding: 10px 15px;
+  }
+  
+  .dialog-box {
+    padding: 20px;
+  }
+  
+  .job-details {
+    grid-template-columns: 1fr;
+  }
+  
+/* Fix for the CSS syntax error */
+
+/* Requirements section */
+.job-requirements, 
+.skill-gains {
+  grid-column: span 2;
+  background-color: rgba(30, 30, 50, 0.6);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.job-requirements h4, 
+.skill-gains h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: #a496ff;
+  border-bottom: 1px solid rgba(123, 104, 238, 0.3);
+  padding-bottom: 4px;
 }
 
 #game-container {
@@ -481,4 +858,346 @@ body {
       padding: 15px;
       border-radius: 8px;
   }
+}
+
+/* === Enhanced Job Panel Styling === */
+
+/* Job Panel specific styles */
+#jobs-panel {
+  max-width: 700px;
+  width: 90%;
+}
+
+#jobs-panel h3 {
+  text-align: center;
+  font-size: 1.4em;
+  color: #a496ff;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 10px rgba(123, 104, 238, 0.5);
+}
+
+/* Job Items in the list */
+#jobs-list .job-item {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: rgba(40, 40, 60, 0.8);
+  border-radius: 10px;
+  border: 1px solid rgba(123, 104, 238, 0.4);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+#jobs-list .job-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 15px rgba(123, 104, 238, 0.2);
+  border-color: rgba(123, 104, 238, 0.7);
+}
+
+#jobs-list .job-item.current-job {
+  border: 2px solid #a496ff;
+  background-color: rgba(50, 50, 80, 0.9);
+  box-shadow: 0 0 15px rgba(123, 104, 238, 0.4);
+}
+
+/* Job header with title */
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(123, 104, 238, 0.3);
+  padding-bottom: 8px;
+}
+
+.job-header h3 {
+  margin: 0 !important;
+  font-size: 1.2em !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(123, 104, 238, 0.7) !important;
+}
+
+/* Job details section */
+.job-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.job-income, .job-level {
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background-color: rgba(30, 30, 50, 0.6);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+.job-income {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.job-level {
+  color: #a496ff;
+  font-weight: bold;
+}
+
+/* Requirements section */
+.job-requirements, .skill-gains {
+  grid-column: span 2;
+  background-color: rgba(30, 30, 50, 0.6);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.job-requirements h4, .skill-gains h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: #a496ff;
+  border-bottom: 1px solid rgba(123, 104, 238, 0.3);
+  padding-bottom: 4px;
+}
+
+.requirement {
+  margin: 5px 0;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 0.85em;
+}
+
+.requirement.met {
+  background-color: rgba(40, 167, 69, 0.3);
+  border-left: 3px solid #28a745;
+}
+
+.requirement.not-met {
+  background-color: rgba(220, 53, 69, 0.3);
+  border-left: 3px solid #dc3545;
+}
+
+/* Skill gains section */
+.skill-gains ul {
+  margin: 0;
+  padding: 0 0 0 15px;
+  list-style-type: disc;
+}
+
+.skill-gains li {
+  margin: 3px 0;
+  font-size: 0.85em;
+  padding: 2px 0;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.skill-gains li:hover {
+  transform: none !important;
+}
+
+/* Apply button */
+.apply-button {
+  margin-top: 5px;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #4776E6, #8E54E9);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  align-self: center;
+  width: 80%;
+  max-width: 200px;
+  text-transform: uppercase;
+  font-size: 0.85em;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.apply-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #5d8bff, #9d69ff);
+}
+
+.apply-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.apply-button:disabled {
+  background: linear-gradient(135deg, #6c757d, #495057);
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.7;
+}
+
+/* For empty job list */
+.no-jobs {
+  text-align: center;
+  padding: 20px;
+  color: #a496ff;
+  font-style: italic;
+  background-color: rgba(30, 30, 50, 0.6);
+  border-radius: 8px;
+}
+
+/* Skill Panel Styles */
+#skills-list .skill-item {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: rgba(40, 40, 60, 0.8);
+  border-radius: 10px;
+  border: 1px solid rgba(52, 191, 163, 0.4);
+  transition: all 0.2s ease;
+}
+
+#skills-list .skill-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 15px rgba(52, 191, 163, 0.2);
+  border-color: rgba(52, 191, 163, 0.7);
+}
+
+.skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(52, 191, 163, 0.3);
+  padding-bottom: 8px;
+}
+
+.skill-header h3 {
+  margin: 0 !important;
+  font-size: 1.2em !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(52, 191, 163, 0.7) !important;
+}
+
+.skill-level {
+  background-color: rgba(52, 191, 163, 0.2);
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #2ecc71;
+}
+
+.skill-details {
+  margin-bottom: 14px;
+}
+
+.skill-description {
+  margin-bottom: 10px;
+  font-size: 0.9em;
+  color: #e0e0e0;
+}
+
+.skill-progress-container {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.skill-progress-bar {
+  flex-grow: 1;
+  background-color: rgba(20, 20, 30, 0.5);
+  height: 15px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-right: 10px;
+}
+
+.skill-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #11998e, #38ef7d);
+  transition: width 0.3s ease;
+}
+
+.skill-progress-text {
+  min-width: 50px;
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #38ef7d;
+}
+
+.train-skill-button {
+  margin-top: 5px;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #11998e, #38ef7d);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  align-self: center;
+  width: 80%;
+  max-width: 200px;
+  text-transform: uppercase;
+  font-size: 0.85em;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.train-skill-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #13a89d, #4aff8f);
+}
+
+.train-skill-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Achievement Panel Styles */
+#achievements-list .achievement-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: rgba(40, 40, 60, 0.8);
+  border-radius: 10px;
+  border: 1px solid rgba(186, 150, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+#achievements-list .achievement-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 15px rgba(186, 150, 255, 0.2);
+  border-color: rgba(186, 150, 255, 0.7);
+}
+
+#achievements-list .achievement-item.unlocked {
+  border-color: rgba(255, 215, 0, 0.7);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+#achievements-list .achievement-item.locked {
+  opacity: 0.7;
+}
+.achievement-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(30, 30, 50, 0.6);
+  border-radius: 50%;
+  margin-right: 15px;
+  font-size: 1.2em;
+}
+
+.achievement-item.unlocked .achievement-icon {
+  color: #ffd700;
+  background-color: rgba(255, 215, 0, 0.2);
 }
