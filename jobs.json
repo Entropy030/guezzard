@@ -3,6 +3,7 @@
     "id": "google_maps_user",  
     "title": "Google Maps User",
     "description": "You navigate your city using Google Maps.",
+    "maxLevel": 100,
     "tiers": [
       {
         "tier": 0,  
@@ -10,7 +11,18 @@
         "incomePerYear": 200,
         "skillGainPerYear": {
           "Map Awareness": 5
-        }
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.02 },
+          { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.03 },
+          { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.05 },
+          { "level": 30, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
+          { "level": 40, "bonusType": "goldMultiplier", "bonusValue": 0.07 },
+          { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.08 },
+          { "level": 70, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+          { "level": 85, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+          { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.15 }
+        ]
       }
     ]
   },
@@ -18,22 +30,49 @@
     "id": "geoguessr_player", 
     "title": "GeoGuessr Player",
     "description": "You play GeoGuessr, guessing locations worldwide.",
+    "maxLevel": 100,
     "tiers": [
       {
         "tier": 1,
-        "minSkill": 5,
+        "minSkill": 20,
+        "requiredJobId": "google_maps_user",
+        "requiredJobLevel": 50,
         "incomePerYear": 500,
         "skillGainPerYear": {
           "Map Awareness": 10
-        }
-      } ,
-        {
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.03 },
+          { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.04 },
+          { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.06 },
+          { "level": 30, "bonusType": "jobXpMultiplier", "bonusValue": 0.06 },
+          { "level": 40, "bonusType": "goldMultiplier", "bonusValue": 0.08 },
+          { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+          { "level": 70, "bonusType": "goldMultiplier", "bonusValue": 0.12 },
+          { "level": 85, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+          { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.20 }
+        ]
+      },
+      {
         "tier": 2,
-        "minSkill": 20,
+        "minSkill": 40,
+        "requiredJobId": "google_maps_user",
+        "requiredJobLevel": 80,
         "incomePerYear": 1000,
         "skillGainPerYear": {
           "Map Awareness": 15
-        }
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.04 },
+          { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
+          { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.07 },
+          { "level": 30, "bonusType": "jobXpMultiplier", "bonusValue": 0.07 },
+          { "level": 40, "bonusType": "goldMultiplier", "bonusValue": 0.09 },
+          { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.12 },
+          { "level": 70, "bonusType": "goldMultiplier", "bonusValue": 0.14 },
+          { "level": 85, "bonusType": "jobXpMultiplier", "bonusValue": 0.18 },
+          { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+        ]
       }
     ]
   },
@@ -41,32 +80,58 @@
     "id": "urban_explorer", 
     "title": "Urban Explorer",
     "description": "You explore your city, discovering hidden spots.",
+    "maxLevel": 100,
     "tiers": [
       {
         "tier": 1,
-        "minSkill": 10,
+        "minSkill": 30,
+        "requiredJobId": "geoguessr_player",
+        "requiredJobLevel": 50,
         "incomePerYear": 750,
         "skillGainPerYear": {
           "Map Awareness": 12
-        }
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.04 },
+          { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
+          { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.08 },
+          { "level": 30, "bonusType": "jobXpMultiplier", "bonusValue": 0.08 },
+          { "level": 40, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+          { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.12 },
+          { "level": 70, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
+          { "level": 85, "bonusType": "jobXpMultiplier", "bonusValue": 0.18 },
+          { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+        ]
       }
     ]
   },
- {
+  {
     "id": "tour_guide", 
     "title": "Tour Guide",
     "description": "You guide tourists, showing them the best spots.",
+    "maxLevel": 100,
     "tiers": [
       {
         "tier": 2,
-        "minSkill": 20,
+        "minSkill": 50,
+        "requiredJobId": "urban_explorer",
+        "requiredJobLevel": 40,
         "incomePerYear": 1250,
         "skillGainPerYear": {
           "Map Awareness": 14
-        }
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
+          { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.07 },
+          { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+          { "level": 30, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+          { "level": 40, "bonusType": "goldMultiplier", "bonusValue": 0.12 },
+          { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+          { "level": 70, "bonusType": "goldMultiplier", "bonusValue": 0.18 },
+          { "level": 85, "bonusType": "jobXpMultiplier", "bonusValue": 0.20 },
+          { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.30 }
+        ]
       }
     ]
   }
-
- 
 ]
