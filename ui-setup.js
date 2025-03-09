@@ -1,17 +1,58 @@
 // ui-setup.js - Enhanced version for job panel functionality
 
+// Define displayNotification function first
+function displayNotification(message, type = 'info', duration = 3000) {
+    console.log(`Notification: ${message} (${type})`);
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+
+    // Add to notification container
+    let container = document.getElementById('notification-container');
+    
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+    }
+    
+    container.appendChild(notification);
+
+    // Add entry animation
+    notification.classList.add('notification-enter');
+
+    // Set up removal after duration
+    setTimeout(() => {
+        // Add exit animation
+        notification.classList.add('notification-exit');
+
+        // Remove from DOM after animation completes
+        notification.addEventListener('animationend', () => {
+            notification.remove();
+        });
+    }, duration);
+
+    return notification;
+}
+
 // Notifications and event logging
-export function showNotification(title, message, type = 'info') {
+function showNotification(title, message, type = 'info') {
     console.log(`Notification: ${title} - ${message} (${type})`);
     displayNotification(`${title}: ${message}`, type);
 }
 
-export function showErrorNotification(message) {
+function showErrorNotification(message) {
     console.error(`Error: ${message}`);
     displayNotification(message, 'error');
 }
 
-export function logEvent(message, category = 'general') {
+function logEvent(message, category = 'general') {
     console.log(`Event Log (${category}): ${message}`);
     
     // Create event log entry
@@ -38,7 +79,7 @@ export function logEvent(message, category = 'general') {
 }
 
 // Event log display
-export function setupEventLog() {
+function setupEventLog() {
     console.log("Setting up event log display...");
     const eventLogList = document.getElementById('event-log-list');
     
@@ -88,7 +129,7 @@ function updateEventLogDisplay() {
 }
 
 // Game controls setup
-export function setupGameControls() {
+function setupGameControls() {
     console.log("Setting up game controls...");
     
     // Pause button
@@ -210,7 +251,9 @@ function setupActionButtons() {
             const prestigePanel = document.getElementById('prestige-panel');
             if (prestigePanel) {
                 // TODO: Implement setupPrestigeUI function
-                // setupPrestigeUI();
+                if (typeof window.setupPrestigeUI === 'function') {
+                    window.setupPrestigeUI();
+                }
                 prestigePanel.style.display = 'block';
             }
         });
@@ -234,7 +277,7 @@ function setupPanelCloseButtons() {
 }
 
 // Jobs UI setup
-export function setupJobsUI() {
+function setupJobsUI() {
     console.log("Setting up jobs UI...");
     
     // Get jobs panel and list
@@ -376,7 +419,7 @@ export function setupJobsUI() {
     console.log(`setupJobsUI() - Added ${availableJobs.length} jobs to the UI`);
 }
 
-export function closeJobsPanel() {
+function closeJobsPanel() {
     const jobsPanel = document.getElementById('jobs-panel');
     if (jobsPanel) {
         jobsPanel.style.display = 'none';
@@ -384,7 +427,7 @@ export function closeJobsPanel() {
 }
 
 // Skills UI
-export function updateSkillDisplay() {
+function updateSkillDisplay() {
     console.log("Updating skill display...");
     
     const skillsList = document.getElementById('skills-list');
@@ -465,7 +508,7 @@ export function updateSkillDisplay() {
 }
 
 // Achievements UI
-export function setupAchievementsUI() {
+function setupAchievementsUI() {
     console.log("Setting up achievements UI...");
     
     const achievementsList = document.getElementById('achievements-list');
@@ -514,7 +557,7 @@ export function setupAchievementsUI() {
 }
 
 // General display updating
-export function updateDisplay() {
+function updateDisplay() {
     console.log("Updating game display...");
     
     // Update top bar indicators
@@ -585,7 +628,7 @@ function updateJobDisplay() {
 }
 
 // Game end function
-export function endGame() {
+function endGame() {
     console.log("endGame() - Game has ended");
     
     // Display end game message
@@ -657,11 +700,22 @@ function startNewLife() {
     logEvent("Starting a new life!", 'system');
 }
 
-// Export all needed functions
+// Correctly export functions
 export {
+    showNotification,
+    showErrorNotification,
+    logEvent,
+    setupJobsUI,
+    updateSkillDisplay,
+    setupAchievementsUI,
+    setupGameControls,
+    setupEventLog,
+    updateDisplay,
+    closeJobsPanel,
     displayNotification,
     updateTopBarDisplay,
     updateJobDisplay,
+    endGame,
     startNewLife
 };
 
@@ -677,5 +731,4 @@ window.setupGameControls = setupGameControls;
 window.setupEventLog = setupEventLog;
 window.updateDisplay = updateDisplay;
 window.closeJobsPanel = closeJobsPanel;
-window.applyForJob = window.applyForJob || function() { console.error("applyForJob not yet available"); };
 window.endGame = endGame;

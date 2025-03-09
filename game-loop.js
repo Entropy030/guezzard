@@ -1,20 +1,20 @@
-// game-loop.js
-
-import { 
-    logEvent, 
-    updateDisplay 
-} from './ui-setup.js';
+// game-loop.js - Fixed version
 
 // Variables for game loop timing
-let lastTimestamp = performance.now(); // Initialize lastTimestamp outside gameLoop
+let lastTimestamp = 0;
 
 // Main game loop function
-export function gameLoop(timestamp) {
+function gameLoop(timestamp) {
     console.log("gameLoop tick"); // Keep this for debugging
 
     if (gameState.gamePaused) {
         requestAnimationFrame(gameLoop);
         return;
+    }
+
+    // Initialize lastTimestamp if it's the first call
+    if (lastTimestamp === 0) {
+        lastTimestamp = timestamp;
     }
 
     const effectiveTickRate = 1000 / (CONFIG.settings.tickInterval * gameState.gameSpeed);
@@ -25,20 +25,36 @@ export function gameLoop(timestamp) {
     if (deltaTime >= effectiveTickRate) {
         lastTimestamp = timestamp;  // Update lastTimestamp ONLY when a tick occurs
 
+        // Regenerate energy
         regenerateEnergy();
 
         if (gameState.seasonTimeLeft > 0) {
-            // ... (Your existing time allocation logic within a season)
+            gameState.seasonTimeLeft -= 1;
         } else {
             // Season End & Transition
             gameState.seasonTimeLeft = CONFIG.settings.seasonDuration; 
         }
-        gameState.ticksSinceDayStart += 1;
-        advanceDay(); // Call this every tick
+        
+        // Advance the game day
+        advanceDay();
+        
+        // Process job progress (if player has a job)
+        if (typeof window.processJobProgress === 'function' && gameState.activeJob) {
+            window.processJobProgress(deltaTime);
+        }
 
-        updateDisplay();
-        updateGameSpeedUI();
+        // Update UI
+        if (typeof window.updateDisplay === 'function') {
+            window.updateDisplay();
+        }
+        if (typeof window.updateGameSpeedUI === 'function') {
+            window.updateGameSpeedUI();
+        }
+        
+        // Check for achievements
         checkAchievements();
+        
+        // Run random events
         runEvents();
     }
 
@@ -46,10 +62,10 @@ export function gameLoop(timestamp) {
 }
 
 // Function to start the game loop
-export function startGameLoop() {
+function startGameLoop() {
     console.log("startGameLoop() - Starting game loop with requestAnimationFrame");
-    lastTimestamp = performance.now(); // Set initial timestamp
-    gameLoop(lastTimestamp);
+    lastTimestamp = 0; // Reset lastTimestamp
+    requestAnimationFrame(gameLoop);
 }
 
 // Energy regeneration function
@@ -87,7 +103,9 @@ function advanceDay() {
     if (gameState.ticksSinceDayStart >= CONFIG.settings.ticksInOneGameDay) {
         gameState.day++;
         gameState.ticksSinceDayStart = 0; // Reset at the START of the new day
-        logEvent(`Day ${gameState.day} begins. Season: ${gameState.currentSeason}, Year ${gameState.year}`, 'time');
+        if (typeof window.logEvent === 'function') {
+            window.logEvent(`Day ${gameState.day} begins. Season: ${gameState.currentSeason}, Year ${gameState.year}`, 'time');
+        }
         console.log("advanceDay() - Day advanced to:", gameState.day);
     }
 
@@ -106,13 +124,17 @@ function advanceDay() {
         if (gameState.currentSeason === "Spring") {
            gameState.year++; // New year starts in Spring
             if (gameState.age >= CONFIG.settings.maxAge) {
-               endGame();
+               if (typeof window.endGame === 'function') {
+                   window.endGame();
+               }
                return; // Stop after endgame
             }
         }
         
         gameState.seasonTimeLeft = CONFIG.settings.seasonDuration; // Reset at the END of season
-        logEvent(`Season changed to ${gameState.currentSeason}, Year ${gameState.year}. Day 1 of new season.`, 'season');
+        if (typeof window.logEvent === 'function') {
+            window.logEvent(`Season changed to ${gameState.currentSeason}, Year ${gameState.year}. Day 1 of new season.`, 'season');
+        }
         console.log("advanceDay() - New Season:", gameState.currentSeason, "New Year:", gameState.year);
     }
 
@@ -205,30 +227,44 @@ function checkAchievements() {
         
         let conditionsMet = true;
         
-        // Simple examples of achievement conditions
-        switch (achievement.id) {
-            case 'first_job':
-                conditionsMet = gameState.jobsHeld && gameState.jobsHeld.length > 0;
-                break;
-            case 'reach_age_30':
-                conditionsMet = gameState.age >= 30;
-                break;
-            case 'earn_1000_gold':
-                conditionsMet = gameState.totalGoldEarned >= 1000;
-                break;
-            case 'max_skill':
-                // Check if any skill has reached max level
-                conditionsMet = Object.values(gameState.skills).some(skill => skill.level >= 10);
-                break;
-            // Add more achievement checks as needed
-            default:
-                conditionsMet = false;
+        // Handle different achievement types
+        if (achievement.condition && achievement.condition.type === 'gold') {
+            conditionsMet = gameState.gold >= achievement.condition.value;
+        } else {
+            // Simple examples of achievement conditions
+            switch (achievement.id) {
+                case 'first_job':
+                    conditionsMet = gameState.jobsHeld && gameState.jobsHeld.length > 0;
+                    break;
+                case 'reach_age_30':
+                    conditionsMet = gameState.age >= 30;
+                    break;
+                case 'earn_1000_gold':
+                    conditionsMet = gameState.totalGoldEarned >= 1000;
+                    break;
+                case 'max_skill':
+                    // Check if any skill has reached max level
+                    conditionsMet = Object.values(gameState.skills).some(skill => {
+                        const skillLevel = typeof skill === 'object' ? skill.level : skill;
+                        return skillLevel >= 10;
+                    });
+                    break;
+                // Add more achievement checks as needed
+                default:
+                    // For achievements with no specific check
+                    conditionsMet = false;
+            }
         }
         
         if (conditionsMet) {
             achievement.unlocked = true;
-            logEvent(`Achievement Unlocked: ${achievement.name}`, 'achievement');
-            // You might want to show a notification or update UI
+            if (typeof window.logEvent === 'function') {
+                window.logEvent(`Achievement Unlocked: ${achievement.name}`, 'achievement');
+            }
+            // Show notification
+            if (typeof window.showNotification === 'function') {
+                window.showNotification("Achievement Unlocked", achievement.name, "success");
+            }
         }
     });
 }
@@ -240,7 +276,7 @@ function runEvents() {
     }
     
     // Random chance for an event to trigger (adjust probability as needed)
-    if (Math.random() < 0.01) { // 1% chance per tick
+    if (Math.random() < CONFIG.settings.eventChance / 100) { // Convert percentage to decimal
         triggerRandomEvent();
     }
 }
@@ -253,7 +289,9 @@ function triggerRandomEvent() {
             action: () => {
                 const bonus = Math.floor(20 + Math.random() * 50);
                 gameState.gold += bonus;
-                logEvent(`Lucky day! You found ${bonus} gold.`, 'event');
+                if (typeof window.logEvent === 'function') {
+                    window.logEvent(`Lucky day! You found ${bonus} gold.`, 'event');
+                }
             }
         },
         { 
@@ -267,16 +305,57 @@ function triggerRandomEvent() {
                 const bonusProgress = Math.floor(10 + Math.random() * 30);
                 
                 // Add progress to the skill
-                const skill = gameState.skills[randomSkill];
-                skill.progress = (skill.progress || 0) + bonusProgress;
+                let skill;
+                if (typeof gameState.skills[randomSkill] === 'object') {
+                    skill = gameState.skills[randomSkill];
+                    skill.progress = (skill.progress || 0) + bonusProgress;
+                } else {
+                    // Initialize skill progress if needed
+                    if (!gameState.skillProgress) {
+                        gameState.skillProgress = {};
+                    }
+                    
+                    if (!gameState.skillProgress[randomSkill]) {
+                        gameState.skillProgress[randomSkill] = 0;
+                    }
+                    
+                    gameState.skillProgress[randomSkill] += bonusProgress;
+                    
+                    // Get current skill level
+                    const skillLevel = gameState.skills[randomSkill] || 0;
+                    const progressNeeded = 10 + (skillLevel * 5);
+                    
+                    // Check for level up
+                    if (gameState.skillProgress[randomSkill] >= progressNeeded) {
+                        gameState.skills[randomSkill] = skillLevel + 1;
+                        gameState.skillProgress[randomSkill] = 0;
+                        
+                        if (typeof window.logEvent === 'function') {
+                            window.logEvent(`Skill insight! Your ${randomSkill} skill increased to level ${gameState.skills[randomSkill]}.`, 'skill');
+                        }
+                    } else {
+                        if (typeof window.logEvent === 'function') {
+                            window.logEvent(`Skill insight! You gained ${bonusProgress} progress towards ${randomSkill}.`, 'skill');
+                        }
+                    }
+                    
+                    return;
+                }
                 
-                // Check if skill leveled up
-                if (skill.progress >= skill.progressNeeded) {
+                // Check if skill leveled up (for object-based skills)
+                const progressNeeded = 10 + ((skill.level || 0) * 5);
+                
+                if (skill.progress >= progressNeeded) {
                     skill.level = (skill.level || 0) + 1;
                     skill.progress = 0;
-                    logEvent(`Skill insight! Your ${randomSkill} skill increased to level ${skill.level}.`, 'skill');
+                    
+                    if (typeof window.logEvent === 'function') {
+                        window.logEvent(`Skill insight! Your ${randomSkill} skill increased to level ${skill.level}.`, 'skill');
+                    }
                 } else {
-                    logEvent(`Skill insight! You gained ${bonusProgress} progress towards ${randomSkill}.`, 'skill');
+                    if (typeof window.logEvent === 'function') {
+                        window.logEvent(`Skill insight! You gained ${bonusProgress} progress towards ${randomSkill}.`, 'skill');
+                    }
                 }
             }
         },
@@ -290,38 +369,39 @@ function triggerRandomEvent() {
 
 // Placeholder for saving game data
 function saveGameData() {
-    console.log("saveGameData Placeholder - Auto-saving...");
+    //console.log("saveGameData Placeholder - Auto-saving...");
     
     // Example implementation:
-    const gameData = {
-        gameState: gameState,
-        timestamp: Date.now(),
-        version: CONFIG.version
-    };
-    
     try {
-        localStorage.setItem('gameSave', JSON.stringify(gameData));
-        console.log("Game saved successfully");
+        const gameData = {
+            gameState: gameState,
+            timestamp: Date.now(),
+            version: CONFIG.version || '1.0'
+        };
+        
+        localStorage.setItem('guezzardGameSave', JSON.stringify(gameData));
+        //console.log("Game saved successfully");
     } catch (error) {
         console.error("Failed to save game:", error);
     }
 }
 
-// Import endGame function from ui-setup.js and make it available
-import { endGame } from './ui-setup.js';
-
-// Export needed functions for use in other modules
+// Export functions for module usage
 export {
-    updateDisplay,
+    gameLoop,
+    startGameLoop,
     updateGameSpeedUI,
     updateEnergyDisplay,
-    saveGameData
+    saveGameData,
+    checkAchievements,
+    runEvents
 };
 
-// Also make functions available on window for non-module scripts
+// Make functions available on window for non-module scripts
 window.gameLoop = gameLoop;
 window.startGameLoop = startGameLoop;
-window.updateDisplay = updateDisplay;
 window.updateGameSpeedUI = updateGameSpeedUI;
 window.updateEnergyDisplay = updateEnergyDisplay;
 window.saveGameData = saveGameData;
+window.checkAchievements = checkAchievements;
+window.runEvents = runEvents;
