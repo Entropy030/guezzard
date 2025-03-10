@@ -159,23 +159,6 @@ function updateDaySeasonDisplay() {
     }
 }
 
-// Function to update the day-season display
-function updateDaySeasonDisplay() {
-    const seasonDisplay = document.getElementById('season-display');
-    if (seasonDisplay) {
-        // Format: "Day X, Season, Year Y"
-        seasonDisplay.textContent = `Day ${gameState.day}, ${gameState.currentSeason}, Year ${gameState.year}`;
-    }
-}
-
-// Add the updateGameSpeedUI function that was missing
-function updateGameSpeedUI() {
-    const speedButton = document.getElementById('speed-button');
-    if (speedButton) {
-        speedButton.textContent = `▶ ${gameState.gameSpeed}x Speed`;
-    }
-}
-
 function updateEnergyDisplay() {
     // console.log("updateEnergyDisplay Placeholder");
     const energyDisplay = document.getElementById('energy-display');
@@ -318,19 +301,15 @@ window.updateDaySeasonDisplay = updateDaySeasonDisplay;
 export {
     gameLoop,
     startGameLoop,
-    updateGameSpeedUI,
     updateEnergyDisplay,
     updateDaySeasonDisplay,
     saveGameData,
-    checkAchievements,
-    runEvents
+    checkAchievements
 };
 
 // Make functions available on window for non-module scripts
 window.gameLoop = gameLoop;
 window.startGameLoop = startGameLoop;
-window.updateGameSpeedUI = updateGameSpeedUI;
 window.updateEnergyDisplay = updateEnergyDisplay;
 window.saveGameData = saveGameData;
 window.checkAchievements = checkAchievements;
-window.runEvents = runEvents;

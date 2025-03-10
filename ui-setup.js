@@ -719,116 +719,129 @@ export {
     startNewLife
 };
 
-// Add this to ui-setup.js or another appropriate file
-function endGame() {
-    console.log("endGame() - Player has reached retirement age: " + gameState.age);
-    
-    // Pause the game
-    gameState.gamePaused = true;
-    
-    // Create end game modal if it doesn't exist
-    let endGameModal = document.getElementById('end-game-modal');
-    
-    if (!endGameModal) {
-        endGameModal = document.createElement('div');
-        endGameModal.id = 'end-game-modal';
-        endGameModal.style.position = 'fixed';
-        endGameModal.style.top = '0';
-        endGameModal.style.left = '0';
-        endGameModal.style.width = '100%';
-        endGameModal.style.height = '100%';
-        endGameModal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        endGameModal.style.display = 'flex';
-        endGameModal.style.justifyContent = 'center';
-        endGameModal.style.alignItems = 'center';
-        endGameModal.style.zIndex = '9999';
-        
-        const modalContent = document.createElement('div');
-        modalContent.style.backgroundColor = '#f7f5f0';
-        modalContent.style.padding = '30px';
-        modalContent.style.borderRadius = '10px';
-        modalContent.style.maxWidth = '500px';
-        modalContent.style.width = '80%';
-        modalContent.style.textAlign = 'center';
-        
-        modalContent.innerHTML = `
-            <h2 style="color: #e67e22;">Retirement Day!</h2>
-            <p>You've reached age ${gameState.age} and it's time to retire.</p>
-            <p>Your final stats:</p>
-            <ul style="text-align: left; padding-left: 20px;">
-                <li>Total Gold: ${Math.floor(gameState.gold || 0)}</li>
-                <li>Final Job: ${gameState.activeJob ? gameState.activeJob.title : 'Unemployed'}</li>
-                <li>Years Worked: ${gameState.year - 1}</li>
-            </ul>
-            <button id="prestige-button" style="background-color: #e67e22; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">Prestige & Start New Life</button>
-            <button id="new-game-button" style="background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">New Game</button>
-        `;
-        
-        endGameModal.appendChild(modalContent);
-        document.body.appendChild(endGameModal);
-        
-        // Add event listeners to buttons
-        document.getElementById('prestige-button').addEventListener('click', () => {
-            // Handle prestige logic
-            if (typeof window.performPrestige === 'function') {
-                window.performPrestige();
-            } else {
-                // Basic prestige fallback
-                gameState.prestigeLevel = (gameState.prestigeLevel || 0) + 1;
-                resetGame();
-            }
-            endGameModal.remove();
-        });
-        
-        document.getElementById('new-game-button').addEventListener('click', () => {
-            // Reset without prestige
-            resetGame();
-            endGameModal.remove();
-        });
-    } else {
-        // Show existing modal
-        endGameModal.style.display = 'flex';
-    }
-}
+// Add this to ui-setup.js - Replace the duplicate endGame function
+// Add at the bottom of the file after the export section
 
-// Basic game reset function
-function resetGame() {
-    // Create default game state
-    if (typeof window.getDefaultGameState === 'function') {
-        const defaultState = window.getDefaultGameState();
-        
-        // Preserve prestige level
-        const prestigeLevel = gameState.prestigeLevel || 0;
-        
-        // Reset game state
-        Object.assign(gameState, defaultState);
-        
-        // Restore prestige level
-        gameState.prestigeLevel = prestigeLevel;
-    } else {
-        // Simple reset
-        gameState.age = 18;
-        gameState.day = 1;
-        gameState.year = 1;
-        gameState.currentSeason = "Spring";
-        gameState.seasonTimeLeft = CONFIG.settings.seasonDuration;
-        gameState.gold = 0;
-        gameState.activeJob = null;
-        gameState.skills = { "Map Awareness": 1 };
-        gameState.skillProgress = { "Map Awareness": 0 };
-        gameState.gamePaused = false;
+// Make sure endGame is defined only once
+if (typeof window.endGame !== 'function') {
+    function endGame() {
+      console.log("endGame() - Player has reached retirement age: " + gameState.age);
+      
+      // Pause the game
+      gameState.gamePaused = true;
+      
+      // Create end game modal if it doesn't exist
+      let endGameModal = document.getElementById('end-game-modal');
+      
+      if (!endGameModal) {
+          endGameModal = document.createElement('div');
+          endGameModal.id = 'end-game-modal';
+          endGameModal.style.position = 'fixed';
+          endGameModal.style.top = '0';
+          endGameModal.style.left = '0';
+          endGameModal.style.width = '100%';
+          endGameModal.style.height = '100%';
+          endGameModal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+          endGameModal.style.display = 'flex';
+          endGameModal.style.justifyContent = 'center';
+          endGameModal.style.alignItems = 'center';
+          endGameModal.style.zIndex = '9999';
+          
+          const modalContent = document.createElement('div');
+          modalContent.style.backgroundColor = '#f7f5f0';
+          modalContent.style.padding = '30px';
+          modalContent.style.borderRadius = '10px';
+          modalContent.style.maxWidth = '500px';
+          modalContent.style.width = '80%';
+          modalContent.style.textAlign = 'center';
+          
+          modalContent.innerHTML = `
+              <h2 style="color: #e67e22;">Retirement Day!</h2>
+              <p>You've reached age ${gameState.age} and it's time to retire.</p>
+              <p>Your final stats:</p>
+              <ul style="text-align: left; padding-left: 20px;">
+                  <li>Total Gold: ${Math.floor(gameState.gold || 0)}</li>
+                  <li>Final Job: ${gameState.activeJob ? gameState.activeJob.title : 'Unemployed'}</li>
+                  <li>Years Worked: ${gameState.year - 1}</li>
+              </ul>
+              <button id="prestige-button" style="background-color: #e67e22; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">Prestige & Start New Life</button>
+              <button id="new-game-button" style="background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">New Game</button>
+          `;
+          
+          endGameModal.appendChild(modalContent);
+          document.body.appendChild(endGameModal);
+          
+          // Add event listeners to buttons
+          document.getElementById('prestige-button').addEventListener('click', () => {
+              // Handle prestige logic
+              if (typeof window.performPrestige === 'function') {
+                  window.performPrestige();
+              } else {
+                  // Basic prestige fallback
+                  gameState.prestigeLevel = (gameState.prestigeLevel || 0) + 1;
+                  resetGame();
+              }
+              endGameModal.remove();
+          });
+          
+          document.getElementById('new-game-button').addEventListener('click', () => {
+              // Reset without prestige
+              resetGame();
+              endGameModal.remove();
+          });
+      } else {
+          // Show existing modal
+          endGameModal.style.display = 'flex';
+      }
     }
-    
-    // Update display
-    if (typeof window.updateDisplay === 'function') {
-        window.updateDisplay();
+  
+    // Make the endGame function available globally
+    window.endGame = endGame;
+  }
+  
+  // Basic game reset function
+  if (typeof window.resetGame !== 'function') {
+    function resetGame() {
+      // Create default game state
+      if (typeof window.getDefaultGameState === 'function') {
+          const defaultState = window.getDefaultGameState();
+          
+          // Preserve prestige level
+          const prestigeLevel = gameState.prestigeLevel || 0;
+          
+          // Reset game state
+          Object.assign(gameState, defaultState);
+          
+          // Restore prestige level
+          gameState.prestigeLevel = prestigeLevel;
+      } else {
+          // Simple reset
+          gameState.age = 18;
+          gameState.day = 1;
+          gameState.year = 1;
+          gameState.currentSeason = "Spring";
+          gameState.seasonTimeLeft = CONFIG.settings.seasonDuration;
+          gameState.gold = 0;
+          gameState.activeJob = null;
+          gameState.skills = { "Map Awareness": 1 };
+          gameState.skillProgress = { "Map Awareness": 0 };
+          gameState.gamePaused = false;
+      }
+      
+      // Update display
+      if (typeof window.updateDisplay === 'function') {
+          window.updateDisplay();
+      }
+      
+      // Log event
+      if (typeof window.logEvent === 'function') {
+          window.logEvent("Starting a new life!", 'system');
+      }
     }
-    
-    // Log event
-    if (typeof window.logEvent === 'function') {
-        window.logEvent("Starting a new life!", 'system');
-    }
-}
+  
+    // Make function available globally
+    window.resetGame = resetGame;
+  }
 
 
 
