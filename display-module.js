@@ -191,7 +191,7 @@ export function updateTimeDisplay() {
         const year = gameState.year || 1;
         const day = gameState.day || 1;
         
-        seasonDisplay.textContent = `Season: ${season}, Year ${year}, Day ${day}`;
+        seasonDisplay.textContent = `Day ${day}, ${season}, Year ${year}`;
     }
     
     // Update other time-related displays as needed

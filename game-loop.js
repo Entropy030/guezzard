@@ -88,7 +88,7 @@ function regenerateEnergy() {
     // console.log("regenerateEnergy() - END - New energy:", gameState.energy);
 }
 
-// Function to advance game days
+// Modified advanceDay function to update day display without filling event log
 function advanceDay() {
     console.log("advanceDay() - START - day:", gameState.day, "ticksSinceDayStart:", gameState.ticksSinceDayStart, 
                 "seasonTimeLeft:", gameState.seasonTimeLeft, "ticks in one day:", CONFIG.settings.ticksInOneGameDay);
@@ -103,9 +103,10 @@ function advanceDay() {
     if (gameState.ticksSinceDayStart >= CONFIG.settings.ticksInOneGameDay) {
         gameState.day++;
         gameState.ticksSinceDayStart = 0; // Reset at the START of the new day
-        if (typeof window.logEvent === 'function') {
-            window.logEvent(`Day ${gameState.day} begins. Season: ${gameState.currentSeason}, Year ${gameState.year}`, 'time');
-        }
+        
+        // Update day display instead of logging to event log
+        updateDaySeasonDisplay();
+        
         console.log("advanceDay() - Day advanced to:", gameState.day);
     }
 
@@ -132,9 +133,15 @@ function advanceDay() {
         }
         
         gameState.seasonTimeLeft = CONFIG.settings.seasonDuration; // Reset at the END of season
+        
+        // Log season change as it's a significant event
         if (typeof window.logEvent === 'function') {
-            window.logEvent(`Season changed to ${gameState.currentSeason}, Year ${gameState.year}. Day 1 of new season.`, 'season');
+            window.logEvent(`Season changed to ${gameState.currentSeason}, Year ${gameState.year}.`, 'season');
         }
+        
+        // Update the day-season display
+        updateDaySeasonDisplay();
+        
         console.log("advanceDay() - New Season:", gameState.currentSeason, "New Year:", gameState.year);
     }
 
@@ -143,6 +150,14 @@ function advanceDay() {
 
     console.log("advanceDay() - END - day:", gameState.day, "ticksSinceDayStart:", gameState.ticksSinceDayStart, 
                 "seasonTimeLeft:", gameState.seasonTimeLeft);
+}
+
+// Function to update the day-season display
+function updateDaySeasonDisplay() {
+    const seasonDisplay = document.getElementById('season-display');
+    if (seasonDisplay) {
+        seasonDisplay.textContent = `Day ${gameState.day}, ${gameState.currentSeason}, Year ${gameState.year}`;
+    }
 }
 
 // UI update functions
