@@ -1,3 +1,112 @@
+/* Modern Minimalist Color System */
+:root {
+  /* Background Layers */
+  --bg-primary: #292927;        /* Primary dark gray background */
+  --bg-secondary: #3d3d3a;      /* Secondary slightly lighter gray */
+  --bg-tertiary: #1e1e1c;       /* Darkest background for depth */
+
+  /* Text Colors */
+  --text-primary: #e0e0e0;      /* Light gray for main text */
+  --text-secondary: #a0a0a0;    /* Subdued gray for secondary text */
+  --text-muted: #6c6c6a;        /* Very subdued gray */
+
+  /* Accent Colors */
+  --accent-primary: #e67e22;    /* Warm orange */
+  --accent-secondary: #d35400;  /* Deeper orange */
+  --accent-highlight: #f39c12;  /* Brighter orange highlight */
+
+  /* Interaction States */
+  --hover-overlay: rgba(230, 126, 34, 0.2);   /* Soft orange overlay */
+  --active-overlay: rgba(230, 126, 34, 0.3);  /* Slightly darker orange overlay */
+
+  /* Semantic Colors */
+  --success: #2ecc71;    /* Soft green */
+  --danger: #e74c3c;     /* Soft red */
+  --warning: #f1c40f;    /* Soft yellow */
+  --info: #3498db;       /* Soft blue */
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #e67e22, #d35400);
+  --gradient-secondary: linear-gradient(135deg, #d35400, #e67e22);
+}
+
+/* Global Application */
+body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* Top Bar and Panels */
+#top-bar,
+.hidden-panel,
+#end-game-modal > div,
+.dialog-box {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+/* Action Buttons */
+#action-buttons button,
+.game-button,
+.apply-button,
+.train-skill-button {
+  background: var(--gradient-primary) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+
+#action-buttons button:hover,
+.game-button:hover,
+.apply-button:hover,
+.train-skill-button:hover {
+  background: var(--gradient-secondary) !important;
+  box-shadow: 0 4px 15px var(--hover-overlay) !important;
+  transform: translateY(-3px);
+}
+
+/* Progress Bars */
+.progress-bar {
+  background-color: rgba(0,0,0,0.3) !important;
+}
+
+.progress-fill {
+  background: var(--gradient-primary) !important;
+}
+
+/* Headings and Emphasis */
+h1, h2, h3 {
+  color: var(--accent-primary) !important;
+}
+
+/* Event Log */
+#event-log {
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--accent-secondary) !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar-thumb {
+  background: var(--gradient-primary) !important;
+}
+
+/* Subtle Hover Effects */
+#jobs-list li:hover,
+#skills-list li:hover,
+#achievements-list li:hover {
+  background-color: rgba(230, 126, 34, 0.1) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+/* Additional color applications can be added here */
+----------------------------------------------------------
+
+
+
+
+
+------------------------------------------------------------
 body {
   color: #ffd700;
   background-color: rgba(255, 215, 0, 0.2);
