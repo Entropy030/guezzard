@@ -666,3 +666,36 @@ if (document.readyState === 'loading') {
 
 // Log completion
 console.log("integration-script.js - Integration script loaded");
+// Add this to integration-script.js or execute it after DOM is loaded
+
+// Initialize the day-season display with the correct format
+document.addEventListener('DOMContentLoaded', () => {
+    const seasonDisplay = document.getElementById('season-display');
+    if (seasonDisplay) {
+        // Set the initial format
+        seasonDisplay.textContent = `Day ${gameState.day || 1}, ${gameState.currentSeason || 'Spring'}, Year ${gameState.year || 1}`;
+    }
+    
+    // Also update any display functions that might modify this element
+    // Patch the updateTimeDisplay function if it exists
+    if (typeof window.updateTimeDisplay === 'function') {
+        const originalUpdateTimeDisplay = window.updateTimeDisplay;
+        
+        window.updateTimeDisplay = function() {
+            // Call original function first
+            if (originalUpdateTimeDisplay) {
+                originalUpdateTimeDisplay();
+            }
+            
+            // Then ensure our format is applied
+            const seasonDisplay = document.getElementById('season-display');
+            if (seasonDisplay) {
+                const day = gameState.day || 1;
+                const season = gameState.currentSeason || 'Spring';
+                const year = gameState.year || 1;
+                
+                seasonDisplay.textContent = `Day ${day}, ${season}, Year ${year}`;
+            }
+        };
+    }
+});

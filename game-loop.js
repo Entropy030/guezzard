@@ -134,12 +134,8 @@ function advanceDay() {
         
         gameState.seasonTimeLeft = CONFIG.settings.seasonDuration; // Reset at the END of season
         
-        // Log season change as it's a significant event
-        if (typeof window.logEvent === 'function') {
-            window.logEvent(`Season changed to ${gameState.currentSeason}, Year ${gameState.year}.`, 'season');
-        }
-        
-        // Update the day-season display
+        // Don't log season change to event log anymore
+        // Just update the display
         updateDaySeasonDisplay();
         
         console.log("advanceDay() - New Season:", gameState.currentSeason, "New Year:", gameState.year);
@@ -156,17 +152,75 @@ function advanceDay() {
 function updateDaySeasonDisplay() {
     const seasonDisplay = document.getElementById('season-display');
     if (seasonDisplay) {
+        // Format: "Day X, Season, Year Y"
         seasonDisplay.textContent = `Day ${gameState.day}, ${gameState.currentSeason}, Year ${gameState.year}`;
     }
 }
 
-// UI update functions
-function updateGameSpeedUI() {
-    // console.log("updateGameSpeedUI Placeholder function called");
-    const gameSpeedDisplay = document.getElementById('game-speed-display');
-    if (gameSpeedDisplay) {
-        gameSpeedDisplay.textContent = `${gameState.gameSpeed}x`;
-    }
+// Update the original game-loop exports to include this function
+if (typeof window.updateDaySeasonDisplay !== 'function') {
+    window.updateDaySeasonDisplay = updateDaySeasonDisplay;
+}
+
+// Also update the original advanceDay function if it's defined
+if (typeof window.gameLoop === 'function') {
+    // Store original gameLoop
+    const originalGameLoop = window.gameLoop;
+    
+    // Replace with our version that uses the updated advanceDay
+    window.gameLoop = function(timestamp) {
+        console.log("gameLoop tick - using modified version"); // Keep this for debugging
+
+        if (gameState.gamePaused) {
+            requestAnimationFrame(gameLoop);
+            return;
+        }
+
+        // Initialize lastTimestamp if it's the first call
+        if (!window.lastTimestamp) {
+            window.lastTimestamp = timestamp;
+        }
+
+        const effectiveTickRate = 1000 / (CONFIG.settings.tickInterval * gameState.gameSpeed);
+        const deltaTime = timestamp - window.lastTimestamp;
+
+        if (deltaTime >= effectiveTickRate) {
+            window.lastTimestamp = timestamp;  // Update lastTimestamp ONLY when a tick occurs
+
+            // Call our improved advanceDay instead of the original
+            advanceDay();
+            
+            // Rest of the game loop logic remains the same
+            if (typeof window.regenerateEnergy === 'function') {
+                window.regenerateEnergy();
+            }
+            
+            // Process job progress (if player has a job)
+            if (typeof window.processJobProgress === 'function' && gameState.activeJob) {
+                window.processJobProgress(deltaTime);
+            }
+
+            // Update UI
+            if (typeof window.updateDisplay === 'function') {
+                window.updateDisplay();
+            }
+            if (typeof window.updateGameSpeedUI === 'function') {
+                window.updateGameSpeedUI();
+            }
+            
+            // Check for achievements
+            if (typeof window.checkAchievements === 'function') {
+                window.checkAchievements();
+            }
+            
+            // Run random events
+            if (typeof window.runEvents === 'function') {
+                window.runEvents();
+            }
+        }
+
+        requestAnimationFrame(gameLoop);
+    };
 }
 
 function updateEnergyDisplay() {

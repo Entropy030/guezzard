@@ -13,9 +13,7 @@ import {
     setupGameControls, 
     setupEventLog, 
     updateDisplay,
-    closeJobsPanel,
-    applyForJob,
-    endGame
+    closeJobsPanel
 } from './ui-setup.js';
 
 // Make these functions available globally (so other non-module scripts can access them)
@@ -29,8 +27,36 @@ window.setupGameControls = setupGameControls;
 window.setupEventLog = setupEventLog;
 window.updateDisplay = updateDisplay;
 window.closeJobsPanel = closeJobsPanel;
-window.applyForJob = applyForJob;
-window.endGame = endGame;
+
+// Define applyForJob locally and expose it globally
+window.applyForJob = function(jobIndex, tierLevel = 0) {
+    console.log("applyForJob called from enhanced-script.js");
+    // Call the actual implementation if it exists in window object
+    if (typeof window.originalApplyForJob === 'function') {
+        return window.originalApplyForJob(jobIndex, tierLevel);
+    } else {
+        // Fallback implementation
+        console.log(`Applying for job at index ${jobIndex}, tier ${tierLevel}`);
+        // Get the job data
+        const jobData = window.getJobData ? window.getJobData(jobIndex, tierLevel) : null;
+        
+        if (!jobData) {
+            console.error("Could not apply for job: Job data not found");
+            return false;
+        }
+        
+        // Apply for the job (success)
+        gameState.activeJob = { ...jobData, progress: 0 };
+        gameState.currentJobTier = tierLevel;
+        gameState.jobProgress = 0;
+        
+        if (typeof logEvent === 'function') {
+            logEvent(`You got a new job as a ${jobData.title}!`, 'career');
+        }
+        
+        return true;
+    }
+};
 
 // =========================================================================
 // Data Loading and Initialization
