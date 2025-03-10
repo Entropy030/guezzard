@@ -243,11 +243,14 @@ function defineMinimalUIFunctions() {
             lifeQualityDisplay.textContent = gameState.lifeQuality || 50;
         }
         
-        // Update season display
-        const seasonDisplay = document.getElementById('season-display');
-        if (seasonDisplay) {
-            seasonDisplay.textContent = `Season: ${gameState.currentSeason || 'Spring'}, Year ${gameState.year || 1}`;
-        }
+      // Update season display
+const seasonDisplay = document.getElementById('season-display');
+if (seasonDisplay) {
+    const day = gameState.day || 1;
+    const season = gameState.currentSeason || 'Spring';
+    const year = gameState.year || 1;
+    seasonDisplay.textContent = `Day ${day}, ${season}, Year ${year}`;
+}
     }
     
     // Update job display

@@ -5,8 +5,6 @@ let lastTimestamp = 0;
 
 // Main game loop function
 function gameLoop(timestamp) {
-    console.log("gameLoop tick"); // Keep this for debugging
-
     if (gameState.gamePaused) {
         requestAnimationFrame(gameLoop);
         return;
@@ -20,14 +18,13 @@ function gameLoop(timestamp) {
     const effectiveTickRate = 1000 / (CONFIG.settings.tickInterval * gameState.gameSpeed);
     const deltaTime = timestamp - lastTimestamp;
 
-    console.log("deltaTime:", deltaTime, "effectiveTickRate:", effectiveTickRate); // Log these values
-
     if (deltaTime >= effectiveTickRate) {
         lastTimestamp = timestamp;  // Update lastTimestamp ONLY when a tick occurs
 
         // Regenerate energy
         regenerateEnergy();
 
+        // Handle season time
         if (gameState.seasonTimeLeft > 0) {
             gameState.seasonTimeLeft -= 1;
         } else {
@@ -47,15 +44,13 @@ function gameLoop(timestamp) {
         if (typeof window.updateDisplay === 'function') {
             window.updateDisplay();
         }
-        if (typeof window.updateGameSpeedUI === 'function') {
-            window.updateGameSpeedUI();
-        }
         
         // Check for achievements
-        checkAchievements();
+        if (typeof window.checkAchievements === 'function') {
+            window.checkAchievements();
+        }
         
-        // Run random events
-        runEvents();
+        // REMOVED: runEvents() - No longer triggering random events
     }
 
     requestAnimationFrame(gameLoop);
@@ -65,7 +60,7 @@ function gameLoop(timestamp) {
 function startGameLoop() {
     console.log("startGameLoop() - Starting game loop with requestAnimationFrame");
     lastTimestamp = 0; // Reset lastTimestamp
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(window.gameLoop); // Use window.gameLoop to avoid recursion
 }
 
 // Energy regeneration function
@@ -88,64 +83,71 @@ function regenerateEnergy() {
     // console.log("regenerateEnergy() - END - New energy:", gameState.energy);
 }
 
-// Modified advanceDay function to update day display without filling event log
+// Modified advanceDay function with age progression and cleaner logging
 function advanceDay() {
-    console.log("advanceDay() - START - day:", gameState.day, "ticksSinceDayStart:", gameState.ticksSinceDayStart, 
-                "seasonTimeLeft:", gameState.seasonTimeLeft, "ticks in one day:", CONFIG.settings.ticksInOneGameDay);
-
+    // Skip if game is paused
     if (gameState.gamePaused) {
-        console.log("advanceDay() - Game is paused");
         return;
     }
 
     gameState.ticksSinceDayStart++; // Increment at the beginning
 
+    // Check if a new day has started
     if (gameState.ticksSinceDayStart >= CONFIG.settings.ticksInOneGameDay) {
         gameState.day++;
         gameState.ticksSinceDayStart = 0; // Reset at the START of the new day
         
-        // Update day display instead of logging to event log
+        // Update day display
         updateDaySeasonDisplay();
-        
-        console.log("advanceDay() - Day advanced to:", gameState.day);
     }
 
     // Calculate season length in days
     const seasonLengthInDays = CONFIG.settings.seasonDuration / CONFIG.settings.ticksInOneGameDay;
 
+    // Check if a new season should start
     if (gameState.day > seasonLengthInDays) {
-        console.log("advanceDay() - End of season reached", gameState.day, gameState.currentSeason, gameState.year);
-        gameState.day = 1; // Reset day
+        // Reset day counter
+        gameState.day = 1;
         gameState.seasonNumber++;
 
-        const seasons = ["Spring", "Summer", "Autumn", "Winter"]; // Array for easier cycling
-
+        // Update season
+        const seasons = ["Spring", "Summer", "Autumn", "Winter"];
         gameState.currentSeason = seasons[(gameState.seasonNumber) % seasons.length];
 
+        // Check if it's the start of a new year (Spring)
         if (gameState.currentSeason === "Spring") {
-           gameState.year++; // New year starts in Spring
+            gameState.year++; // New year starts in Spring
+            
+            // IMPORTANT ADDITION: Increment age with each new year
+            gameState.age++;
+            console.log(`Year incremented to ${gameState.year}, Age incremented to ${gameState.age}`);
+            
+            // Check for retirement
             if (gameState.age >= CONFIG.settings.maxAge) {
-               if (typeof window.endGame === 'function') {
-                   window.endGame();
-               }
-               return; // Stop after endgame
+                if (typeof window.endGame === 'function') {
+                    window.endGame();
+                } else {
+                    console.error("endGame function not available");
+                    gameState.gamePaused = true; // At least pause the game
+                }
+                return; // Stop after endgame
             }
         }
         
-        gameState.seasonTimeLeft = CONFIG.settings.seasonDuration; // Reset at the END of season
+        // Reset season time
+        gameState.seasonTimeLeft = CONFIG.settings.seasonDuration;
         
-        // Don't log season change to event log anymore
-        // Just update the display
+        // Update display
         updateDaySeasonDisplay();
-        
-        console.log("advanceDay() - New Season:", gameState.currentSeason, "New Year:", gameState.year);
     }
 
+    // Increment played time and save game periodically
     gameState.timePlayedSeconds++;
-    saveGameData();
-
-    console.log("advanceDay() - END - day:", gameState.day, "ticksSinceDayStart:", gameState.ticksSinceDayStart, 
-                "seasonTimeLeft:", gameState.seasonTimeLeft);
+    
+    // Save only occasionally to improve performance (every 60 seconds of game time)
+    if (gameState.timePlayedSeconds % 60 === 0) {
+        saveGameData();
+    }
 }
 
 // Function to update the day-season display
@@ -157,70 +159,21 @@ function updateDaySeasonDisplay() {
     }
 }
 
-// Update the original game-loop exports to include this function
-if (typeof window.updateDaySeasonDisplay !== 'function') {
-    window.updateDaySeasonDisplay = updateDaySeasonDisplay;
+// Function to update the day-season display
+function updateDaySeasonDisplay() {
+    const seasonDisplay = document.getElementById('season-display');
+    if (seasonDisplay) {
+        // Format: "Day X, Season, Year Y"
+        seasonDisplay.textContent = `Day ${gameState.day}, ${gameState.currentSeason}, Year ${gameState.year}`;
+    }
 }
 
-// Also update the original advanceDay function if it's defined
-if (typeof window.gameLoop === 'function') {
-    // Store original gameLoop
-    const originalGameLoop = window.gameLoop;
-    
-    // Replace with our version that uses the updated advanceDay
-    window.gameLoop = function(timestamp) {
-        console.log("gameLoop tick - using modified version"); // Keep this for debugging
-
-        if (gameState.gamePaused) {
-            requestAnimationFrame(gameLoop);
-            return;
-        }
-
-        // Initialize lastTimestamp if it's the first call
-        if (!window.lastTimestamp) {
-            window.lastTimestamp = timestamp;
-        }
-
-        const effectiveTickRate = 1000 / (CONFIG.settings.tickInterval * gameState.gameSpeed);
-        const deltaTime = timestamp - window.lastTimestamp;
-
-        if (deltaTime >= effectiveTickRate) {
-            window.lastTimestamp = timestamp;  // Update lastTimestamp ONLY when a tick occurs
-
-            // Call our improved advanceDay instead of the original
-            advanceDay();
-            
-            // Rest of the game loop logic remains the same
-            if (typeof window.regenerateEnergy === 'function') {
-                window.regenerateEnergy();
-            }
-            
-            // Process job progress (if player has a job)
-            if (typeof window.processJobProgress === 'function' && gameState.activeJob) {
-                window.processJobProgress(deltaTime);
-            }
-
-            // Update UI
-            if (typeof window.updateDisplay === 'function') {
-                window.updateDisplay();
-            }
-            if (typeof window.updateGameSpeedUI === 'function') {
-                window.updateGameSpeedUI();
-            }
-            
-            // Check for achievements
-            if (typeof window.checkAchievements === 'function') {
-                window.checkAchievements();
-            }
-            
-            // Run random events
-            if (typeof window.runEvents === 'function') {
-                window.runEvents();
-            }
-        }
-
-        requestAnimationFrame(gameLoop);
-    };
+// Add the updateGameSpeedUI function that was missing
+function updateGameSpeedUI() {
+    const speedButton = document.getElementById('speed-button');
+    if (speedButton) {
+        speedButton.textContent = `▶ ${gameState.gameSpeed}x Speed`;
+    }
 }
 
 function updateEnergyDisplay() {
@@ -338,103 +291,6 @@ function checkAchievements() {
     });
 }
 
-function runEvents() {
-    // Skip if game is paused
-    if (gameState.gamePaused) {
-        return;
-    }
-    
-    // Random chance for an event to trigger (adjust probability as needed)
-    if (Math.random() < CONFIG.settings.eventChance / 100) { // Convert percentage to decimal
-        triggerRandomEvent();
-    }
-}
-
-function triggerRandomEvent() {
-    // Example list of random events
-    const events = [
-        { 
-            name: "Lucky day", 
-            action: () => {
-                const bonus = Math.floor(20 + Math.random() * 50);
-                gameState.gold += bonus;
-                if (typeof window.logEvent === 'function') {
-                    window.logEvent(`Lucky day! You found ${bonus} gold.`, 'event');
-                }
-            }
-        },
-        { 
-            name: "Skill insight", 
-            action: () => {
-                // Choose a random skill
-                const skillNames = Object.keys(gameState.skills);
-                if (skillNames.length === 0) return;
-                
-                const randomSkill = skillNames[Math.floor(Math.random() * skillNames.length)];
-                const bonusProgress = Math.floor(10 + Math.random() * 30);
-                
-                // Add progress to the skill
-                let skill;
-                if (typeof gameState.skills[randomSkill] === 'object') {
-                    skill = gameState.skills[randomSkill];
-                    skill.progress = (skill.progress || 0) + bonusProgress;
-                } else {
-                    // Initialize skill progress if needed
-                    if (!gameState.skillProgress) {
-                        gameState.skillProgress = {};
-                    }
-                    
-                    if (!gameState.skillProgress[randomSkill]) {
-                        gameState.skillProgress[randomSkill] = 0;
-                    }
-                    
-                    gameState.skillProgress[randomSkill] += bonusProgress;
-                    
-                    // Get current skill level
-                    const skillLevel = gameState.skills[randomSkill] || 0;
-                    const progressNeeded = 10 + (skillLevel * 5);
-                    
-                    // Check for level up
-                    if (gameState.skillProgress[randomSkill] >= progressNeeded) {
-                        gameState.skills[randomSkill] = skillLevel + 1;
-                        gameState.skillProgress[randomSkill] = 0;
-                        
-                        if (typeof window.logEvent === 'function') {
-                            window.logEvent(`Skill insight! Your ${randomSkill} skill increased to level ${gameState.skills[randomSkill]}.`, 'skill');
-                        }
-                    } else {
-                        if (typeof window.logEvent === 'function') {
-                            window.logEvent(`Skill insight! You gained ${bonusProgress} progress towards ${randomSkill}.`, 'skill');
-                        }
-                    }
-                    
-                    return;
-                }
-                
-                // Check if skill leveled up (for object-based skills)
-                const progressNeeded = 10 + ((skill.level || 0) * 5);
-                
-                if (skill.progress >= progressNeeded) {
-                    skill.level = (skill.level || 0) + 1;
-                    skill.progress = 0;
-                    
-                    if (typeof window.logEvent === 'function') {
-                        window.logEvent(`Skill insight! Your ${randomSkill} skill increased to level ${skill.level}.`, 'skill');
-                    }
-                } else {
-                    if (typeof window.logEvent === 'function') {
-                        window.logEvent(`Skill insight! You gained ${bonusProgress} progress towards ${randomSkill}.`, 'skill');
-                    }
-                }
-            }
-        },
-        // Add more events as needed
-    ];
-    
-    // Choose a random event and execute it
-    const randomEvent = events[Math.floor(Math.random() * events.length)];
-    randomEvent.action();
-}
 
 // Placeholder for saving game data
 function saveGameData() {
@@ -455,12 +311,16 @@ function saveGameData() {
     }
 }
 
+// Make updateDaySeasonDisplay available globally
+window.updateDaySeasonDisplay = updateDaySeasonDisplay;
+
 // Export functions for module usage
 export {
     gameLoop,
     startGameLoop,
     updateGameSpeedUI,
     updateEnergyDisplay,
+    updateDaySeasonDisplay,
     saveGameData,
     checkAchievements,
     runEvents

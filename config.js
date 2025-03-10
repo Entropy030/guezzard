@@ -11,7 +11,7 @@ const CONFIG = {
         ticksInOneGameYear: 4 * (30 * 5), // 4 seasons * 150 ticks per season = 600 ticks per year (120 days * 5 ticks/day = 600)
         maxAge: 65,                  // Max age - unchanged
         startingGold: 0,
-        eventChance: 0.2,
+        eventChance: 0.2, // saved for later - currently no events implemented
         achievementCheckInterval: 600, // Check achievements every year (600 ticks) - adjust as needed
         speedMultipliers: [1, 2, 4],
         maxEventLogEntries: 5,
