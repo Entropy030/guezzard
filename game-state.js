@@ -1,10 +1,6 @@
 // game-state.js
 console.log("game-state.js - Module loading");
 
-// We don't need to import logEvent here since it might cause circular dependencies
-// Instead, we'll use console.log for debugging and call logEvent directly from window
-// when needed
-
 // Default game state - Initial values for a new game
 export function getDefaultGameState() {
     return {
