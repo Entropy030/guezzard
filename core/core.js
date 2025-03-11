@@ -1,8 +1,16 @@
-// game-state.js
-console.log("game-state.js - Module loading");
+// core.js - Core game functionality
+// Consolidates game-state.js and game-init.js
 
-// Default game state - Initial values for a new game
-export function getDefaultGameState() {
+console.log("core.js - Module loading");
+
+// -------------------------------------------------------------------------
+// Game State Functions (from game-state.js)
+// -------------------------------------------------------------------------
+
+/**
+ * Default game state - Initial values for a new game
+ */
+function getDefaultGameState() {
     return {
         // Game settings
         settings: {
@@ -17,7 +25,6 @@ export function getDefaultGameState() {
         gameSpeed: 1,
         gameActive: true,
         gamePaused: false,
-        isPaused: false,
         
         // Time tracking
         day: 1,
@@ -44,10 +51,10 @@ export function getDefaultGameState() {
         jobLevels: {},
         jobProgress: 0,
         skills: {
-            "Map Awareness": 1,
+            "map_awareness": 1
         },
         skillProgress: {
-            "Map Awareness": 0,
+            "map_awareness": 0
         },
         currentTrainingSkill: null,
         
@@ -86,14 +93,15 @@ export function getDefaultGameState() {
         
         // Additional statistics
         gameStats: {
-            totalGoldEarned: 0,
-            // ... other stats ...
+            totalGoldEarned: 0
         }
     };
 }
 
-// Initialize game state (create if not exists)
-export function initializeGameState() {
+/**
+ * Initialize game state (create if not exists)
+ */
+function initializeGameState() {
     console.log("initializeGameState() - Creating new game state");
     
     // If gameState is not defined globally, create it
@@ -104,8 +112,10 @@ export function initializeGameState() {
     return window.gameState;
 }
 
-// Save game state to localStorage
-export function saveGameState() {
+/**
+ * Save game state to localStorage
+ */
+function saveGameState() {
     try {
         console.log("saveGameState() - Saving game state to localStorage");
         // Add timestamp to save data
@@ -127,8 +137,10 @@ export function saveGameState() {
     }
 }
 
-// Load game state from localStorage
-export function loadGameState() {
+/**
+ * Load game state from localStorage
+ */
+function loadGameState() {
     try {
         console.log("loadGameState() - Loading game state from localStorage");
         
@@ -161,15 +173,19 @@ export function loadGameState() {
     }
 }
 
-// Reset game state to defaults
-export function resetGameState() {
+/**
+ * Reset game state to defaults
+ */
+function resetGameState() {
     console.log("resetGameState() - Resetting game to defaults");
     window.gameState = getDefaultGameState();
     return window.gameState;
 }
 
-// Update game state with partial data (useful for loading)
-export function updateGameState(partialState) {
+/**
+ * Update game state with partial data (useful for loading)
+ */
+function updateGameState(partialState) {
     console.log("updateGameState() - Updating game state with partial data");
     
     // Deep merge the partial state into the current state
@@ -188,13 +204,17 @@ export function updateGameState(partialState) {
     return window.gameState;
 }
 
-// Get game state (safe copy to prevent accidental mutation)
-export function getGameState() {
+/**
+ * Get game state (safe copy to prevent accidental mutation)
+ */
+function getGameState() {
     return JSON.parse(JSON.stringify(window.gameState));
 }
 
-// Set specific property in game state
-export function setGameStateProperty(path, value) {
+/**
+ * Set specific property in game state
+ */
+function setGameStateProperty(path, value) {
     console.log(`setGameStateProperty() - Setting ${path} to:`, value);
     
     // Split path into parts (e.g., "skills.Map Awareness.level" -> ["skills", "Map Awareness", "level"])
@@ -218,7 +238,10 @@ export function setGameStateProperty(path, value) {
 // Auto-save system
 let autoSaveInterval = null;
 
-export function startAutoSave(intervalSeconds = 30) {
+/**
+ * Start auto-save system
+ */
+function startAutoSave(intervalSeconds = 30) {
     console.log(`startAutoSave() - Setting up auto-save every ${intervalSeconds} seconds`);
     
     // Clear any existing interval
@@ -233,11 +256,114 @@ export function startAutoSave(intervalSeconds = 30) {
     }, intervalSeconds * 1000);
 }
 
-export function stopAutoSave() {
+/**
+ * Stop auto-save system
+ */
+function stopAutoSave() {
     console.log("stopAutoSave() - Stopping auto-save system");
     if (autoSaveInterval) {
         clearInterval(autoSaveInterval);
         autoSaveInterval = null;
+    }
+}
+
+// -------------------------------------------------------------------------
+// Game Initialization Functions (from game-init.js)
+// -------------------------------------------------------------------------
+
+/**
+ * Load game data from server
+ * This is a modified version of the loadGameDataFromServer function
+ */
+async function loadGameDataFromServer() {
+    console.log("loadGameDataFromServer() - Loading game data from JSON files");
+    
+    try {
+        // Create an array of promises for each fetch
+        const promises = [
+            fetch("skills.json").then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to load skills.json: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            }).catch(error => {
+                console.error("Error loading skills:", error);
+                return []; // Default empty array on error
+            }),
+            
+            fetch("jobs.json").then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to load jobs.json: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            }).catch(error => {
+                console.error("Error loading jobs:", error);
+                return []; // Default empty array on error
+            }),
+            
+            fetch("achievements.json").then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to load achievements.json: ${response.status} ${response.statusText}`);
+                }
+                return response.json();
+            }).catch(error => {
+                console.error("Error loading achievements:", error);
+                return []; // Default empty array on error
+            })
+        ];
+
+        // Wait for all promises to resolve
+        const [loadedSkills, loadedJobs, loadedAchievements] = await Promise.all(promises);
+
+        console.log("Skills data loaded:", loadedSkills);
+        console.log("Jobs data loaded:", loadedJobs);
+        console.log("Achievements data loaded:", loadedAchievements);
+
+        // Initialize skills
+        // First ensure skills object exists
+        if (!gameState.skills) {
+            gameState.skills = {};
+        }
+        
+        // Process loaded skills
+        if (Array.isArray(loadedSkills)) {
+            loadedSkills.forEach(skill => {
+                if (skill && skill.name) {
+                    gameState.skills[skill.name] = {
+                        level: gameState.skills[skill.name] || 0,
+                        description: skill.description || '',
+                        icon: skill.icon || ''
+                    };
+                }
+            });
+        }
+
+        // Ensure core skills always exist
+        if (!gameState.skills.hasOwnProperty("Map Awareness")) {
+            gameState.skills["Map Awareness"] = { level: 1 };
+        }
+
+        // Initialize jobs
+        gameState.jobs = Array.isArray(loadedJobs) ? loadedJobs : [];
+
+        // Initialize achievements
+        gameState.achievements = Array.isArray(loadedAchievements) ? loadedAchievements : [];
+
+        console.log("loadGameDataFromServer() - Game data loaded and processed successfully.");
+        return true;
+    } catch (error) {
+        console.error("Error in loadGameDataFromServer:", error);
+        // Create default data if loading fails
+        if (!gameState.skills) {
+            gameState.skills = { "Map Awareness": { level: 1 } };
+        }
+        if (!gameState.jobs) {
+            gameState.jobs = [];
+        }
+        if (!gameState.achievements) {
+            gameState.achievements = [];
+        }
+        return false;
     }
 }
 
@@ -255,5 +381,6 @@ window.getGameState = getGameState;
 window.setGameStateProperty = setGameStateProperty;
 window.startAutoSave = startAutoSave;
 window.stopAutoSave = stopAutoSave;
+window.loadGameDataFromServer = loadGameDataFromServer;
 
-console.log("game-state.js - Module loaded successfully");
+console.log("core.js - Module loaded successfully");
