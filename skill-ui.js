@@ -1206,7 +1206,6 @@ function getSkillsAffectedByAttribute(attributeId) {
 
 // Export functions
 export {
-    updateSkillDisplay,
     showSkillDetails,
     showAttributeDetails
 };
