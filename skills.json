@@ -1,32 +1,376 @@
 [
   {
-    "id": "map_awareness",
-    "name": "Map Awareness",
-    "description": "Your ability to read and understand maps."
+    "id": "attributes",
+    "name": "Primary Attributes",
+    "description": "Core attributes that influence the development of all skills",
+    "items": [
+      {
+        "id": "intelligence",
+        "name": "Intelligence",
+        "description": "Affects learning speed of cognitive skills and analytical thinking",
+        "icon": "brain",
+        "baseValue": 5,
+        "modifiers": []
+      },
+      {
+        "id": "creativity",
+        "name": "Creativity",
+        "description": "Affects innovation, problem-solving, and artistic skills",
+        "icon": "lightbulb",
+        "baseValue": 5,
+        "modifiers": []
+      },
+      {
+        "id": "focus",
+        "name": "Focus",
+        "description": "Affects attention to detail, concentration, and skill retention",
+        "icon": "target",
+        "baseValue": 5,
+        "modifiers": []
+      },
+      {
+        "id": "adaptability",
+        "name": "Adaptability",
+        "description": "Affects skill transfer, cross-discipline learning, and versatility",
+        "icon": "refresh",
+        "baseValue": 5,
+        "modifiers": []
+      },
+      {
+        "id": "discipline",
+        "name": "Discipline",
+        "description": "Affects consistency in skill growth and reduces decay rates",
+        "icon": "calendar-check",
+        "baseValue": 5,
+        "modifiers": []
+      }
+    ]
   },
   {
-    "id": "navigation",
-    "name": "Navigation",
-    "description": "Your ability to find your way in various environments."
+    "id": "analytical",
+    "name": "Analytical Skills",
+    "description": "Skills involving data analysis, problem-solving, and logical thinking",
+    "primaryAttribute": "intelligence",
+    "secondaryAttribute": "focus",
+    "items": [
+      {
+        "id": "map_awareness",
+        "name": "Map Awareness",
+        "description": "Ability to read and understand maps and geographical layouts",
+        "icon": "map",
+        "baseValue": 1,
+        "growthRate": 1.0,
+        "decayRate": 0.1,
+        "synergies": ["navigation", "pattern_recognition"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "data_analysis",
+        "name": "Data Analysis",
+        "description": "Ability to interpret and derive insights from data sets",
+        "icon": "chart-bar",
+        "baseValue": 1,
+        "growthRate": 1.0,
+        "decayRate": 0.2,
+        "synergies": ["pattern_recognition", "critical_thinking"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "pattern_recognition",
+        "name": "Pattern Recognition",
+        "description": "Ability to identify patterns, trends, and correlations",
+        "icon": "puzzle-piece",
+        "baseValue": 1,
+        "growthRate": 0.9,
+        "decayRate": 0.1,
+        "synergies": ["data_analysis", "intuition"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "critical_thinking",
+        "name": "Critical Thinking",
+        "description": "Ability to analyze information objectively and make reasoned judgments",
+        "icon": "brain-circuit",
+        "baseValue": 1,
+        "growthRate": 0.8,
+        "decayRate": 0.05,
+        "synergies": ["problem_solving", "decision_making"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      }
+    ]
   },
   {
-    "id": "communication",
-    "name": "Communication",
-    "description": "Your ability to effectively communicate with others."
+    "id": "technical",
+    "name": "Technical Skills",
+    "description": "Skills involving specialized technical knowledge and application",
+    "primaryAttribute": "intelligence",
+    "secondaryAttribute": "discipline",
+    "items": [
+      {
+        "id": "programming",
+        "name": "Programming",
+        "description": "Ability to write and understand code across various languages",
+        "icon": "code",
+        "baseValue": 0,
+        "growthRate": 0.7,
+        "decayRate": 0.2,
+        "synergies": ["logical_reasoning", "problem_solving"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "technical_writing",
+        "name": "Technical Writing",
+        "description": "Ability to create clear documentation and instructions",
+        "icon": "file-lines",
+        "baseValue": 0,
+        "growthRate": 0.8,
+        "decayRate": 0.1,
+        "synergies": ["communication", "clarity_of_thought"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "software_design",
+        "name": "Software Design",
+        "description": "Ability to architect and design software systems",
+        "icon": "sitemap",
+        "baseValue": 0,
+        "growthRate": 0.6,
+        "decayRate": 0.15,
+        "synergies": ["programming", "systems_thinking"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      }
+    ]
   },
   {
-    "id": "technical_drawing",
-    "name": "Technical Drawing",
-    "description": "Your ability to create technical diagrams and plans."
+    "id": "creative",
+    "name": "Creative Skills",
+    "description": "Skills involving artistic expression and innovative thinking",
+    "primaryAttribute": "creativity",
+    "secondaryAttribute": "adaptability",
+    "items": [
+      {
+        "id": "visual_design",
+        "name": "Visual Design",
+        "description": "Ability to create aesthetically pleasing visual compositions",
+        "icon": "paint-brush",
+        "baseValue": 0,
+        "growthRate": 0.8,
+        "decayRate": 0.05,
+        "synergies": ["color_theory", "spatial_awareness"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "creative_writing",
+        "name": "Creative Writing",
+        "description": "Ability to craft engaging stories and narratives",
+        "icon": "pen-fancy",
+        "baseValue": 0,
+        "growthRate": 0.7,
+        "decayRate": 0.05,
+        "synergies": ["communication", "empathy"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "innovation",
+        "name": "Innovation",
+        "description": "Ability to generate novel ideas and solutions",
+        "icon": "lightbulb",
+        "baseValue": 0,
+        "growthRate": 0.6,
+        "decayRate": 0.1,
+        "synergies": ["adaptability", "problem_solving"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      }
+    ]
   },
   {
-    "id": "data_analysis",
-    "name": "Data Analysis",
-    "description": "Your ability to analyze and interpret data."
+    "id": "social",
+    "name": "Social Skills",
+    "description": "Skills involving interpersonal interaction and communication",
+    "primaryAttribute": "adaptability",
+    "secondaryAttribute": "creativity",
+    "items": [
+      {
+        "id": "communication",
+        "name": "Communication",
+        "description": "Ability to convey ideas clearly and effectively",
+        "icon": "comments",
+        "baseValue": 1,
+        "growthRate": 0.9,
+        "decayRate": 0.05,
+        "synergies": ["empathy", "clarity_of_thought"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "empathy",
+        "name": "Empathy",
+        "description": "Ability to understand and share the feelings of others",
+        "icon": "heart",
+        "baseValue": 1,
+        "growthRate": 0.7,
+        "decayRate": 0.05,
+        "synergies": ["communication", "emotional_intelligence"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "leadership",
+        "name": "Leadership",
+        "description": "Ability to guide and inspire others towards shared goals",
+        "icon": "users",
+        "baseValue": 0,
+        "growthRate": 0.6,
+        "decayRate": 0.1,
+        "synergies": ["decision_making", "empathy"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "negotiation",
+        "name": "Negotiation",
+        "description": "Ability to reach agreements that satisfy multiple parties",
+        "icon": "handshake",
+        "baseValue": 0,
+        "growthRate": 0.7,
+        "decayRate": 0.1,
+        "synergies": ["communication", "strategic_thinking"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      }
+    ]
   },
   {
-    "id": "programming",
-    "name": "Programming",
-    "description": "Your ability to write and understand code."
+    "id": "practical",
+    "name": "Practical Skills",
+    "description": "Skills involving real-world application and physical activities",
+    "primaryAttribute": "discipline",
+    "secondaryAttribute": "focus",
+    "items": [
+      {
+        "id": "navigation",
+        "name": "Navigation",
+        "description": "Ability to find and follow routes in various environments",
+        "icon": "compass",
+        "baseValue": 1,
+        "growthRate": 0.9,
+        "decayRate": 0.1,
+        "synergies": ["map_awareness", "spatial_awareness"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "time_management",
+        "name": "Time Management",
+        "description": "Ability to organize time effectively to maximize productivity",
+        "icon": "clock",
+        "baseValue": 1,
+        "growthRate": 0.8,
+        "decayRate": 0.1,
+        "synergies": ["discipline", "organization"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "organization",
+        "name": "Organization",
+        "description": "Ability to structure and arrange resources efficiently",
+        "icon": "list-check",
+        "baseValue": 1,
+        "growthRate": 0.8,
+        "decayRate": 0.1,
+        "synergies": ["time_management", "systems_thinking"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      }
+    ]
+  },
+  {
+    "id": "cognitive",
+    "name": "Cognitive Skills",
+    "description": "Skills involving mental processes and intellectual capabilities",
+    "primaryAttribute": "intelligence",
+    "secondaryAttribute": "focus",
+    "items": [
+      {
+        "id": "problem_solving",
+        "name": "Problem Solving",
+        "description": "Ability to identify issues and develop effective solutions",
+        "icon": "puzzle-piece",
+        "baseValue": 1,
+        "growthRate": 0.8,
+        "decayRate": 0.05,
+        "synergies": ["critical_thinking", "creativity"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "decision_making",
+        "name": "Decision Making",
+        "description": "Ability to choose between options effectively and confidently",
+        "icon": "code-branch",
+        "baseValue": 1,
+        "growthRate": 0.8,
+        "decayRate": 0.1,
+        "synergies": ["critical_thinking", "intuition"],
+        "level": 1,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "strategic_thinking",
+        "name": "Strategic Thinking",
+        "description": "Ability to plan and anticipate long-term outcomes",
+        "icon": "chess",
+        "baseValue": 0,
+        "growthRate": 0.7,
+        "decayRate": 0.1,
+        "synergies": ["pattern_recognition", "systems_thinking"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "systems_thinking",
+        "name": "Systems Thinking",
+        "description": "Ability to understand complex interrelated systems and components",
+        "icon": "network-wired",
+        "baseValue": 0,
+        "growthRate": 0.6,
+        "decayRate": 0.1,
+        "synergies": ["critical_thinking", "strategic_thinking"],
+        "level": 0,
+        "xp": 0,
+        "maxLevel": 100
+      }
+    ]
   }
 ]

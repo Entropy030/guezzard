@@ -5,20 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guezzard - Master Your Career</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-    <!-- Load globals first (non-module) -->
+    <!-- Load configuration and globals first -->
     <script src="config.js" defer></script>
     <script src="globals.js" defer></script>
     
-    <!-- Then load modules -->
+    <!-- Load core system modules -->
     <script src="ui-setup.js" type="module" defer></script>
     <script src="game-state.js" type="module" defer></script>
     <script src="job-manager.js" type="module" defer></script>
     <script src="game-loop.js" type="module" defer></script>
+    
+    <!-- Load enhanced skill system modules -->
+    <script src="skill-system.js" type="module" defer></script>
+    <script src="skill-ui.js" type="module" defer></script>
+    <script src="enhanced-job-manager.js" type="module" defer></script>
+    
+    <!-- Load integration and initialization modules -->
+    <script src="skill-system-integration.js" type="module" defer></script>
     <script src="enhanced-script.js" type="module" defer></script>
     <script src="game-init.js" type="module" defer></script>
+    
+    <!-- Debug helpers -->
     <script src="debug-helpers.js" defer></script>
 </head>
 <body>
@@ -35,8 +46,13 @@
                     <span id="age-display">18</span>
                 </div>
                 <div class="indicator">
-                    <span class="indicator-label">Life Quality:</span>
-                    <span id="life-quality-display">50</span>
+                    <span class="indicator-label">Energy:</span>
+                    <span id="energy-display">100/100</span>
+                </div>
+                <div class="energy-bar-container">
+                    <div class="energy-bar">
+                        <div id="energy-bar-fill" class="energy-bar-fill" style="width: 100%;"></div>
+                    </div>
                 </div>
             </div>
 
@@ -61,7 +77,6 @@
 
             <span id="season-display">Day 1, Spring, Year 1</span>
 
-
             <div id="game-controls">
                 <button id="pause-button">|| Pause</button>
                 <button id="speed-button">▶ 1x Speed</button>
@@ -83,7 +98,6 @@
             <button id="shop-button">Shop</button>
             <button id="achievements-button">Achievements</button>
             <button id="relationships-button">Relationships</button>
-            <button id="pet-button">Pet</button>
             <button id="prestige-button">Prestige</button>
         </div>
 
@@ -98,9 +112,9 @@
 
         <div id="skills-panel" class="hidden-panel">
             <h3>Skills Training</h3>
-            <ul id="skills-list">
+            <div id="skills-list">
                 <!-- Skills will be loaded here -->
-            </ul>
+            </div>
             <button class="close-button" data-panel="skills-panel">Close</button>
         </div>
 
@@ -110,9 +124,6 @@
                 <!-- Shop items will be loaded here -->
             </ul>
             <button class="close-button" data-panel="shop-panel">Close</button>
-            <div id="shop">  <!-- Shop container -->
-                <!-- Shop items will be rendered here by JavaScript -->
-            </div>
         </div>
 
         <div id="achievements-panel" class="hidden-panel">
@@ -131,14 +142,6 @@
             <button class="close-button" data-panel="relationships-panel">Close</button>
         </div>
 
-        <div id="pet-panel" class="hidden-panel">
-            <h3>Your Companion</h3>
-            <div id="pet-area">
-                Your pet will appear here once you adopt one from the shop.
-            </div>
-            <button class="close-button" data-panel="pet-panel">Close</button>
-        </div>
-
         <div id="prestige-panel" class="hidden-panel">
             <h3>Career Legacy</h3>
             <div id="prestige-area">
@@ -147,6 +150,5 @@
             <button class="close-button" data-panel="prestige-panel">Close</button>
         </div>
     </div>
-    <script src="function-loader.js" defer></script>
 </body>
 </html>

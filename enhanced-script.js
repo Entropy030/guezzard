@@ -28,14 +28,19 @@ window.setupEventLog = setupEventLog;
 window.updateDisplay = updateDisplay;
 window.closeJobsPanel = closeJobsPanel;
 
-// Define applyForJob locally and expose it globally
+// Store original applyForJob if it exists
+if (typeof window.applyForJob === 'function') {
+    window.originalApplyForJob = window.applyForJob;
+}
+
+// Define our version
 window.applyForJob = function(jobIndex, tierLevel = 0) {
     console.log("applyForJob called from enhanced-script.js");
-    // Call the actual implementation if it exists in window object
+    // Call the actual implementation if it exists
     if (typeof window.originalApplyForJob === 'function') {
         return window.originalApplyForJob(jobIndex, tierLevel);
     } else {
-        // Fallback implementation
+        // Fallback implementation that won't call itself recursively
         console.log(`Applying for job at index ${jobIndex}, tier ${tierLevel}`);
         // Get the job data
         const jobData = window.getJobData ? window.getJobData(jobIndex, tierLevel) : null;

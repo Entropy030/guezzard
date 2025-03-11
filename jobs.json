@@ -2,7 +2,7 @@
   {
     "id": "google_maps_user",  
     "title": "Google Maps User",
-    "description": "You navigate your city using Google Maps.",
+    "description": "You navigate your city using Google Maps, developing a base understanding of maps and geography.",
     "maxLevel": 100,
     "tiers": [
       {
@@ -10,7 +10,24 @@
         "minSkill": 0,
         "incomePerYear": 200,
         "skillGainPerYear": {
-          "Map Awareness": 5
+          "map_awareness": 5,
+          "navigation": 3,
+          "time_management": 1
+        },
+        "relevantSkills": {
+          "map_awareness": 1.0,
+          "navigation": 0.6,
+          "time_management": 0.4
+        },
+        "relevantAttributes": {
+          "intelligence": 0.7,
+          "focus": 0.3
+        },
+        "requiredSkills": {
+          "map_awareness": 0
+        },
+        "requiredAttributes": {
+          "intelligence": 1
         },
         "levelBonuses": [
           { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.02 },
@@ -29,17 +46,39 @@
   {
     "id": "geoguessr_player", 
     "title": "GeoGuessr Player",
-    "description": "You play GeoGuessr, guessing locations worldwide.",
+    "description": "You play GeoGuessr, guessing locations around the world based on Street View images.",
     "maxLevel": 100,
     "tiers": [
       {
         "tier": 1,
         "minSkill": 20,
         "requiredJobId": "google_maps_user",
-        "requiredJobLevel": 50,
+        "requiredJobLevel": 30,
         "incomePerYear": 500,
         "skillGainPerYear": {
-          "Map Awareness": 10
+          "map_awareness": 10,
+          "navigation": 7,
+          "pattern_recognition": 6,
+          "critical_thinking": 4
+        },
+        "relevantSkills": {
+          "map_awareness": 1.0,
+          "navigation": 0.8,
+          "pattern_recognition": 0.7,
+          "critical_thinking": 0.5
+        },
+        "relevantAttributes": {
+          "intelligence": 0.8,
+          "focus": 0.7,
+          "adaptability": 0.4
+        },
+        "requiredSkills": {
+          "map_awareness": 20,
+          "navigation": 10
+        },
+        "requiredAttributes": {
+          "intelligence": 5,
+          "focus": 3
         },
         "levelBonuses": [
           { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.03 },
@@ -60,7 +99,32 @@
         "requiredJobLevel": 80,
         "incomePerYear": 1000,
         "skillGainPerYear": {
-          "Map Awareness": 15
+          "map_awareness": 15,
+          "navigation": 10,
+          "pattern_recognition": 8,
+          "critical_thinking": 6,
+          "strategic_thinking": 4
+        },
+        "relevantSkills": {
+          "map_awareness": 1.0,
+          "navigation": 0.8,
+          "pattern_recognition": 0.8,
+          "critical_thinking": 0.6,
+          "strategic_thinking": 0.5
+        },
+        "relevantAttributes": {
+          "intelligence": 0.9,
+          "focus": 0.7,
+          "adaptability": 0.5
+        },
+        "requiredSkills": {
+          "map_awareness": 40,
+          "navigation": 20,
+          "pattern_recognition": 15
+        },
+        "requiredAttributes": {
+          "intelligence": 7,
+          "focus": 5
         },
         "levelBonuses": [
           { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.04 },
@@ -79,17 +143,41 @@
   {
     "id": "urban_explorer", 
     "title": "Urban Explorer",
-    "description": "You explore your city, discovering hidden spots.",
+    "description": "You explore urban environments, charting and documenting hidden and interesting locations.",
     "maxLevel": 100,
     "tiers": [
       {
         "tier": 1,
         "minSkill": 30,
         "requiredJobId": "geoguessr_player",
-        "requiredJobLevel": 50,
+        "requiredJobLevel": 40,
         "incomePerYear": 750,
         "skillGainPerYear": {
-          "Map Awareness": 12
+          "map_awareness": 12,
+          "navigation": 15,
+          "pattern_recognition": 7,
+          "communication": 5,
+          "technical_writing": 4
+        },
+        "relevantSkills": {
+          "map_awareness": 0.9,
+          "navigation": 1.0,
+          "pattern_recognition": 0.6,
+          "communication": 0.5,
+          "technical_writing": 0.4
+        },
+        "relevantAttributes": {
+          "adaptability": 0.8,
+          "discipline": 0.6,
+          "focus": 0.5
+        },
+        "requiredSkills": {
+          "map_awareness": 30,
+          "navigation": 25
+        },
+        "requiredAttributes": {
+          "adaptability": 4,
+          "discipline": 3
         },
         "levelBonuses": [
           { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.04 },
@@ -108,17 +196,42 @@
   {
     "id": "tour_guide", 
     "title": "Tour Guide",
-    "description": "You guide tourists, showing them the best spots.",
+    "description": "You lead groups of tourists, providing insightful commentary on local landmarks and history.",
     "maxLevel": 100,
     "tiers": [
       {
         "tier": 2,
         "minSkill": 50,
         "requiredJobId": "urban_explorer",
-        "requiredJobLevel": 40,
+        "requiredJobLevel": 30,
         "incomePerYear": 1250,
         "skillGainPerYear": {
-          "Map Awareness": 14
+          "map_awareness": 14,
+          "navigation": 12,
+          "communication": 15,
+          "leadership": 8,
+          "organization": 6
+        },
+        "relevantSkills": {
+          "map_awareness": 0.7,
+          "navigation": 0.8,
+          "communication": 1.0,
+          "leadership": 0.6,
+          "organization": 0.5
+        },
+        "relevantAttributes": {
+          "adaptability": 0.8,
+          "creativity": 0.6,
+          "discipline": 0.5
+        },
+        "requiredSkills": {
+          "map_awareness": 40,
+          "navigation": 35,
+          "communication": 20
+        },
+        "requiredAttributes": {
+          "adaptability": 6,
+          "creativity": 4
         },
         "levelBonuses": [
           { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
@@ -130,6 +243,337 @@
           { "level": 70, "bonusType": "goldMultiplier", "bonusValue": 0.18 },
           { "level": 85, "bonusType": "jobXpMultiplier", "bonusValue": 0.20 },
           { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.30 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cartographer",
+    "title": "Cartographer",
+    "description": "You create and update maps, combining technical skill with geographic knowledge.",
+    "maxLevel": 100,
+    "tiers": [
+      {
+        "tier": 2,
+        "minSkill": 45,
+        "requiredJobId": "geoguessr_player",
+        "requiredJobLevel": 50,
+        "incomePerYear": 1800,
+        "skillGainPerYear": {
+          "map_awareness": 18,
+          "technical_drawing": 15,
+          "data_analysis": 10,
+          "programming": 8,
+          "visual_design": 6
+        },
+        "relevantSkills": {
+          "map_awareness": 1.0,
+          "technical_drawing": 0.9,
+          "data_analysis": 0.7,
+          "programming": 0.6,
+          "visual_design": 0.5
+        },
+        "relevantAttributes": {
+          "intelligence": 1.0,
+          "focus": 0.8,
+          "creativity": 0.5
+        },
+        "requiredSkills": {
+          "map_awareness": 45,
+          "technical_drawing": 15,
+          "data_analysis": 10
+        },
+        "requiredAttributes": {
+          "intelligence": 8,
+          "focus": 7
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
+          { "level": 10, "bonusType": "goldMultiplier", "bonusValue": 0.08 },
+          { "level": 20, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+          { "level": 30, "bonusType": "goldMultiplier", "bonusValue": 0.12 },
+          { "level": 40, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+          { "level": 50, "bonusType": "goldMultiplier", "bonusValue": 0.18 },
+          { "level": 70, "bonusType": "jobXpMultiplier", "bonusValue": 0.20 },
+          { "level": 85, "bonusType": "goldMultiplier", "bonusValue": 0.25 },
+          { "level": 100, "bonusType": "jobXpMultiplier", "bonusValue": 0.30 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gis_specialist",
+    "title": "GIS Specialist",
+    "description": "You analyze geographic data using specialized Geographic Information System software.",
+    "maxLevel": 100,
+    "tiers": [
+      {
+        "tier": 3,
+        "minSkill": 60,
+        "requiredJobId": "cartographer",
+        "requiredJobLevel": 40,
+        "incomePerYear": 2500,
+        "skillGainPerYear": {
+          "map_awareness": 20,
+          "data_analysis": 18,
+          "programming": 15,
+          "systems_thinking": 12,
+          "technical_writing": 8
+        },
+        "relevantSkills": {
+          "map_awareness": 0.9,
+          "data_analysis": 1.0,
+          "programming": 0.8,
+          "systems_thinking": 0.7,
+          "technical_writing": 0.5
+        },
+        "relevantAttributes": {
+          "intelligence": 1.0,
+          "discipline": 0.7,
+          "focus": 0.6
+        },
+        "requiredSkills": {
+          "map_awareness": 60,
+          "data_analysis": 30,
+          "programming": 20
+        },
+        "requiredAttributes": {
+          "intelligence": 10,
+          "discipline": 6
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+          { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+          { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
+          { "level": 30, "bonusType": "jobXpMultiplier", "bonusValue": 0.20 },
+          { "level": 40, "bonusType": "goldMultiplier", "bonusValue": 0.20 },
+          { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.25 },
+          { "level": 70, "bonusType": "goldMultiplier", "bonusValue": 0.25 },
+          { "level": 85, "bonusType": "jobXpMultiplier", "bonusValue": 0.30 },
+          { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.35 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "travel_blogger",
+    "title": "Travel Blogger",
+    "description": "You document your travels online, sharing insights, tips, and stunning photography.",
+    "maxLevel": 100,
+    "tiers": [
+      {
+        "tier": 2,
+        "minSkill": 40,
+        "requiredJobId": "urban_explorer",
+        "requiredJobLevel": 35,
+        "incomePerYear": 1000,
+        "skillGainPerYear": {
+          "map_awareness": 10,
+          "navigation": 8,
+          "communication": 15,
+          "creative_writing": 12,
+          "visual_design": 10
+        },
+        "relevantSkills": {
+          "map_awareness": 0.6,
+          "navigation": 0.5,
+          "communication": 0.9,
+          "creative_writing": 1.0,
+          "visual_design": 0.8
+        },
+        "relevantAttributes": {
+          "creativity": 1.0,
+          "adaptability": 0.8,
+          "discipline": 0.5
+        },
+        "requiredSkills": {
+          "map_awareness": 30,
+          "navigation": 20,
+          "communication": 25
+        },
+        "requiredAttributes": {
+          "creativity": 7,
+          "adaptability": 5
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
+          { "level": 10, "bonusType": "goldMultiplier", "bonusValue": 0.07 },
+          { "level": 20, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+          { "level": 30, "bonusType": "goldMultiplier", "bonusValue": 0.12 },
+          { "level": 40, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+          { "level": 50, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
+          { "level": 70, "bonusType": "jobXpMultiplier", "bonusValue": 0.20 },
+          { "level": 85, "bonusType": "goldMultiplier", "bonusValue": 0.20 },
+          { "level": 100, "bonusType": "jobXpMultiplier", "bonusValue": 0.25 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "navigation_app_developer",
+    "title": "Navigation App Developer",
+    "description": "You design and develop software applications focused on navigation and mapping.",
+    "maxLevel": 100,
+    "tiers": [
+      {
+        "tier": 3,
+        "minSkill": 50,
+        "requiredJobId": "cartographer",
+        "requiredJobLevel": 30,
+        "incomePerYear": 3000,
+        "skillGainPerYear": {
+          "map_awareness": 15,
+          "programming": 20,
+          "software_design": 18,
+          "problem_solving": 15,
+          "systems_thinking": 12
+        },
+        "relevantSkills": {
+          "map_awareness": 0.7,
+          "programming": 1.0,
+          "software_design": 0.9,
+          "problem_solving": 0.8,
+          "systems_thinking": 0.7
+        },
+        "relevantAttributes": {
+          "intelligence": 0.9,
+          "creativity": 0.7,
+          "focus": 0.8
+        },
+        "requiredSkills": {
+          "map_awareness": 40,
+          "programming": 40,
+          "problem_solving": 30
+        },
+        "requiredAttributes": {
+          "intelligence": 10,
+          "creativity": 6,
+          "focus": 7
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.08 },
+          { "level": 10, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+          { "level": 20, "bonusType": "jobXpMultiplier", "bonusValue": 0.12 },
+          { "level": 30, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
+          { "level": 40, "bonusType": "jobXpMultiplier", "bonusValue": 0.18 },
+          { "level": 50, "bonusType": "goldMultiplier", "bonusValue": 0.20 },
+          { "level": 70, "bonusType": "jobXpMultiplier", "bonusValue": 0.25 },
+          { "level": 85, "bonusType": "goldMultiplier", "bonusValue": 0.30 },
+          { "level": 100, "bonusType": "jobXpMultiplier", "bonusValue": 0.35 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "expedition_leader",
+    "title": "Expedition Leader",
+    "description": "You plan and lead complex expeditions to remote or challenging locations.",
+    "maxLevel": 100,
+    "tiers": [
+      {
+        "tier": 3,
+        "minSkill": 70,
+        "requiredJobId": "tour_guide",
+        "requiredJobLevel": 50,
+        "incomePerYear": 3500,
+        "skillGainPerYear": {
+          "map_awareness": 15,
+          "navigation": 20,
+          "leadership": 18,
+          "decision_making": 15,
+          "time_management": 12,
+          "problem_solving": 10
+        },
+        "relevantSkills": {
+          "map_awareness": 0.7,
+          "navigation": 1.0,
+          "leadership": 0.9,
+          "decision_making": 0.8,
+          "time_management": 0.7,
+          "problem_solving": 0.6
+        },
+        "relevantAttributes": {
+          "discipline": 1.0,
+          "adaptability": 0.9,
+          "focus": 0.7
+        },
+        "requiredSkills": {
+          "map_awareness": 60,
+          "navigation": 70,
+          "leadership": 40,
+          "decision_making": 30
+        },
+        "requiredAttributes": {
+          "discipline": 10,
+          "adaptability": 9
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+          { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+          { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
+          { "level": 30, "bonusType": "jobXpMultiplier", "bonusValue": 0.20 },
+          { "level": 40, "bonusType": "goldMultiplier", "bonusValue": 0.20 },
+          { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.25 },
+          { "level": 70, "bonusType": "goldMultiplier", "bonusValue": 0.30 },
+          { "level": 85, "bonusType": "jobXpMultiplier", "bonusValue": 0.30 },
+          { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.40 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "geospatial_researcher",
+    "title": "Geospatial Researcher",
+    "description": "You conduct advanced research on spatial patterns, mapping techniques, and geographic data analysis.",
+    "maxLevel": 100,
+    "tiers": [
+      {
+        "tier": 4,
+        "minSkill": 80,
+        "requiredJobId": "gis_specialist",
+        "requiredJobLevel": 60,
+        "incomePerYear": 4500,
+        "skillGainPerYear": {
+          "map_awareness": 25,
+          "data_analysis": 25,
+          "critical_thinking": 20,
+          "systems_thinking": 18,
+          "pattern_recognition": 15,
+          "technical_writing": 12
+        },
+        "relevantSkills": {
+          "map_awareness": 0.9,
+          "data_analysis": 1.0,
+          "critical_thinking": 0.9,
+          "systems_thinking": 0.8,
+          "pattern_recognition": 0.7,
+          "technical_writing": 0.6
+        },
+        "relevantAttributes": {
+          "intelligence": 1.0,
+          "focus": 0.9,
+          "discipline": 0.8
+        },
+        "requiredSkills": {
+          "map_awareness": 80,
+          "data_analysis": 70,
+          "critical_thinking": 50,
+          "systems_thinking": 40
+        },
+        "requiredAttributes": {
+          "intelligence": 15,
+          "focus": 12
+        },
+        "levelBonuses": [
+          { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+          { "level": 10, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
+          { "level": 20, "bonusType": "jobXpMultiplier", "bonusValue": 0.20 },
+          { "level": 30, "bonusType": "goldMultiplier", "bonusValue": 0.20 },
+          { "level": 40, "bonusType": "jobXpMultiplier", "bonusValue": 0.25 },
+          { "level": 50, "bonusType": "goldMultiplier", "bonusValue": 0.30 },
+          { "level": 70, "bonusType": "jobXpMultiplier", "bonusValue": 0.35 },
+          { "level": 85, "bonusType": "goldMultiplier", "bonusValue": 0.40 },
+          { "level": 100, "bonusType": "jobXpMultiplier", "bonusValue": 0.50 }
         ]
       }
     ]

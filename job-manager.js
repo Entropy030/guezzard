@@ -1,192 +1,146 @@
-// job-manager.js
-console.log("job-manager.js - Module loading");
+// enhanced-job-manager.js
+// An enhanced version of the job system that integrates with the new skill system
 
-// We don't need to import logEvent here since it might cause circular dependencies
-// Instead, we'll call it from the window object when needed
+console.log("enhanced-job-manager.js - Module loading");
 
-// Get job data with proper tier information
-export function getJobData(jobIndex, currentJobTier) {
-    console.log(`getJobData() - Getting job data for index ${jobIndex}, tier ${currentJobTier}`);
-    
-    if (!gameState.jobs || jobIndex < 0 || jobIndex >= gameState.jobs.length) {
-        console.error("Invalid job index:", jobIndex);
-        return null; // Or a default job object
-    }
-    
-    const jobData = gameState.jobs[jobIndex];
-    
-    if (jobData && jobData.tiers) {
-        const jobTierData = jobData.tiers.find(tier => tier.tier === currentJobTier);
-        if (jobTierData) {
-            // Create a copy to avoid modifying original data
-            const jobDataWithTier = { ...jobData, ...jobTierData};
-            console.log(`getJobData() - Found tier data for job ${jobData.id}, tier ${currentJobTier}:`, jobDataWithTier);
-            return jobDataWithTier;
-        } else {
-            console.warn(`No tier data found for job ${jobData.id} at tier ${currentJobTier}. Returning base job data.`);
-            return jobData; // Return base data if tier not found (could be an issue)
-        }
-    } else {
-        console.warn(`No tier data found for job index ${jobIndex}.`);
-        return jobData;
-    }
-}
+// Constants for job system
+const JOB_CONSTANTS = {
+    BASE_XP_REQUIRED: 100,      // Base XP needed for job level up
+    XP_SCALING_FACTOR: 1.1,     // How much XP requirements increase per level
+    PERFORMANCE_BASE: 100,      // Base performance value (100%)
+    MAX_PERFORMANCE: 150,       // Maximum performance value (150%)
+    MIN_PERFORMANCE: 50,        // Minimum performance value (50%)
+    SKILL_MATCH_FACTOR: 0.05,   // How much each skill level contributes to performance
+    PERFORMANCE_CHECK_INTERVAL: 3600 // How often to update job performance (1 hour)
+};
 
-// Get job by ID (useful for finding specific jobs)
-export function getJobById(jobId) {
-    console.log(`getJobById() - Finding job with ID: ${jobId}`);
+// Initialize the enhanced job system
+export function initializeEnhancedJobSystem() {
+    console.log("initializeEnhancedJobSystem() - Setting up enhanced job system");
     
-    if (!gameState.jobs || !Array.isArray(gameState.jobs)) {
-        console.error("Jobs array is not available");
-        return null;
-    }
-    
-    const job = gameState.jobs.find(job => job.id === jobId);
-    return job || null;
-}
-
-// Get job index by ID
-export function getJobIndexById(jobId) {
-    console.log(`getJobIndexById() - Finding index for job ID: ${jobId}`);
-    
-    if (!gameState.jobs || !Array.isArray(gameState.jobs)) {
-        console.error("Jobs array is not available");
-        return -1;
-    }
-    
-    return gameState.jobs.findIndex(job => job.id === jobId);
-}
-
-// Check if player meets requirements for a job
-export function meetsJobRequirements(jobData, tierLevel = 0) {
-    console.log(`meetsJobRequirements() - Checking requirements for job ${jobData?.id}, tier ${tierLevel}`);
-    
-    if (!jobData || !jobData.tiers) {
-        console.error("Invalid job data provided");
+    // Check if the original job system is available
+    if (typeof window.processJobProgress !== 'function') {
+        console.error("initializeEnhancedJobSystem() - Original job system functions not found");
         return false;
     }
     
-    // Find the correct tier data
-    const tierData = jobData.tiers.find(tier => tier.tier === tierLevel);
-    if (!tierData) {
-        console.warn(`No tier data found for job ${jobData.id} at tier ${tierLevel}`);
-        return false;
-    }
-    
-    // Check skill requirements
-    if (tierData.minSkill) {
-        const requiredSkill = "Map Awareness"; // Default skill for most jobs
-        const playerSkillLevel = gameState.skills[requiredSkill] || 0;
-        
-        if (playerSkillLevel < tierData.minSkill) {
-            console.warn(`Player skill ${requiredSkill} (${playerSkillLevel}) is below required level (${tierData.minSkill})`);
-            return false;
-        }
-    }
-    
-    // Check required previous job level if specified
-    if (tierData.requiredJobId && tierData.requiredJobLevel) {
-        const previousJobLevel = gameState.jobLevels[tierData.requiredJobId] || 0;
-        
-        if (previousJobLevel < tierData.requiredJobLevel) {
-            console.warn(`Required job ${tierData.requiredJobId} level (${previousJobLevel}) is below required level (${tierData.requiredJobLevel})`);
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-// Apply for a job
-export function applyForJob(jobIndex, tierLevel = 0) {
-    console.log(`applyForJob() - Attempting to apply for job at index ${jobIndex}, tier ${tierLevel}`);
-    
-    // Get the job data
-    const jobData = getJobData(jobIndex, tierLevel);
-    
-    if (!jobData) {
-        console.error("Could not apply for job: Job data not found");
-        return false;
-    }
-    
-    // Check if player meets requirements
-    if (!meetsJobRequirements(jobData, tierLevel)) {
-        console.warn("Player does not meet requirements for this job");
-        if (window.showNotification) {
-            window.showNotification("Job Application", "You don't meet the requirements for this job", "error");
-        }
-        return false;
-    }
-    
-    // Apply for the job (success)
-    gameState.activeJob = { ...jobData, progress: 0 };
-    gameState.currentJobTier = tierLevel;
-    gameState.jobProgress = 0;
-    
-    // Initialize job levels tracking if needed
+    // Ensure gameState has the necessary job-related structures
     if (!gameState.jobLevels) {
         gameState.jobLevels = {};
     }
     
-    if (!gameState.jobLevels[jobData.id]) {
-        gameState.jobLevels[jobData.id] = 1; // Start at level 1
-    }
-    
-    // Initialize job bonuses tracking if needed
     if (!gameState.jobBonuses) {
         gameState.jobBonuses = {};
     }
     
-    if (!gameState.jobBonuses[jobData.id]) {
-        gameState.jobBonuses[jobData.id] = {
-            jobXpMultiplier: 0,
-            goldMultiplier: 0
+    if (!gameState.jobPerformance) {
+        gameState.jobPerformance = {
+            current: JOB_CONSTANTS.PERFORMANCE_BASE,
+            factors: {
+                skillMatch: 0,
+                consistency: 0,
+                energy: 0,
+                attributeBonus: 0
+            },
+            history: []
         };
     }
     
-    // Track statistics
-    gameState.statistics.jobsHeld = (gameState.statistics.jobsHeld || 0) + 1;
+    // Set up job performance update timer
+    setupPerformanceUpdateTimer();
     
-    // Log the event (using window.logEvent to avoid import issues)
-    if (window.logEvent) {
-        window.logEvent(`You got a new job as a ${jobData.title}!`, 'career');
-    } else {
-        console.log(`Career Event: You got a new job as a ${jobData.title}!`);
-    }
+    // Wrap or replace original functions
+    wrapOriginalJobFunctions();
     
-    console.log(`applyForJob() - Successfully applied for job: ${jobData.title}`);
+    console.log("initializeEnhancedJobSystem() - Enhanced job system initialized");
     return true;
 }
 
-// Quit current job
-export function quitJob() {
-    console.log("quitJob() - Quitting current job");
+// Set up job performance update timer
+function setupPerformanceUpdateTimer() {
+    console.log("setupPerformanceUpdateTimer() - Setting up performance timer");
     
-    if (!gameState.activeJob) {
-        console.warn("No active job to quit");
+    // Clear any existing timer
+    if (window.performanceUpdateTimer) {
+        clearInterval(window.performanceUpdateTimer);
+    }
+    
+    // Set up new timer
+    window.performanceUpdateTimer = setInterval(() => {
+        if (!gameState.gamePaused && gameState.activeJob) {
+            updateJobPerformance();
+        }
+    }, JOB_CONSTANTS.PERFORMANCE_CHECK_INTERVAL);
+    
+    console.log(`setupPerformanceUpdateTimer() - Performance timer set to check every ${JOB_CONSTANTS.PERFORMANCE_CHECK_INTERVAL}ms`);
+}
+
+// Wrap or replace original job system functions
+function wrapOriginalJobFunctions() {
+    console.log("wrapOriginalJobFunctions() - Wrapping original job functions");
+    
+    // Store original functions
+    window.originalApplyForJob = window.applyForJob;
+    window.originalProcessJobProgress = window.processJobProgress;
+    window.originalQuitJob = window.quitJob;
+    
+    // Replace applyForJob with enhanced version
+    window.applyForJob = enhancedApplyForJob;
+    
+    // Replace processJobProgress with enhanced version
+    window.processJobProgress = enhancedProcessJobProgress;
+    
+    // Replace quitJob with enhanced version
+    window.quitJob = enhancedQuitJob;
+    
+    console.log("wrapOriginalJobFunctions() - Original job functions wrapped successfully");
+}
+
+// Enhanced apply for job function
+function enhancedApplyForJob(jobIndex, tierLevel = 0) {
+    console.log(`enhancedApplyForJob() - Applying for job at index ${jobIndex}, tier ${tierLevel}`);
+    
+    // Get the job data
+    const jobData = typeof window.getJobData === 'function' ? 
+        window.getJobData(jobIndex, tierLevel) : null;
+    
+    if (!jobData) {
+        console.error("enhancedApplyForJob() - Job data not found");
         return false;
     }
     
-    const oldJobTitle = gameState.activeJob.title;
-    
-    // Reset job-related state
-    gameState.activeJob = null;
-    gameState.currentJobTier = 0;
-    gameState.jobProgress = 0;
-    
-    // Log the event (using window.logEvent to avoid import issues)
-    if (window.logEvent) {
-        window.logEvent(`You quit your job as a ${oldJobTitle}.`, 'career');
-    } else {
-        console.log(`Career Event: You quit your job as a ${oldJobTitle}.`);
+    // Check if player meets enhanced requirements
+    if (!meetsEnhancedJobRequirements(jobData, tierLevel)) {
+        console.warn("enhancedApplyForJob() - Player does not meet enhanced requirements");
+        
+        if (typeof window.showNotification === 'function') {
+            window.showNotification("Job Application", "You don't meet the skill requirements for this job", "error");
+        }
+        
+        return false;
     }
     
-    console.log(`quitJob() - Successfully quit job: ${oldJobTitle}`);
-    return true;
+    // Call the original applyForJob function
+    const success = window.originalApplyForJob(jobIndex, tierLevel);
+    
+    if (success) {
+        // Initialize performance tracking for the new job
+        resetJobPerformance();
+        
+        // Additional logic for the enhanced job system
+        trackJobStartTime();
+        
+        // Log the event with more details
+        if (typeof window.logEvent === 'function') {
+            window.logEvent(`Started a new job as a ${jobData.title}. Use your skills effectively to increase performance!`, 'career');
+        }
+    }
+    
+    return success;
 }
 
-// Process job progression (to be called in game loop)
-export function processJobProgress(deltaTime) {
+// Enhanced process job progress function
+function enhancedProcessJobProgress(deltaTime) {
     // Skip if no active job or game is paused
     if (!gameState.activeJob || gameState.gamePaused) {
         return;
@@ -194,68 +148,420 @@ export function processJobProgress(deltaTime) {
     
     const job = gameState.activeJob;
     const jobId = job.id;
-    const tier = gameState.currentJobTier;
     
-    // Get full job data with current tier
-    const fullJobData = getJobData(getJobIndexById(jobId), tier);
+    // Calculate performance modifier
+    const performanceModifier = gameState.jobPerformance ? 
+        (gameState.jobPerformance.current / JOB_CONSTANTS.PERFORMANCE_BASE) : 1.0;
     
-    if (!fullJobData) {
-        console.error("Could not process job progress: Invalid job data");
-        return;
-    }
-    
-    // Calculate progression factors
+    // Enhanced XP gain based on performance and skills
     const baseProgressRate = 1.0; // Base units per tick
-    const tierMultiplier = 1.0 + (tier * 0.2); // Higher tiers progress faster
-    const skillBonus = calculateJobSkillBonus(fullJobData);
     
-    // Get job XP multiplier from bonuses if available
-    const bonusMultiplier = gameState.jobBonuses && gameState.jobBonuses[jobId] ? 
-        (1 + gameState.jobBonuses[jobId].jobXpMultiplier) : 1;
+    // Calculate enhanced XP gain
+    const progressGain = baseProgressRate * performanceModifier * (deltaTime / 1000);
     
-    // Apply progress with all multipliers
-    const progressGain = baseProgressRate * tierMultiplier * skillBonus * bonusMultiplier * (deltaTime / 1000);
+    // Update job progress
     gameState.jobProgress += progressGain;
     
     // Get current job level
-    const currentLevel = gameState.jobLevels[jobId] || 1;
+    const currentLevel = gameState.jobLevels && gameState.jobLevels[jobId] ? 
+        gameState.jobLevels[jobId] : 1;
     
-    // Calculate XP needed for next level - increases with level
-    const progressNeeded = calculateXpForLevel(currentLevel);
+    // Calculate XP needed for next level
+    const progressNeeded = calculateXPForJobLevel(currentLevel);
     
     // Check for level up
     if (gameState.jobProgress >= progressNeeded) {
         // Level up the job
-        levelUpJob(jobId);
+        levelUpEnhancedJob(jobId);
         
         // Reset progress
         gameState.jobProgress = 0;
     }
     
-    // Process income
-    processJobIncome(fullJobData, deltaTime);
+    // Process enhanced income with performance factor
+    processEnhancedJobIncome(job, deltaTime, performanceModifier);
     
-    // Process skill gains from job
-    processJobSkillGains(fullJobData, deltaTime);
+    // Process enhanced skill gains
+    processEnhancedSkillGains(job, deltaTime, performanceModifier);
+}
+
+// Enhanced quit job function
+function enhancedQuitJob() {
+    console.log("enhancedQuitJob() - Quitting current job");
+    
+    if (!gameState.activeJob) {
+        console.warn("enhancedQuitJob() - No active job to quit");
+        return false;
+    }
+    
+    const oldJobTitle = gameState.activeJob.title;
+    
+    // Call original quit job function
+    const success = window.originalQuitJob();
+    
+    if (success) {
+        // Additional cleanup for enhanced job system
+        resetJobPerformance();
+        
+        // Add additional logging
+        if (typeof window.logEvent === 'function') {
+            window.logEvent(`You quit your job as a ${oldJobTitle}. All job-related bonuses have been removed.`, 'career');
+        }
+    }
+    
+    return success;
+}
+
+// Check if player meets enhanced job requirements
+function meetsEnhancedJobRequirements(jobData, tierLevel = 0) {
+    console.log(`meetsEnhancedJobRequirements() - Checking requirements for job ${jobData?.id}, tier ${tierLevel}`);
+    
+    // Call original function first
+    if (typeof window.meetsJobRequirements === 'function') {
+        const basicRequirementsMet = window.meetsJobRequirements(jobData, tierLevel);
+        
+        if (!basicRequirementsMet) {
+            return false;
+        }
+    }
+    
+    // Enhanced skill checks
+    const requiredSkills = getRequiredSkillsForJob(jobData);
+    
+    for (const [skillId, requiredLevel] of Object.entries(requiredSkills)) {
+        // Get player's current level in this skill
+        const playerSkillLevel = getPlayerSkillLevel(skillId);
+        
+        // Check if player meets the requirement
+        if (playerSkillLevel < requiredLevel) {
+            console.warn(`meetsEnhancedJobRequirements() - Player's ${skillId} level (${playerSkillLevel}) is below required level (${requiredLevel})`);
+            return false;
+        }
+    }
+    
+    // Check attribute requirements if any
+    const requiredAttributes = getRequiredAttributesForJob(jobData);
+    
+    for (const [attributeId, requiredValue] of Object.entries(requiredAttributes)) {
+        // Get player's attribute value
+        const playerAttributeValue = typeof window.getAttributeValue === 'function' ?
+            window.getAttributeValue(attributeId) : (gameState.attributes?.[attributeId]?.value || 0);
+        
+        // Check if player meets the requirement
+        if (playerAttributeValue < requiredValue) {
+            console.warn(`meetsEnhancedJobRequirements() - Player's ${attributeId} (${playerAttributeValue}) is below required value (${requiredValue})`);
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Get required skills for a job
+function getRequiredSkillsForJob(jobData) {
+    // Default to just Map Awareness if no specific requirements
+    const requiredSkills = {
+        "map_awareness": jobData.minSkill || 0
+    };
+    
+    // Check for explicit skill requirements in the job data
+    if (jobData.requiredSkills) {
+        Object.assign(requiredSkills, jobData.requiredSkills);
+    }
+    
+    return requiredSkills;
+}
+
+// Get required attributes for a job
+function getRequiredAttributesForJob(jobData) {
+    // Default to no attribute requirements
+    const requiredAttributes = {};
+    
+    // Check for explicit attribute requirements in the job data
+    if (jobData.requiredAttributes) {
+        Object.assign(requiredAttributes, jobData.requiredAttributes);
+    }
+    
+    return requiredAttributes;
+}
+
+// Get player's skill level
+function getPlayerSkillLevel(skillId) {
+    // Check if the enhanced skill system is available
+    if (gameState.skills && gameState.skills[skillId]) {
+        return gameState.skills[skillId].level || 0;
+    }
+    
+    // Fallback for old skill system
+    if (typeof gameState.skills === 'object' && gameState.skills.hasOwnProperty(skillId)) {
+        if (typeof gameState.skills[skillId] === 'object') {
+            return gameState.skills[skillId].level || 0;
+        } else {
+            return gameState.skills[skillId] || 0;
+        }
+    }
+    
+    return 0;
+}
+
+// Reset job performance tracking
+function resetJobPerformance() {
+    console.log("resetJobPerformance() - Resetting job performance tracking");
+    
+    // Initialize with base performance
+    gameState.jobPerformance = {
+        current: JOB_CONSTANTS.PERFORMANCE_BASE,
+        factors: {
+            skillMatch: 0,
+            consistency: 0,
+            energy: 0,
+            attributeBonus: 0
+        },
+        history: []
+    };
+}
+
+// Track job start time
+function trackJobStartTime() {
+    console.log("trackJobStartTime() - Tracking job start time");
+    
+    if (!gameState.jobTime) {
+        gameState.jobTime = {};
+    }
+    
+    if (gameState.activeJob) {
+        gameState.jobTime[gameState.activeJob.id] = {
+            startTime: Date.now(),
+            totalTime: gameState.jobTime[gameState.activeJob.id]?.totalTime || 0
+        };
+    }
+}
+
+// Update job performance
+function updateJobPerformance() {
+    console.log("updateJobPerformance() - Updating job performance");
+    
+    if (!gameState.activeJob) {
+        return;
+    }
+    
+    // Calculate performance factors
+    const factors = calculatePerformanceFactors();
+    
+    // Store factors
+    gameState.jobPerformance.factors = factors;
+    
+    // Calculate overall performance (base 100 + factors)
+    let newPerformance = JOB_CONSTANTS.PERFORMANCE_BASE + 
+        factors.skillMatch + 
+        factors.consistency + 
+        factors.energy + 
+        factors.attributeBonus;
+    
+    // Ensure it stays within reasonable bounds
+    newPerformance = Math.max(
+        JOB_CONSTANTS.MIN_PERFORMANCE, 
+        Math.min(JOB_CONSTANTS.MAX_PERFORMANCE, newPerformance)
+    );
+    
+    // Update current performance (with smoothing)
+    const currentPerformance = gameState.jobPerformance.current;
+    gameState.jobPerformance.current = currentPerformance * 0.8 + newPerformance * 0.2;
+    
+    // Add to history (once per game day)
+    if (gameState.ticksSinceDayStart === 0) {
+        gameState.jobPerformance.history.push({
+            day: gameState.day,
+            performance: gameState.jobPerformance.current
+        });
+        
+        // Keep history length reasonable
+        if (gameState.jobPerformance.history.length > 30) {
+            gameState.jobPerformance.history.shift();
+        }
+    }
+    
+    console.log(`updateJobPerformance() - New performance: ${gameState.jobPerformance.current.toFixed(1)}%`);
+}
+
+// Calculate performance factors
+function calculatePerformanceFactors() {
+    console.log("calculatePerformanceFactors() - Calculating job performance factors");
+    
+    const factors = {
+        skillMatch: 0,
+        consistency: 0,
+        energy: 0,
+        attributeBonus: 0
+    };
+    
+    if (!gameState.activeJob) {
+        return factors;
+    }
+    
+    // Skill match factor - how well the player's skills match the job
+    const jobSkills = getRelevantSkillsForJob(gameState.activeJob);
+    let skillSum = 0;
+    let skillCount = 0;
+    
+    for (const [skillId, weight] of Object.entries(jobSkills)) {
+        const skillLevel = getPlayerSkillLevel(skillId);
+        skillSum += skillLevel * weight;
+        skillCount += weight;
+    }
+    
+    if (skillCount > 0) {
+        const avgWeightedSkill = skillSum / skillCount;
+        // Each 5 levels of average skill adds 5% performance
+        factors.skillMatch = Math.floor(avgWeightedSkill / 5) * 5;
+    }
+    
+    // Consistency factor - time in current job
+    const jobId = gameState.activeJob.id;
+    const jobStartTime = gameState.jobTime && gameState.jobTime[jobId] ? 
+        gameState.jobTime[jobId].startTime : Date.now();
+    
+    const timeInJob = (Date.now() - jobStartTime) / (1000 * 60 * 60 * 24); // in days
+    
+    // Each 30 days at job adds 2% up to 10%
+    factors.consistency = Math.min(10, Math.floor(timeInJob / 30) * 2);
+    
+    // Energy factor
+    const energyPercent = (gameState.energy / gameState.maxEnergy) * 100;
+    // Below 30% energy reduces performance, above 70% improves it
+    if (energyPercent < 30) {
+        factors.energy = -10; // Penalty for low energy
+    } else if (energyPercent > 70) {
+        factors.energy = 5; // Bonus for high energy
+    }
+    
+    // Attribute bonus - based on relevant attributes for the job
+    if (typeof window.getAttributeValue === 'function') {
+        const relevantAttributes = getRelevantAttributesForJob(gameState.activeJob);
+        let attrSum = 0;
+        
+        for (const [attrId, weight] of Object.entries(relevantAttributes)) {
+            const attrValue = window.getAttributeValue(attrId);
+            // Each point above 5 adds a small bonus weighted by importance
+            attrSum += (attrValue - 5) * weight * 0.5;
+        }
+        
+        factors.attributeBonus = Math.floor(attrSum);
+    }
+    
+    return factors;
+}
+
+// Get relevant skills for a job with weights
+function getRelevantSkillsForJob(jobData) {
+    // Default to map awareness if no specific skills
+    const relevantSkills = {
+        "map_awareness": 1.0
+    };
+    
+    // Check for explicit relevant skills in the job data
+    if (jobData.relevantSkills) {
+        Object.assign(relevantSkills, jobData.relevantSkills);
+    } else if (jobData.skillGainPerYear) {
+        // Use skills that gain experience as relevant skills
+        for (const skillId in jobData.skillGainPerYear) {
+            const gainRate = jobData.skillGainPerYear[skillId];
+            // Use gain rate as weight
+            relevantSkills[skillId] = gainRate / 5; // Normalize weight
+        }
+    }
+    
+    return relevantSkills;
+}
+
+// Get relevant attributes for a job with weights
+function getRelevantAttributesForJob(jobData) {
+    // Default to intelligence if no specific attributes
+    const relevantAttributes = {
+        "intelligence": 1.0
+    };
+    
+    // Check for explicit relevant attributes in the job data
+    if (jobData.relevantAttributes) {
+        Object.assign(relevantAttributes, jobData.relevantAttributes);
+    } else {
+        // Try to infer from category if using new skill system
+        const categoryPrimaryAttrs = {};
+        const categorySecondaryAttrs = {};
+        
+        // Build lookup of category to attributes
+        if (gameState.skillCategories) {
+            for (const categoryId in gameState.skillCategories) {
+                const category = gameState.skillCategories[categoryId];
+                if (category.primaryAttribute) {
+                    categoryPrimaryAttrs[categoryId] = category.primaryAttribute;
+                }
+                if (category.secondaryAttribute) {
+                    categorySecondaryAttrs[categoryId] = category.secondaryAttribute;
+                }
+            }
+        }
+        
+        // Check each relevant skill for its category
+        for (const skillId in getRelevantSkillsForJob(jobData)) {
+            const skill = gameState.skills[skillId];
+            if (skill && skill.categoryId) {
+                // Add primary attribute with weight 1.0
+                const primaryAttr = categoryPrimaryAttrs[skill.categoryId];
+                if (primaryAttr) {
+                    relevantAttributes[primaryAttr] = (relevantAttributes[primaryAttr] || 0) + 1.0;
+                }
+                
+                // Add secondary attribute with weight 0.5
+                const secondaryAttr = categorySecondaryAttrs[skill.categoryId];
+                if (secondaryAttr) {
+                    relevantAttributes[secondaryAttr] = (relevantAttributes[secondaryAttr] || 0) + 0.5;
+                }
+            }
+        }
+    }
+    
+    return relevantAttributes;
 }
 
 // Calculate XP needed for a specific job level
-function calculateXpForLevel(level) {
-    // Formula: Base value (100) multiplied by a factor that increases with level
-    // This makes each level progressively harder to attain
-    return 100 * Math.pow(1.1, level - 1);
+function calculateXPForJobLevel(level) {
+    return Math.floor(JOB_CONSTANTS.BASE_XP_REQUIRED * Math.pow(JOB_CONSTANTS.XP_SCALING_FACTOR, level - 1));
 }
 
-// Level up job
-function levelUpJob(jobId) {
-    console.log(`levelUpJob() - Leveling up job: ${jobId}`);
+// Level up the job with enhanced effects
+function levelUpEnhancedJob(jobId) {
+    console.log(`levelUpEnhancedJob() - Leveling up job: ${jobId}`);
     
-    // Initialize job levels if not exists
+    // Call original level up if available
+    if (typeof window.levelUpJob === 'function') {
+        const newLevel = window.levelUpJob(jobId);
+        
+        // Enhanced level up effects
+        if (newLevel) {
+            // Boost performance temporarily
+            gameState.jobPerformance.current += 5;
+            
+            // Add special level up event
+            if (typeof window.logEvent === 'function') {
+                window.logEvent(`Your exceptional work has earned you a promotion to level ${newLevel}!`, 'career');
+            }
+            
+            // Play level up sound
+            if (typeof window.playSound === 'function') {
+                window.playSound('job-level-up');
+            }
+        }
+        
+        return newLevel;
+    }
+    
+    // Fallback implementation
     if (!gameState.jobLevels) {
         gameState.jobLevels = {};
     }
     
-    // Increment job level
+    // Initialize or increment job level
     if (!gameState.jobLevels[jobId]) {
         gameState.jobLevels[jobId] = 1;
     } else {
@@ -263,151 +569,56 @@ function levelUpJob(jobId) {
     }
     
     const newLevel = gameState.jobLevels[jobId];
-    const maxLevel = gameState.activeJob.maxLevel || 100;
     
-    // Cap at max level
-    if (newLevel > maxLevel) {
-        gameState.jobLevels[jobId] = maxLevel;
-        console.log(`Job ${jobId} reached max level: ${maxLevel}`);
-    }
-    
-    // Check for level milestone bonuses
-    applyLevelBonuses(jobId, newLevel);
-    
-    // Log the event (using window.logEvent to avoid import issues)
-    if (window.logEvent) {
-        window.logEvent(`You've reached level ${newLevel} as a ${gameState.activeJob.title}!`, 'career');
-    } else {
-        console.log(`Career Event: You've reached level ${newLevel} as a ${gameState.activeJob.title}!`);
+    // Log the level up
+    if (typeof window.logEvent === 'function') {
+        window.logEvent(`You've reached level ${newLevel} in your job!`, 'career');
     }
     
     return newLevel;
 }
 
-// Apply bonuses when reaching specific job levels
-function applyLevelBonuses(jobId, level) {
-    console.log(`applyLevelBonuses() - Checking for bonuses at level ${level} for job ${jobId}`);
+// Process job income with enhanced modifiers
+function processEnhancedJobIncome(jobData, deltaTime, performanceModifier = 1.0) {
+    console.log("processEnhancedJobIncome() - Processing job income with performance modifier");
     
-    // Get job data
-    const job = getJobById(jobId);
-    if (!job) return;
-    
-    // Get current tier data
-    const tierData = job.tiers.find(tier => tier.tier === gameState.currentJobTier);
-    if (!tierData || !tierData.levelBonuses) return;
-    
-    // Check if there's a bonus for this level
-    const levelBonus = tierData.levelBonuses.find(bonus => bonus.level === level);
-    if (!levelBonus) return;
-    
-    // Initialize job bonuses if not exists
-    if (!gameState.jobBonuses) {
-        gameState.jobBonuses = {};
-    }
-    
-    if (!gameState.jobBonuses[jobId]) {
-        gameState.jobBonuses[jobId] = {
-            jobXpMultiplier: 0,
-            goldMultiplier: 0
-        };
-    }
-    
-    // Apply the bonus based on type
-    switch (levelBonus.bonusType) {
-        case "jobXpMultiplier":
-            gameState.jobBonuses[jobId].jobXpMultiplier += levelBonus.bonusValue;
-            if (window.logEvent) {
-                window.logEvent(`Job milestone! +${(levelBonus.bonusValue * 100).toFixed(0)}% job XP gain for ${job.title}.`, 'career');
-            }
-            break;
-        case "goldMultiplier":
-            gameState.jobBonuses[jobId].goldMultiplier += levelBonus.bonusValue;
-            if (window.logEvent) {
-                window.logEvent(`Job milestone! +${(levelBonus.bonusValue * 100).toFixed(0)}% gold gain for ${job.title}.`, 'career');
-            }
-            break;
-        default:
-            console.warn(`Unknown bonus type: ${levelBonus.bonusType}`);
-    }
-    
-    console.log(`Applied ${levelBonus.bonusType} bonus of ${levelBonus.bonusValue} at level ${level} for job ${jobId}`);
-}
-
-// Promote to next tier
-function promoteTier(jobId, nextTier) {
-    console.log(`promoteTier() - Promoting job ${jobId} to tier ${nextTier}`);
-    
-    const job = getJobById(jobId);
-    
-    if (!job) {
-        console.error("Could not promote: Job not found");
-        return false;
-    }
-    
-    const nextTierData = job.tiers.find(tier => tier.tier === nextTier);
-    
-    if (!nextTierData) {
-        console.warn(`No tier ${nextTier} found for job ${jobId}`);
-        return false;
-    }
-    
-    // Check if player meets requirements for this tier
-    if (!meetsJobRequirements(job, nextTier)) {
-        if (window.logEvent) {
-            window.logEvent(`You don't meet the requirements for the next tier of ${job.title}.`, 'career');
-        }
-        return false;
-    }
-    
-    // Promote to next tier
-    gameState.currentJobTier = nextTier;
-    
-    // Update active job data with new tier info
-    const updatedJobData = getJobData(getJobIndexById(jobId), nextTier);
-    gameState.activeJob = { ...updatedJobData, progress: 0 };
-    
-    // Log the event (using window.logEvent to avoid import issues)
-    if (window.logEvent) {
-        window.logEvent(`Congratulations! You've been promoted to ${updatedJobData.title}!`, 'career');
-    } else {
-        console.log(`Career Event: Congratulations! You've been promoted to ${updatedJobData.title}!`);
-    }
-    
-    return true;
-}
-
-// Calculate bonus from skills for job progress
-function calculateJobSkillBonus(jobData) {
-    // Default bonus is 1.0 (no change)
-    let bonus = 1.0;
-    
-    // Each relevant skill point adds a small bonus
-    if (jobData.skillGainPerYear) {
-        for (const [skillName, _] of Object.entries(jobData.skillGainPerYear)) {
-            const skillLevel = gameState.skills[skillName] || 0;
-            bonus += skillLevel * 0.01; // Each skill point adds 1%
-        }
-    }
-    
-    return bonus;
-}
-
-// Process income from job
-function processJobIncome(jobData, deltaTime) {
     if (!jobData || !jobData.incomePerYear) {
         return;
     }
     
-    // Get gold multiplier bonus if available
+    // Get gold multiplier from job bonuses
     const jobId = jobData.id;
     const goldMultiplier = gameState.jobBonuses && gameState.jobBonuses[jobId] ?
         (1 + gameState.jobBonuses[jobId].goldMultiplier) : 1;
     
-    // Calculate income per second with bonus
-    const incomePerSecond = (jobData.incomePerYear / 600) * goldMultiplier; // 600 ticks per year (assumed)
+    // Apply attribute bonus for earnings if available
+    let attributeBonus = 1.0;
+    if (typeof window.getAttributeValue === 'function') {
+        const relevantAttributes = getRelevantAttributesForJob(jobData);
+        let highestWeight = 0;
+        let bestAttribute = null;
+        
+        // Find the attribute with highest weight
+        for (const [attrId, weight] of Object.entries(relevantAttributes)) {
+            if (weight > highestWeight) {
+                highestWeight = weight;
+                bestAttribute = attrId;
+            }
+        }
+        
+        if (bestAttribute) {
+            const attrValue = window.getAttributeValue(bestAttribute);
+            // Each point above 5 adds 1% to earnings
+            attributeBonus = 1.0 + Math.max(0, (attrValue - 5) * 0.01);
+        }
+    }
+    
+    // Calculate income per second with all modifiers
+    const incomePerSecond = (jobData.incomePerYear / 31536000) * // Convert yearly to per second
+        performanceModifier * goldMultiplier * attributeBonus;
     
     // Apply income for this tick
-    const income = incomePerSecond * (deltaTime / 1000);
+    const income = incomePerSecond * deltaTime;
     
     // Add to gold
     gameState.gold += income;
@@ -417,129 +628,92 @@ function processJobIncome(jobData, deltaTime) {
     gameState.gameStats.totalGoldEarned = (gameState.gameStats.totalGoldEarned || 0) + income;
     
     // Track income sources
+    gameState.income = gameState.income || {};
     gameState.income.job = income;
     gameState.income.total = (gameState.income.total || 0) + income;
 }
 
-// Process skill gains from job
-function processJobSkillGains(jobData, deltaTime) {
+// Process enhanced skill gains from job
+function processEnhancedSkillGains(jobData, deltaTime, performanceModifier = 1.0) {
+    console.log("processEnhancedSkillGains() - Processing skill gains with performance modifier");
+    
     if (!jobData || !jobData.skillGainPerYear) {
         return;
     }
     
     // Process skill gains
-    for (const [skillName, gainPerYear] of Object.entries(jobData.skillGainPerYear)) {
-        // Calculate gain per second
-        const gainPerSecond = gainPerYear / (600); // 600 ticks per year (assumed)
+    for (const [skillId, gainPerYear] of Object.entries(jobData.skillGainPerYear)) {
+        // Convert yearly gain to per second
+        const gainPerSecond = gainPerYear / 31536000;
         
-        // Apply gain for this tick
-        const gain = gainPerSecond * (deltaTime / 1000);
+        // Apply gain for this tick with performance modifier
+        const gain = gainPerSecond * deltaTime * performanceModifier;
         
-        // Initialize skill progress if needed
-        if (!gameState.skillProgress) {
-            gameState.skillProgress = {};
-        }
-        
-        // Add to skill progress
-        if (!gameState.skillProgress[skillName]) {
-            gameState.skillProgress[skillName] = 0;
-        }
-        
-        gameState.skillProgress[skillName] += gain;
-        
-        // Check for skill level up
-        const currentLevel = gameState.skills[skillName] || 0;
-        const progressNeeded = 10 + (currentLevel * 5); // Simple progression formula
-        
-        if (gameState.skillProgress[skillName] >= progressNeeded) {
-            // Level up the skill
-            if (!gameState.skills[skillName]) {
-                gameState.skills[skillName] = 1;
-            } else {
-                gameState.skills[skillName]++;
+        // Add to skill using enhanced skill system if available
+        if (typeof window.addSkillXP === 'function') {
+            window.addSkillXP(skillId, gain * 100); // Convert small gain to XP
+        } else {
+            // Fallback for old skill system
+            if (!gameState.skillProgress) {
+                gameState.skillProgress = {};
             }
             
-            // Reset progress
-            gameState.skillProgress[skillName] = 0;
-            
-            // Log event (using window.logEvent to avoid import issues)
-            const newLevel = gameState.skills[skillName];
-            if (window.logEvent) {
-                window.logEvent(`Your ${skillName} skill increased to level ${newLevel}!`, 'skill');
-            } else {
-                console.log(`Skill Event: Your ${skillName} skill increased to level ${newLevel}!`);
+            if (!gameState.skillProgress[skillId]) {
+                gameState.skillProgress[skillId] = 0;
             }
-        }
-    }
-}
-
-// Get available jobs (for UI display)
-export function getAvailableJobs() {
-    console.log("getAvailableJobs() - Getting available jobs");
-    
-    if (!gameState.jobs || !Array.isArray(gameState.jobs)) {
-        console.warn("Jobs array is not available");
-        return [];
-    }
-    
-    // Filter jobs based on player's current skills and job levels
-    const availableJobs = [];
-    
-    gameState.jobs.forEach(job => {
-        // Check each job tier
-        if (job.tiers && job.tiers.length > 0) {
-            // For each job, check which tiers are available
-            job.tiers.forEach(tier => {
-                const jobWithTier = { ...job, ...tier };
-                
-                // Check if player meets requirements for this tier
-                if (meetsJobRequirements(job, tier.tier)) {
-                    availableJobs.push(jobWithTier);
+            
+            gameState.skillProgress[skillId] += gain;
+            
+            // Check for skill level up
+            const currentLevel = getPlayerSkillLevel(skillId);
+            const progressNeeded = 10 + (currentLevel * 5); // Simple progression formula
+            
+            if (gameState.skillProgress[skillId] >= progressNeeded) {
+                // Level up the skill
+                if (!gameState.skills[skillId]) {
+                    if (typeof gameState.skills[skillId] === 'object') {
+                        gameState.skills[skillId].level = 1;
+                    } else {
+                        gameState.skills[skillId] = 1;
+                    }
+                } else {
+                    if (typeof gameState.skills[skillId] === 'object') {
+                        gameState.skills[skillId].level++;
+                    } else {
+                        gameState.skills[skillId]++;
+                    }
                 }
-            });
+                
+                // Reset progress
+                gameState.skillProgress[skillId] = 0;
+                
+                // Log event
+                const newLevel = getPlayerSkillLevel(skillId);
+                if (typeof window.logEvent === 'function') {
+                    window.logEvent(`Your ${skillId} skill increased to level ${newLevel}!`, 'skill');
+                }
+            }
         }
-    });
-    
-    console.log(`getAvailableJobs() - Found ${availableJobs.length} available jobs`);
-    return availableJobs;
-}
-
-// Get job progress percentage
-export function getJobProgressPercentage() {
-    if (!gameState.activeJob) {
-        return 0;
     }
-    
-    const jobId = gameState.activeJob.id;
-    const currentLevel = gameState.jobLevels[jobId] || 1;
-    const progressNeeded = calculateXpForLevel(currentLevel);
-    
-    return Math.min(100, (gameState.jobProgress / progressNeeded) * 100);
 }
 
-// Get available job tiers for a specific job
-export function getAvailableJobTiers(jobId) {
-    console.log(`getAvailableJobTiers() - Checking available tiers for job ${jobId}`);
-    
-    const job = getJobById(jobId);
-    if (!job || !job.tiers) {
-        return [];
-    }
-    
-    // Filter tiers based on requirements
-    return job.tiers.filter(tier => meetsJobRequirements(job, tier.tier));
-}
+// Export functions for module usage
+export {
+    meetsEnhancedJobRequirements,
+    calculatePerformanceFactors,
+    getRelevantSkillsForJob,
+    getRelevantAttributesForJob,
+    calculateXPForJobLevel,
+    updateJobPerformance
+};
 
-// Make functions available globally for non-module scripts
-window.getJobData = getJobData;
-window.getJobById = getJobById;
-window.getJobIndexById = getJobIndexById;
-window.applyForJob = applyForJob;
-window.quitJob = quitJob;
-window.processJobProgress = processJobProgress;
-window.getAvailableJobs = getAvailableJobs;
-window.meetsJobRequirements = meetsJobRequirements;
-window.getJobProgressPercentage = getJobProgressPercentage;
-window.getAvailableJobTiers = getAvailableJobTiers;
+// Make functions available globally
+window.initializeEnhancedJobSystem = initializeEnhancedJobSystem;
+window.meetsEnhancedJobRequirements = meetsEnhancedJobRequirements;
+window.calculatePerformanceFactors = calculatePerformanceFactors;
+window.getRelevantSkillsForJob = getRelevantSkillsForJob;
+window.getRelevantAttributesForJob = getRelevantAttributesForJob;
+window.calculateXPForJobLevel = calculateXPForJobLevel;
+window.updateJobPerformance = updateJobPerformance;
 
-console.log("job-manager.js - Module loaded successfully");
+console.log("enhanced-job-manager.js - Module loaded successfully");
