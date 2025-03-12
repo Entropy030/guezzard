@@ -1,10 +1,11 @@
-// core.js - Consolidated Core System
+// core.js - Fully Integrated Core System
 // This file combines functionality from:
 // - core/core.js
+// - core/game-loop.js
 // - initialization.js
 // - system-integration.js
 
-console.log("core.js - Loading consolidated core system");
+console.log("core.js - Loading fully integrated core system");
 
 // -------------------------------------------------------------------------
 // Game State Functions
@@ -31,7 +32,7 @@ function getDefaultGameState() {
         
         // Time tracking
         day: 1,
-        seasonTimeLeft: 150,
+        seasonTimeLeft: CONFIG.settings.seasonDuration || 150,
         currentSeason: "Spring",
         seasonNumber: 0,
         year: 1,
@@ -584,7 +585,7 @@ function initializeGameSystems() {
 }
 
 // -------------------------------------------------------------------------
-// Game Loop Functions
+// Game Loop Functions (merged from game-loop.js)
 // -------------------------------------------------------------------------
 
 // Variables for game loop timing
@@ -613,8 +614,16 @@ function gameLoop(timestamp) {
         // Regenerate energy
         regenerateEnergy();
 
-        // Handle time progression
-        progressTime();
+        // Handle season time
+        if (gameState.seasonTimeLeft > 0) {
+            gameState.seasonTimeLeft -= 1;
+        } else {
+            // Season End & Transition
+            gameState.seasonTimeLeft = CONFIG.settings.seasonDuration; 
+        }
+        
+        // Advance the game day
+        advanceDay();
         
         // Process job progress (if player has a job)
         if (typeof window.processJobProgress === 'function' && gameState.activeJob) {
@@ -624,6 +633,8 @@ function gameLoop(timestamp) {
         // Update UI
         if (typeof window.updateAllDisplays === 'function') {
             window.updateAllDisplays();
+        } else if (typeof window.updateDisplay === 'function') {
+            window.updateDisplay();
         }
         
         // Check for achievements
@@ -659,12 +670,17 @@ function regenerateEnergy() {
 
     let newEnergy = gameState.energy + regenRate;
     gameState.energy = Math.min(gameState.maxEnergy, newEnergy);
+    
+    // Update energy display if function exists
+    if (typeof window.updateEnergyDisplay === 'function') {
+        window.updateEnergyDisplay();
+    }
 }
 
 /**
- * Progress game time (days, seasons, years)
+ * Advance the game day, handle season/year transitions
  */
-function progressTime() {
+function advanceDay() {
     // Skip if game is paused
     if (gameState.gamePaused) {
         return;
@@ -676,6 +692,9 @@ function progressTime() {
     if (gameState.ticksSinceDayStart >= CONFIG.settings.ticksInOneGameDay) {
         gameState.day++;
         gameState.ticksSinceDayStart = 0; // Reset at the START of the new day
+        
+        // Update day display
+        updateDaySeasonDisplay();
     }
 
     // Calculate season length in days
@@ -710,6 +729,12 @@ function progressTime() {
                 return; // Stop after endgame
             }
         }
+        
+        // Reset season time
+        gameState.seasonTimeLeft = CONFIG.settings.seasonDuration;
+        
+        // Update display
+        updateDaySeasonDisplay();
     }
 
     // Increment played time and save game periodically
@@ -719,6 +744,187 @@ function progressTime() {
     if (gameState.timePlayedSeconds % 60 === 0) {
         saveGameState();
     }
+}
+
+/**
+ * Function to update the day-season display
+ */
+function updateDaySeasonDisplay() {
+    const seasonDisplay = document.getElementById('season-display');
+    if (seasonDisplay) {
+        // Format: "Day X, Season, Year Y"
+        seasonDisplay.textContent = `Day ${gameState.day}, ${gameState.currentSeason}, Year ${gameState.year}`;
+    }
+}
+
+/**
+ * Update energy display
+ */
+function updateEnergyDisplay() {
+    const energyDisplay = document.getElementById('energy-display');
+    if (energyDisplay) {
+        energyDisplay.textContent = `${Math.floor(gameState.energy)}/${gameState.maxEnergy}`;
+    }
+    
+    // Update energy bar if it exists
+    const energyBar = document.getElementById('energy-bar-fill');
+    if (energyBar) {
+        const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100;
+        energyBar.style.width = `${energyPercentage}%`;
+    }
+}
+
+/**
+ * Update job progress bar
+ */
+function updateJobProgressBar() {
+    const jobProgressBarFill = document.querySelector('.progressFill') || document.getElementById('job-progress-fill');
+    const jobProgressText = document.querySelector('.progress-text.name') || document.getElementById('job-progress-text');
+    
+    if (!jobProgressBarFill || !jobProgressText) {
+        // Elements not found, may be early in loading process
+        return;
+    }
+    
+    if (gameState.activeJob) {
+        let progressPercent = 0;
+        
+        // Use getJobProgressPercentage if available
+        if (typeof window.getJobProgressPercentage === 'function') {
+            progressPercent = window.getJobProgressPercentage();
+        } else {
+            // Fallback calculation
+            const progressNeeded = gameState.activeJob.progressNeeded || 100;
+            progressPercent = (gameState.jobProgress / progressNeeded) * 100;
+        }
+        
+        jobProgressBarFill.style.width = `${Math.min(100, progressPercent)}%`;
+        jobProgressText.textContent = `${gameState.activeJob.title} Progress: ${Math.floor(progressPercent)}%`;
+    } else {
+        jobProgressBarFill.style.width = '0%';
+        jobProgressText.textContent = 'No Active Job';
+    }
+}
+
+/**
+ * Update skill progress bar
+ */
+function updateSkillProgressBar() {
+    const skillProgressBarFill = document.getElementById('skill-progress-fill');
+    const skillProgressText = document.getElementById('skill-progress-text');
+    
+    if (!skillProgressBarFill || !skillProgressText) {
+        // Elements not found, may be early in loading process
+        return;
+    }
+    
+    // Example for a currently training skill
+    if (gameState.currentTrainingSkill) {
+        const skill = gameState.skills[gameState.currentTrainingSkill];
+        
+        if (skill) {
+            let progressPercent = 0;
+            
+            if (typeof skill === 'object' && skill.progress !== undefined && skill.progressNeeded !== undefined) {
+                progressPercent = (skill.progress / skill.progressNeeded) * 100;
+            } else if (gameState.skillProgress && gameState.skillProgress[gameState.currentTrainingSkill] !== undefined) {
+                // Fallback to older skill system
+                const progress = gameState.skillProgress[gameState.currentTrainingSkill];
+                const skillLevel = typeof skill === 'object' ? skill.level : skill;
+                const progressNeeded = 10 + (skillLevel * 5); // Simple progression formula
+                progressPercent = (progress / progressNeeded) * 100;
+            }
+            
+            skillProgressBarFill.style.width = `${Math.min(100, progressPercent)}%`;
+            skillProgressText.textContent = `${gameState.currentTrainingSkill} Progress: ${Math.floor(progressPercent)}%`;
+        } else {
+            skillProgressBarFill.style.width = '0%';
+            skillProgressText.textContent = 'No Skill Training';
+        }
+    } else {
+        skillProgressBarFill.style.width = '0%';
+        skillProgressText.textContent = 'No Skill Training';
+    }
+}
+
+/**
+ * Check achievements and unlock if conditions are met
+ */
+function checkAchievements() {
+    // Skip if achievements aren't loaded yet
+    if (!gameState.achievements || !Array.isArray(gameState.achievements)) {
+        return;
+    }
+    
+    // Check each achievement's conditions
+    gameState.achievements.forEach(achievement => {
+        // Skip already unlocked achievements
+        if (achievement.unlocked) {
+            return;
+        }
+        
+        let conditionsMet = false;
+        
+        // Handle different achievement types
+        if (achievement.condition && achievement.condition.type === 'gold') {
+            conditionsMet = gameState.gold >= achievement.condition.value;
+        } else if (achievement.id) {
+            // Check specific achievement conditions by ID
+            switch (achievement.id) {
+                case 'rich1':
+                case 'rich2':
+                case 'rich3':
+                    if (achievement.condition && achievement.condition.type === 'gold') {
+                        conditionsMet = gameState.gold >= achievement.condition.value;
+                    }
+                    break;
+                    
+                case 'first_job':
+                    conditionsMet = gameState.jobsHeld && gameState.jobsHeld.length > 0;
+                    break;
+                    
+                case 'reach_age_30':
+                    conditionsMet = gameState.age >= 30;
+                    break;
+                    
+                case 'earn_1000_gold':
+                    conditionsMet = gameState.statistics && gameState.statistics.totalGoldEarned >= 1000;
+                    break;
+                    
+                case 'max_skill':
+                    // Check if any skill has reached max level
+                    conditionsMet = Object.values(gameState.skills).some(skill => {
+                        const skillLevel = typeof skill === 'object' ? skill.level : skill;
+                        return skillLevel >= 10;
+                    });
+                    break;
+                    
+                default:
+                    // No specific check for this achievement ID
+                    conditionsMet = false;
+            }
+        }
+        
+        if (conditionsMet) {
+            achievement.unlocked = true;
+            
+            // Add to unlocked achievements array
+            if (!gameState.unlockedAchievements) {
+                gameState.unlockedAchievements = [];
+            }
+            gameState.unlockedAchievements.push(achievement.id);
+            
+            // Log the achievement
+            if (typeof window.logEvent === 'function') {
+                window.logEvent(`Achievement Unlocked: ${achievement.name}`, 'achievement');
+            }
+            
+            // Show notification
+            if (typeof window.showNotification === 'function') {
+                window.showNotification("Achievement Unlocked", achievement.name, "success");
+            }
+        }
+    });
 }
 
 // -------------------------------------------------------------------------
@@ -738,8 +944,14 @@ window.loadGameData = loadGameData;
 window.gameLoop = gameLoop;
 window.startGameLoop = startGameLoop;
 window.regenerateEnergy = regenerateEnergy;
+window.advanceDay = advanceDay;
+window.updateDaySeasonDisplay = updateDaySeasonDisplay;
+window.updateEnergyDisplay = updateEnergyDisplay;
+window.updateJobProgressBar = updateJobProgressBar;
+window.updateSkillProgressBar = updateSkillProgressBar;
+window.checkAchievements = checkAchievements;
 
-console.log("core.js - Consolidated core system loaded successfully");
+console.log("core.js - Fully integrated core system loaded successfully");
 
 // Auto-initialize on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', initializeGame);
@@ -756,5 +968,12 @@ export {
     initializeGame,
     loadGameData,
     gameLoop,
-    startGameLoop
+    startGameLoop,
+    regenerateEnergy,
+    advanceDay,
+    updateDaySeasonDisplay,
+    updateEnergyDisplay,
+    updateJobProgressBar,
+    updateSkillProgressBar,
+    checkAchievements
 };

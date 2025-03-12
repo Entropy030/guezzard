@@ -1,17 +1,10 @@
-// ui-manager.js - Unified UI system
+// ui-manager.js - Consolidated UI System
 // This file consolidates functionality from:
 // - ui-setup.js
 // - display-module.js
 // - notifications.js
-// - parts of career-progression-ui.js
-// - parts of skill-ui.js
 
-console.log("ui-manager.js - Loading unified UI system");
-
-// Import specialized UI modules
-import { setupSkillUI } from './skill-ui.js';
-import { setupJobUI } from './job-ui.js';
-import { setupCareerUI } from './career-ui.js';
+console.log("ui-manager.js - Loading consolidated UI system");
 
 /**
  * Initialize the UI system
@@ -19,19 +12,19 @@ import { setupCareerUI } from './career-ui.js';
 export function initializeUISystem() {
     console.log("initializeUISystem() - Setting up UI system");
     
-    // Set up base UI components
-    setupEventLog();
-    setupGameControls();
-    setupPanels();
+    // Set up notification system
     setupNotificationSystem();
     
-    // Initialize specialized UI modules
-    if (typeof setupSkillUI === 'function') setupSkillUI();
-    if (typeof setupJobUI === 'function') setupJobUI();
-    if (typeof setupCareerUI === 'function') setupCareerUI();
+    // Set up game UI components
+    setupGameControls();
+    setupEventLog();
+    setupPanels();
     
     // Set up event listeners for action buttons
     setupActionButtons();
+    
+    // Make functions available globally
+    exposeGlobalFunctions();
     
     // Initial UI update
     updateAllDisplays();
@@ -39,6 +32,62 @@ export function initializeUISystem() {
     console.log("UI system initialized successfully");
     return true;
 }
+
+/**
+ * Expose global functions
+ */
+function exposeGlobalFunctions() {
+    window.initializeUISystem = initializeUISystem;
+    window.displayNotification = displayNotification;
+    window.showNotification = showNotification;
+    window.showErrorNotification = showErrorNotification;
+    window.logEvent = logEvent;
+    window.setupEventLog = setupEventLog;
+    window.setupGameControls = setupGameControls;
+    window.updateAllDisplays = updateAllDisplays;
+    window.updateStatusDisplay = updateStatusDisplay;
+    window.updateResourceDisplay = updateResourceDisplay;
+    window.updateJobDisplay = updateJobDisplay;
+    window.updateSkillDisplay = updateSkillDisplay;
+    window.updateTimeDisplay = updateTimeDisplay;
+    window.setupJobsUI = setupJobsUI;
+    window.closeJobsPanel = closeJobsPanel;
+    window.setupAchievementsUI = setupAchievementsUI;
+    window.setupShopUI = setupShopUI;
+    window.showConfirmDialog = showConfirmDialog;
+    window.endGame = endGame;
+    window.startNewLife = startNewLife;
+    window.playSound = playSound;
+    window.showPrestigeAnimation = showPrestigeAnimation;
+}
+
+console.log("ui-manager.js - Consolidated UI system loaded successfully");
+
+// Export functions for ES module usage
+export {
+    initializeUISystem,
+    displayNotification,
+    showNotification,
+    showErrorNotification,
+    logEvent,
+    setupEventLog,
+    setupGameControls,
+    updateAllDisplays,
+    updateStatusDisplay,
+    updateResourceDisplay,
+    updateJobDisplay,
+    updateSkillDisplay,
+    updateTimeDisplay,
+    setupJobsUI,
+    closeJobsPanel,
+    setupAchievementsUI,
+    setupShopUI,
+    showConfirmDialog,
+    endGame,
+    startNewLife,
+    playSound,
+    showPrestigeAnimation
+};
 
 /**
  * Set up notification system
@@ -312,7 +361,9 @@ function setupActionButtons() {
         jobButton.addEventListener('click', () => {
             const jobsPanel = document.getElementById('jobs-panel');
             if (jobsPanel) {
-                setupJobsUI();
+                if (typeof window.setupJobsUI === 'function') {
+                    window.setupJobsUI();
+                }
                 jobsPanel.style.display = 'block';
             }
         });
@@ -324,7 +375,9 @@ function setupActionButtons() {
         skillButton.addEventListener('click', () => {
             const skillsPanel = document.getElementById('skills-panel');
             if (skillsPanel) {
-                updateSkillDisplay();
+                if (typeof window.updateSkillDisplay === 'function') {
+                    window.updateSkillDisplay();
+                }
                 skillsPanel.style.display = 'block';
             }
         });
@@ -336,7 +389,9 @@ function setupActionButtons() {
         shopButton.addEventListener('click', () => {
             const shopPanel = document.getElementById('shop-panel');
             if (shopPanel) {
-                setupShopUI();
+                if (typeof window.setupShopUI === 'function') {
+                    window.setupShopUI();
+                }
                 shopPanel.style.display = 'block';
             }
         });
@@ -348,7 +403,9 @@ function setupActionButtons() {
         achievementsButton.addEventListener('click', () => {
             const achievementsPanel = document.getElementById('achievements-panel');
             if (achievementsPanel) {
-                setupAchievementsUI();
+                if (typeof window.setupAchievementsUI === 'function') {
+                    window.setupAchievementsUI();
+                }
                 achievementsPanel.style.display = 'block';
             }
         });
@@ -378,7 +435,7 @@ export function updateAllDisplays() {
     updateJobDisplay();
     updateSkillDisplay();
     updateTimeDisplay();
-    updateEventLog();
+    updateEventLogDisplay();
 }
 
 /**
@@ -490,155 +547,62 @@ export function updateJobDisplay() {
 }
 
 /**
- * Set up jobs UI
- */
-export function setupJobsUI() {
-    console.log("setupJobsUI() - Setting up jobs UI");
-    
-    // Get jobs panel and list
-    const jobsPanel = document.getElementById('jobs-panel');
-    const jobsList = document.getElementById('jobs-list');
-    
-    if (!jobsList) {
-        console.error("Jobs list element not found");
-        return;
-    }
-    
-    // Clear existing jobs
-    jobsList.innerHTML = '';
-    
-    // Add a default message if no functions exist to get jobs
-    if (typeof window.getAvailableJobs !== 'function') {
-        jobsList.innerHTML = '<li class="no-jobs">Job system not fully initialized yet.</li>';
-        return;
-    }
-    
-    // Get available jobs
-    const availableJobs = window.getAvailableJobs();
-    
-    // Check if jobs data is available
-    if (!availableJobs || availableJobs.length === 0) {
-        jobsList.innerHTML = '<li class="no-jobs">No jobs available yet. Gain some skills first!</li>';
-        return;
-    }
-    
-    // Add jobs to the list
-    availableJobs.forEach(job => {
-        const jobItem = document.createElement('li');
-        jobItem.className = 'job-item';
-        
-        // Highlight if it's the player's current job
-        if (gameState.activeJob && gameState.activeJob.id === job.id && gameState.currentJobTier === job.tier) {
-            jobItem.classList.add('current-job');
-        }
-        
-        // Simple job HTML
-        jobItem.innerHTML = `
-            <div class="job-header">
-                <h3>${job.title} ${job.tier > 0 ? `(Tier ${job.tier})` : ''}</h3>
-            </div>
-            <div class="job-details">
-                <div class="job-income">Income: ${job.incomePerYear} gold/year</div>
-                <div class="job-requirements">
-                    <h4>Requirements:</h4>
-                    <!-- Add requirements here -->
-                </div>
-                <div class="job-skills">
-                    <h4>Skill Gains:</h4>
-                    <!-- Add skill gains here -->
-                </div>
-            </div>
-            <button class="apply-button" data-job-index="${availableJobs.indexOf(job)}" data-job-tier="${job.tier}">
-                ${gameState.activeJob && gameState.activeJob.id === job.id && gameState.currentJobTier === job.tier ? 'Current Job' : 'Apply'}
-            </button>
-        `;
-        
-        jobsList.appendChild(jobItem);
-    });
-    
-    // Add event listeners to apply buttons
-    const applyButtons = jobsList.querySelectorAll('.apply-button');
-    applyButtons.forEach(button => {
-        // Disable the button if it's already the current job
-        if (button.textContent.trim() === 'Current Job') {
-            button.disabled = true;
-        }
-        
-        button.addEventListener('click', (e) => {
-            const jobIndex = parseInt(e.target.getAttribute('data-job-index'), 10);
-            const jobTier = parseInt(e.target.getAttribute('data-job-tier'), 10);
-            
-            // Check if it's a valid job
-            if (isNaN(jobIndex) || jobIndex < 0) {
-                console.error(`Invalid job index: ${jobIndex}`);
-                return;
-            }
-            
-            // Call the applyForJob function with the selected job
-            if (typeof window.applyForJob === 'function') {
-                const success = window.applyForJob(jobIndex, jobTier);
-                if (success) {
-                    closeJobsPanel();
-                    updateAllDisplays();
-                }
-            } else {
-                console.error("applyForJob function not available globally");
-            }
-        });
-    });
-}
-
-/**
- * Close jobs panel
- */
-export function closeJobsPanel() {
-    const jobsPanel = document.getElementById('jobs-panel');
-    if (jobsPanel) {
-        jobsPanel.style.display = 'none';
-    }
-}
-
-/**
- * Update skill display
+ * Update skill display progress bar
  */
 export function updateSkillDisplay() {
-    console.log("updateSkillDisplay() - Updating skill display");
+    // Get elements
+    const skillProgressFill = document.getElementById('skill-progress-fill');
+    const skillProgressText = document.getElementById('skill-progress-text');
     
-    const skillsList = document.getElementById('skills-list');
-    
-    if (!skillsList) {
-        console.error("Skills list element not found");
-        return;
-    }
-    
-    // Clear existing skills
-    skillsList.innerHTML = '';
-    
-    // Check if skills data is available
-    if (!gameState.skills || Object.keys(gameState.skills).length === 0) {
-        skillsList.innerHTML = '<li class="no-skills">No skills available yet.</li>';
-        return;
-    }
-    
-    // Add skills to the list
-    for (const [skillName, skillData] of Object.entries(gameState.skills)) {
-        const skillItem = document.createElement('li');
-        
-        // Handle different skill data formats
-        let skillLevel = 0;
-        
-        if (typeof skillData === 'object') {
-            skillLevel = skillData.level || 0;
-        } else if (typeof skillData === 'number') {
-            skillLevel = skillData;
+    // Update skill progress bar
+    if (skillProgressFill && skillProgressText) {
+        if (gameState.currentTrainingSkill) {
+            // Get skill data
+            const skillName = gameState.currentTrainingSkill;
+            const skillData = gameState.skills[skillName];
+            let skillLevel = 0;
+            
+            // Handle different skill data formats
+            if (typeof skillData === 'object') {
+                skillLevel = skillData.level || 0;
+            } else if (typeof skillData === 'number') {
+                skillLevel = skillData;
+            }
+            
+            // Get skill progress
+            const skillProgress = gameState.skillProgress && gameState.skillProgress[skillName] || 0;
+            
+            // Calculate progress needed (default formula)
+            const progressNeeded = 10 + (skillLevel * 5);
+            
+            // Calculate percentage
+            const progressPercent = Math.min(100, (skillProgress / progressNeeded) * 100);
+            
+            // Update progress bar
+            skillProgressFill.style.width = `${progressPercent}%`;
+            skillProgressText.textContent = `${skillName} Level ${skillLevel} - ${Math.floor(progressPercent)}%`;
+        } else {
+            // No skill training
+            skillProgressFill.style.width = '0%';
+            skillProgressText.textContent = 'No Skill Training';
         }
+    }
+}
+
+/**
+ * Update time and season displays
+ */
+export function updateTimeDisplay() {
+    // Get elements
+    const seasonDisplay = document.getElementById('season-display');
+    
+    // Update season display
+    if (seasonDisplay) {
+        const season = gameState.currentSeason || 'Spring';
+        const year = gameState.year || 1;
+        const day = gameState.day || 1;
         
-        // Simple skill HTML
-        skillItem.innerHTML = `
-            <div>${skillName}: Level ${skillLevel}</div>
-        `;
-        
-        skillsList.appendChild(skillItem);
+        seasonDisplay.textContent = `Day ${day}, ${season}, Year ${year}`;
     }
 }
 
@@ -667,117 +631,29 @@ export function setupAchievementsUI() {
     // Add achievements to the list
     gameState.achievements.forEach(achievement => {
         const achievementItem = document.createElement('li');
+        achievementItem.className = 'achievement-item';
         
         // Check if achievement is unlocked
         const isUnlocked = achievement.unlocked || false;
         
-        // Simple achievement HTML
+        if (isUnlocked) {
+            achievementItem.classList.add('unlocked');
+        } else {
+            achievementItem.classList.add('locked');
+        }
+        
+        // Create achievement HTML
         achievementItem.innerHTML = `
-            <div>${achievement.name} - ${isUnlocked ? 'Unlocked' : 'Locked'}</div>
-            <div>${achievement.description}</div>
+            <div class="achievement-icon">
+                <i class="fas ${isUnlocked ? 'fa-trophy' : 'fa-lock'}"></i>
+            </div>
+            <div class="achievement-details">
+                <h3>${achievement.name}</h3>
+                <p>${achievement.description}</p>
+            </div>
         `;
         
         achievementsList.appendChild(achievementItem);
-    });
-}
-
-/**
- * Update time display
- */
-export function updateTimeDisplay() {
-    // Get elements
-    const seasonDisplay = document.getElementById('season-display');
-    
-    // Update season display
-    if (seasonDisplay) {
-        const season = gameState.currentSeason || 'Spring';
-        const year = gameState.year || 1;
-        const day = gameState.day || 1;
-        
-        seasonDisplay.textContent = `Day ${day}, ${season}, Year ${year}`;
-    }
-}
-
-/**
- * Set up shop UI
- */
-export function setupShopUI() {
-    console.log("setupShopUI() - Setting up shop UI");
-    
-    const shopItemsList = document.getElementById('shop-items-list');
-    
-    if (!shopItemsList) {
-        console.error("Shop items list element not found");
-        return;
-    }
-    
-    // Clear existing shop items
-    shopItemsList.innerHTML = '';
-    
-    // Get shop items from config
-    const shopItems = CONFIG.shopItems || [];
-    
-    // Check if shop items are available
-    if (!shopItems || shopItems.length === 0) {
-        shopItemsList.innerHTML = '<li class="no-items">No items available in the shop.</li>';
-        return;
-    }
-    
-    // Add shop items to the list
-    shopItems.forEach(item => {
-        const itemElement = document.createElement('li');
-        itemElement.className = 'shop-item';
-        
-        // Check if player can afford the item
-        const canAfford = gameState.gold >= item.price;
-        
-        // Check if player has reached max purchases
-        const purchasedCount = gameState.purchasedItems && gameState.purchasedItems[item.id] ? 
-            gameState.purchasedItems[item.id] : 0;
-        const reachedMaxPurchases = item.maxPurchases && purchasedCount >= item.maxPurchases;
-        
-        // Create shop item HTML
-        itemElement.innerHTML = `
-            <div class="item-header">
-                <div class="item-name">${item.name}</div>
-                <div class="item-price">${item.price} gold</div>
-            </div>
-            <div class="item-description">${item.description}</div>
-            ${item.maxPurchases ? `<div class="item-limit">Purchased: ${purchasedCount}/${item.maxPurchases}</div>` : ''}
-            <button class="buy-button" data-item-id="${item.id}" 
-                ${!canAfford || reachedMaxPurchases ? 'disabled' : ''}>
-                ${!canAfford ? 'Not enough gold' : (reachedMaxPurchases ? 'Limit reached' : 'Buy')}
-            </button>
-        `;
-        
-        shopItemsList.appendChild(itemElement);
-    });
-    
-    // Add event listeners to buy buttons
-    const buyButtons = shopItemsList.querySelectorAll('.buy-button');
-    buyButtons.forEach(button => {
-        // Skip if button is disabled
-        if (button.disabled) {
-            return;
-        }
-        
-        button.addEventListener('click', (e) => {
-            const itemId = e.target.getAttribute('data-item-id');
-            
-            if (typeof window.buyShopItem === 'function') {
-                const success = window.buyShopItem(itemId);
-                
-                if (success) {
-                    // Refresh shop UI
-                    setupShopUI();
-                    
-                    // Update displays
-                    updateAllDisplays();
-                }
-            } else {
-                console.error("buyShopItem function not available globally");
-            }
-        });
     });
 }
 
@@ -1086,140 +962,307 @@ export function showPrestigeAnimation() {
     }, 100);
 }
 
-// Expose essential functions globally
-function exposeGlobalFunctions() {
-    window.displayNotification = displayNotification;
-    window.showNotification = showNotification;
-    window.showErrorNotification = showErrorNotification;
-    window.logEvent = logEvent;
-    window.setupJobsUI = setupJobsUI;
-    window.updateSkillDisplay = updateSkillDisplay;
-    window.setupAchievementsUI = setupAchievementsUI;
-    window.setupGameControls = setupGameControls;
-    window.setupEventLog = setupEventLog;
-    window.updateAllDisplays = updateAllDisplays;
-    window.closeJobsPanel = closeJobsPanel;
-    window.showConfirmDialog = showConfirmDialog;
-    window.endGame = endGame;
-    window.startNewLife = startNewLife;
-    window.playSound = playSound;
-    window.showPrestigeAnimation = showPrestigeAnimation;
-}
-
-// Call this at the end of initialize function
-function initializeUI() {
-    // Set up UI components
-    setupNotificationSystem();
-    setupEventLog();
-    setupGameControls();
-    setupPanels();
+/**
+ * Set up jobs UI
+ */
+export function setupJobsUI() {
+    console.log("setupJobsUI() - Setting up jobs UI");
     
-    // Initialize specialized UI modules
-    if (typeof setupSkillUI === 'function') setupSkillUI();
-    if (typeof setupJobUI === 'function') setupJobUI();
-    if (typeof setupCareerUI === 'function') setupCareerUI();
+    // Get jobs panel and list
+    const jobsPanel = document.getElementById('jobs-panel');
+    const jobsList = document.getElementById('jobs-list');
     
-    // Set up event listeners for action buttons
-    setupActionButtons();
-    
-    // Make functions available globally
-    exposeGlobalFunctions();
-    
-    // Initial UI update
-    updateAllDisplays();
-    
-    console.log("UI system initialized successfully");
-    return true;
-}
-
-// Export core functionality
-export {
-    initializeUI,
-    displayNotification,
-    showNotification,
-    showErrorNotification,
-    logEvent,
-    setupJobsUI,
-    updateSkillDisplay,
-    setupAchievementsUI,
-    setupGameControls,
-    setupEventLog,
-    updateAllDisplays,
-    closeJobsPanel,
-    showConfirmDialog,
-    endGame,
-    startNewLife,
-    playSound
-};
-
-// Initialize the tab system
-export function initializeTabSystem() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    // Hide all tab contents except the first one
-    for (let i = 1; i < tabContents.length; i++) {
-        tabContents[i].style.display = 'none';
+    if (!jobsList) {
+        console.error("Jobs list element not found");
+        return;
     }
-
-    // Mark first tab as active
-    if (tabButtons.length > 0) {
-        tabButtons[0].classList.add('active-tab');
+    
+    // Clear existing jobs
+    jobsList.innerHTML = '';
+    
+    // Add a default message if no functions exist to get jobs
+    if (typeof window.getAvailableJobs !== 'function') {
+        jobsList.innerHTML = '<li class="no-jobs">Job system not fully initialized yet.</li>';
+        return;
     }
-
-    // Add click event listeners to tab buttons
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
-
-            // Hide all tab contents
-            tabContents.forEach(content => {
-                content.style.display = 'none';
-            });
-
-            // Remove active class from all buttons
-            tabButtons.forEach(button => {
-                button.classList.remove('active-tab');
-            });
-
-            // Show the selected tab content
-            document.getElementById(tabId).style.display = 'block';
-
-            // Add active class to clicked button
-            this.classList.add('active-tab');
-
-            // Play tab switch sound (placeholder for now)
-            playSound('button-click');
+    
+    // Get available jobs
+    const availableJobs = window.getAvailableJobs();
+    
+    // Check if jobs data is available
+    if (!availableJobs || availableJobs.length === 0) {
+        jobsList.innerHTML = '<li class="no-jobs">No jobs available yet. Gain some skills first!</li>';
+        return;
+    }
+    
+    // Add jobs to the list
+    availableJobs.forEach(job => {
+        const jobItem = document.createElement('li');
+        jobItem.className = 'job-item';
+        
+        // Highlight if it's the player's current job
+        if (gameState.activeJob && gameState.activeJob.id === job.id && gameState.currentJobTier === job.tier) {
+            jobItem.classList.add('current-job');
+        }
+        
+        // Simple job HTML
+        const jobLevel = gameState.jobLevels && gameState.jobLevels[job.id] || 0;
+        
+        jobItem.innerHTML = `
+            <div class="job-header">
+                <h3>${job.title} ${job.tier > 0 ? `(Tier ${job.tier})` : ''}</h3>
+            </div>
+            <div class="job-details">
+                <div class="job-income">Income: ${job.incomePerYear} gold/year</div>
+                <div class="job-level">${jobLevel > 0 ? `Level: ${jobLevel}` : 'New Job'}</div>
+                <div class="job-requirements">
+                    <h4>Requirements:</h4>
+                    ${getJobRequirementsHTML(job)}
+                </div>
+                <div class="job-skills">
+                    <h4>Skill Gains:</h4>
+                    ${getJobSkillGainsHTML(job)}
+                </div>
+            </div>
+            <button class="apply-button" data-job-index="${availableJobs.indexOf(job)}" data-job-tier="${job.tier}">
+                ${gameState.activeJob && gameState.activeJob.id === job.id && gameState.currentJobTier === job.tier ? 'Current Job' : 'Apply'}
+            </button>
+        `;
+        
+        jobsList.appendChild(jobItem);
+    });
+    
+    // Add event listeners to apply buttons
+    const applyButtons = jobsList.querySelectorAll('.apply-button');
+    applyButtons.forEach(button => {
+        // Disable the button if it's already the current job
+        if (button.textContent.trim() === 'Current Job') {
+            button.disabled = true;
+        }
+        
+        button.addEventListener('click', (e) => {
+            const jobIndex = parseInt(e.target.getAttribute('data-job-index'), 10);
+            const jobTier = parseInt(e.target.getAttribute('data-job-tier'), 10);
+            
+            // Check if it's a valid job
+            if (isNaN(jobIndex) || jobIndex < 0) {
+                console.error(`Invalid job index: ${jobIndex}`);
+                return;
+            }
+            
+            // Call the applyForJob function with the selected job
+            if (typeof window.applyForJob === 'function') {
+                const success = window.applyForJob(jobIndex, jobTier);
+                if (success) {
+                    closeJobsPanel();
+                    updateAllDisplays();
+                }
+            } else {
+                console.error("applyForJob function not available globally");
+            }
         });
     });
 }
 
-export function switchToTab(tabId) {
-    // Find tab button with matching data-tab attribute
-    const tabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+/**
+ * Get HTML for job requirements
+ */
+function getJobRequirementsHTML(job) {
+    let html = '';
+    
+    // Handle different job requirement formats
+    if (job.minSkill !== undefined) {
+        const skillName = "Map Awareness";
+        const requiredLevel = job.minSkill;
+        const currentLevel = getSkillLevel(skillName);
+        const isMet = currentLevel >= requiredLevel;
+        
+        html += `
+            <div class="requirement ${isMet ? 'met' : 'not-met'}">
+                ${skillName}: ${currentLevel}/${requiredLevel}
+            </div>
+        `;
+    }
+    
+    // Check for required previous job
+    if (job.requiredJobId && job.requiredJobLevel) {
+        const requiredJobLevel = job.requiredJobLevel;
+        const currentJobLevel = gameState.jobLevels && gameState.jobLevels[job.requiredJobId] || 0;
+        const isMet = currentJobLevel >= requiredJobLevel;
+        
+        // Find job name
+        const jobName = findJobName(job.requiredJobId) || job.requiredJobId;
+        
+        html += `
+            <div class="requirement ${isMet ? 'met' : 'not-met'}">
+                ${jobName} Level: ${currentJobLevel}/${requiredJobLevel}
+            </div>
+        `;
+    }
+    
+    // Advanced skill requirements
+    if (job.requiredSkills) {
+        for (const [skillName, level] of Object.entries(job.requiredSkills)) {
+            const currentLevel = getSkillLevel(skillName);
+            const isMet = currentLevel >= level;
+            
+            html += `
+                <div class="requirement ${isMet ? 'met' : 'not-met'}">
+                    ${skillName}: ${currentLevel}/${level}
+                </div>
+            `;
+        }
+    }
+    
+    // If no requirements were added
+    if (html === '') {
+        html = '<div class="no-requirements">No special requirements</div>';
+    }
+    
+    return html;
+}
 
-    // Trigger click on that button
-    if (tabButton) {
-        tabButton.click();
+/**
+ * Get HTML for job skill gains
+ */
+function getJobSkillGainsHTML(job) {
+    let html = '';
+    
+    if (job.skillGainPerYear && Object.keys(job.skillGainPerYear).length > 0) {
+        html += '<ul class="skill-gains-list">';
+        
+        for (const [skillName, gain] of Object.entries(job.skillGainPerYear)) {
+            html += `<li>${skillName}: +${gain}/year</li>`;
+        }
+        
+        html += '</ul>';
+    } else {
+        html = '<div class="no-skill-gains">No skill gains</div>';
+    }
+    
+    return html;
+}
+
+/**
+ * Get skill level
+ */
+function getSkillLevel(skillName) {
+    if (!gameState.skills) return 0;
+    
+    const skill = gameState.skills[skillName];
+    if (!skill) return 0;
+    
+    if (typeof skill === 'object') {
+        return skill.level || 0;
+    }
+    
+    return skill || 0;
+}
+
+/**
+ * Find job name by ID
+ */
+function findJobName(jobId) {
+    if (!gameState.jobs) return null;
+    
+    for (const job of gameState.jobs) {
+        if (job.id === jobId) {
+            return job.title;
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Close jobs panel
+ */
+export function closeJobsPanel() {
+    const jobsPanel = document.getElementById('jobs-panel');
+    if (jobsPanel) {
+        jobsPanel.style.display = 'none';
     }
 }
 
-export function switchToNextTab() {
-    const activeTab = document.querySelector('.tab-button.active-tab');
-    const tabButtons = Array.from(document.querySelectorAll('.tab-button'));
-    const currentIndex = tabButtons.indexOf(activeTab);
-
-    // Get next tab or wrap around to first
-    const nextIndex = (currentIndex + 1) % tabButtons.length;
-    tabButtons[nextIndex].click();
-}
-
-export function switchToPreviousTab() {
-    const activeTab = document.querySelector('.tab-button.active-tab');
-    const tabButtons = Array.from(document.querySelectorAll('.tab-button'));
-    const currentIndex = tabButtons.indexOf(activeTab);
-
-    // Get previous tab or wrap to last
-    const prevIndex = (currentIndex - 1 + tabButtons.length) % tabButtons.length;
-    tabButtons[prevIndex].click();
+/**
+ * Set up shop UI
+ */
+export function setupShopUI() {
+    console.log("setupShopUI() - Setting up shop UI");
+    
+    const shopItemsList = document.getElementById('shop-items-list');
+    
+    if (!shopItemsList) {
+        console.error("Shop items list element not found");
+        return;
+    }
+    
+    // Clear existing shop items
+    shopItemsList.innerHTML = '';
+    
+    // Get shop items from config
+    const shopItems = CONFIG.shopItems || [];
+    
+    // Check if shop items are available
+    if (!shopItems || shopItems.length === 0) {
+        shopItemsList.innerHTML = '<li class="no-items">No items available in the shop.</li>';
+        return;
+    }
+    
+    // Add shop items to the list
+    shopItems.forEach(item => {
+        const itemElement = document.createElement('li');
+        itemElement.className = 'shop-item';
+        
+        // Check if player can afford the item
+        const canAfford = gameState.gold >= item.price;
+        
+        // Check if player has reached max purchases
+        const purchasedCount = gameState.purchasedItems && gameState.purchasedItems[item.id] ? 
+            gameState.purchasedItems[item.id] : 0;
+        const reachedMaxPurchases = item.maxPurchases && purchasedCount >= item.maxPurchases;
+        
+        // Create shop item HTML
+        itemElement.innerHTML = `
+            <div class="item-header">
+                <div class="item-name">${item.name}</div>
+                <div class="item-price">${item.price} gold</div>
+            </div>
+            <div class="item-description">${item.description}</div>
+            ${item.maxPurchases ? `<div class="item-limit">Purchased: ${purchasedCount}/${item.maxPurchases}</div>` : ''}
+            <button class="buy-button" data-item-id="${item.id}" 
+                ${!canAfford || reachedMaxPurchases ? 'disabled' : ''}>
+                ${!canAfford ? 'Not enough gold' : (reachedMaxPurchases ? 'Limit reached' : 'Buy')}
+            </button>
+        `;
+        
+        shopItemsList.appendChild(itemElement);
+    });
+    
+    // Add event listeners to buy buttons
+    const buyButtons = shopItemsList.querySelectorAll('.buy-button');
+    buyButtons.forEach(button => {
+        // Skip if button is disabled
+        if (button.disabled) {
+            return;
+        }
+        
+        button.addEventListener('click', (e) => {
+            const itemId = e.target.getAttribute('data-item-id');
+            
+            if (typeof window.buyShopItem === 'function') {
+                const success = window.buyShopItem(itemId);
+                
+                if (success) {
+                    // Refresh shop UI
+                    setupShopUI();
+                    
+                    // Update displays
+                    updateAllDisplays();
+                }
+            } else {
+                console.error("buyShopItem function not available globally");
+            }
+        });
+    });
 }
