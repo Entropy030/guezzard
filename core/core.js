@@ -1,9 +1,4 @@
 // core.js - Fully Integrated Core System
-// This file combines functionality from:
-// - core/core.js
-// - core/game-loop.js
-// - initialization.js
-// - system-integration.js
 
 console.log("core.js - Loading fully integrated core system");
 

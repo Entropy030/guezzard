@@ -79,7 +79,6 @@ export {
     updateSkillDisplay,
     updateTimeDisplay,
     setupJobsUI,
-    closeJobsPanel,
     setupAchievementsUI,
     setupShopUI,
     showConfirmDialog,
@@ -888,21 +887,6 @@ export function startNewLife() {
     logEvent("Starting a new life!", 'system');
 }
 
-/**
- * Play sound effect
- * @param {string} soundName - Name of the sound to play
- */
-export function playSound(soundName) {
-    // This is a placeholder for actual sound implementation
-    console.log(`Playing sound: ${soundName}`);
-    
-    // When you implement sound, you might do something like:
-    /*
-    const sound = new Audio(`sounds/${soundName}.mp3`);
-    sound.volume = gameState.settings.soundVolume || 0.5;
-    sound.play();
-    */
-}
 
 /**
  * Show prestige animation
