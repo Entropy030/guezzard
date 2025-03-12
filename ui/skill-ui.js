@@ -3,6 +3,8 @@
 
 console.log("skill-ui.js - Module loading");
 
+import { initializeTabSystem, switchToTab, switchToNextTab, switchToPreviousTab } from './ui-manager.js';
+
 // DOM references
 let skillsPanel;
 let skillsList;
