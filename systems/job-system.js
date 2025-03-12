@@ -1,10 +1,11 @@
-// job-system.js - Unified job system
-// This file consolidates functionality from:
+// job-system.js - Consolidated Job System
+// This file combines functionality from:
 // - job-manager.js
-// - enhanced-script.js (job-related parts)
-// - career-progression.js (system functionality)
+// - enhanced-job-manager.js
+// - systems/job-system.js
+// - parts of career-progression.js (system functionality)
 
-console.log("job-system.js - Loading unified job system");
+console.log("job-system.js - Loading consolidated job system");
 
 // Constants for job system
 const JOB_CONSTANTS = {
@@ -29,9 +30,6 @@ export function initializeJobSystem() {
     
     // Set up job performance tracking
     initializeJobPerformance();
-    
-    // Set up career progression
-    initializeCareerProgression();
     
     // Set up periodic checks
     setupPeriodicChecks();
@@ -92,15 +90,6 @@ function initializeJobPerformance() {
 }
 
 /**
- * Initialize career progression system
- */
-function initializeCareerProgression() {
-    console.log("initializeCareerProgression() - Setting up career progression");
-    
-    // Additional career progression initialization can go here
-}
-
-/**
  * Set up periodic checks for job-related systems
  */
 function setupPeriodicChecks() {
@@ -122,7 +111,10 @@ function setupPeriodicChecks() {
     
     window.promotionCheckTimer = setInterval(() => {
         if (!gameState.gamePaused && gameState.activeJob) {
-            checkForPromotion();
+            const promotion = checkForPromotion();
+            if (promotion) {
+                showPromotionNotification(promotion);
+            }
         }
     }, JOB_CONSTANTS.PROMOTION_CHECK_INTERVAL);
 }
@@ -228,7 +220,7 @@ export function meetsJobRequirements(jobData, tierLevel = 0) {
     console.log(`meetsJobRequirements() - Checking requirements for job ${jobData?.id}, tier ${tierLevel}`);
     
     // Check skill requirements
-    const requiredSkill = "Map Awareness";
+    const requiredSkill = "map_awareness";
     const requiredLevel = jobData.minSkill || 0;
     
     // Get player's current level for required skill
@@ -284,7 +276,7 @@ export function meetsJobRequirements(jobData, tierLevel = 0) {
  * @returns {number} - Skill level
  */
 function getPlayerSkillLevel(skillId) {
-    // Check if the enhanced skill system is available
+    // Check if the skill system is available
     if (gameState.skills && gameState.skills[skillId]) {
         if (typeof gameState.skills[skillId] === 'object') {
             return gameState.skills[skillId].level || 0;
@@ -886,7 +878,7 @@ function checkForPromotion() {
     
     // Check if there's a higher tier for this job
     const nextTier = currentTier + 1;
-    const nextTierData = job.tiers.find(tier => tier.tier === nextTier);
+    const nextTierData = job.tiers && job.tiers.find(tier => tier.tier === nextTier);
     
     // If no higher tier exists for this job, return null
     if (!nextTierData) {
@@ -923,11 +915,10 @@ function checkForPromotion() {
 
 /**
  * Show promotion notification
+ * @param {object} promotion - Promotion data
  */
-function showPromotionNotification() {
-    console.log("showPromotionNotification() - Checking for and showing promotion notification");
-    
-    const promotion = checkForPromotion();
+function showPromotionNotification(promotion) {
+    console.log("showPromotionNotification() - Showing promotion notification");
     
     if (!promotion) {
         return;
@@ -1022,42 +1013,22 @@ export function getAvailableJobs() {
 }
 
 // Make essential functions available globally
-function exposeGlobalFunctions() {
-    window.applyForJob = applyForJob;
-    window.quitJob = quitJob;
-    window.getJobData = getJobData;
-    window.meetsJobRequirements = meetsJobRequirements;
-    window.processJobProgress = processJobProgress;
-    window.calculateXPForJobLevel = calculateXPForJobLevel;
-    window.getAvailableJobs = getAvailableJobs;
-    window.getJobProgressPercentage = getJobProgressPercentage;
-    window.checkForPromotion = checkForPromotion;
-    window.getRelevantSkillsForJob = getRelevantSkillsForJob;
-    window.getRelevantAttributesForJob = getRelevantAttributesForJob;
-}
+window.applyForJob = applyForJob;
+window.quitJob = quitJob;
+window.getJobData = getJobData;
+window.meetsJobRequirements = meetsJobRequirements;
+window.processJobProgress = processJobProgress;
+window.calculateXPForJobLevel = calculateXPForJobLevel;
+window.getAvailableJobs = getAvailableJobs;
+window.getJobProgressPercentage = getJobProgressPercentage;
+window.checkForPromotion = checkForPromotion;
+window.getRelevantSkillsForJob = getRelevantSkillsForJob;
+window.getRelevantAttributesForJob = getRelevantAttributesForJob;
+window.initializeJobSystem = initializeJobSystem;
 
-// Call this at the end of initialize function
-function initializeJobSystem() {
-    // Ensure job-related structures exist in game state
-    initializeJobStructures();
-    
-    // Set up job performance tracking
-    initializeJobPerformance();
-    
-    // Set up career progression
-    initializeCareerProgression();
-    
-    // Set up periodic checks
-    setupPeriodicChecks();
-    
-    // Make functions available globally
-    exposeGlobalFunctions();
-    
-    console.log("Job system initialized successfully");
-    return true;
-}
+console.log("job-system.js - Consolidated job system loaded successfully");
 
-// Export core functionality
+// Export functions for ES module usage
 export {
     initializeJobSystem,
     applyForJob,
@@ -1067,5 +1038,3 @@ export {
     getAvailableJobs,
     getJobProgressPercentage
 };
-
-        
