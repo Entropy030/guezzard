@@ -1,94 +1,74 @@
-// initialization.js - Unified game initialization
-// This file bootstraps the entire game initialization process
+// initialization.js - Primary entry point for game initialization
 
 console.log("initialization.js - Starting game initialization");
 
 // Import core systems
-import { initializeGame } from './core/core.js';
-import { initializeUISystem } from './ui/ui-manager.js';
-import { initializeSkillSystem } from './systems/skill-system.js';
-import { initializeJobSystem } from './systems/job-system.js';
-import { initializePrestigeSystem } from './systems/prestige-system.js';
+import { 
+  initializeGameState, 
+  loadGameState,
+  loadGameData,
+  setupGameSystems,
+  initializeUI,
+  startGameLoop, 
+  startAutoSave
+} from './core/core.js';
 
 // Execute initialization when document is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM loaded, starting game initialization");
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log("DOM loaded, starting game initialization");
+  
+  try {
+    // Step 1: Initialize game state
+    initializeGameState();
+    console.log("Game state initialized");
+
+    // Step 2: Load saved game if exists
+    try {
+      const savedGame = loadGameState();
+      if (savedGame) {
+        Object.assign(window.gameState, savedGame);
+        console.log("Saved game loaded successfully");
+      }
+    } catch (error) {
+      console.error("Error loading saved game:", error);
+    }
+
+    // Step 3: Load game data
+    await loadGameData();
+    console.log("Game data loaded");
+
+    // Step 4: Initialize UI system
+    initializeUI();
+    console.log("UI system initialized");
+
+    // Step 5: Initialize game systems
+    setupGameSystems();
+    console.log("Game systems initialized");
+
+    // Step 6: Start game loop
+    startGameLoop();
+    console.log("Game loop started");
+
+    // Step 7: Initial UI update
+    if (typeof window.updateAllDisplays === 'function') {
+      window.updateAllDisplays();
+    }
+
+    // Step 8: Start auto-save
+    startAutoSave(30); // Auto-save every 30 seconds
+
+    // Welcome message
+    if (typeof window.logEvent === 'function') {
+      window.logEvent("Welcome to Guezzard! Start your career journey now.", 'system');
+    }
     
-    // Start the initialization process
-    initializeGame()
-        .then(() => {
-            console.log("Core game systems initialized successfully");
-            
-            // Log successful initialization
-            if (typeof window.logEvent === 'function') {
-                window.logEvent("Welcome to Guezzard! Your career adventure begins now.", 'system');
-            }
-        })
-        .catch(error => {
-            console.error("Failed to initialize game:", error);
-            
-            // Show error notification if available
-            if (typeof window.showErrorNotification === 'function') {
-                window.showErrorNotification("Failed to initialize game. Please refresh the page.");
-            }
-        });
+    console.log("Game initialization completed successfully");
+  } catch (error) {
+    console.error("Failed to initialize game:", error);
+    
+    // Show error notification
+    if (typeof window.showErrorNotification === 'function') {
+      window.showErrorNotification("Failed to initialize game. Please refresh the page.");
+    }
+  }
 });
-
-/**
- * Get default configuration for the game
- * This provides a fallback in case config.js is missing
- */
-function getDefaultConfig() {
-    return {
-        settings: {
-            tickInterval: 25,
-            ticksInOneGameDay: 5,
-            seasonDuration: 150,
-            ticksInOneGameYear: 600,
-            maxAge: 65,
-            startingGold: 0,
-            speedMultipliers: [1, 2, 4]
-        },
-        
-        uiText: {
-            gameTitle: "Guezzard - Master Your Career",
-            endGameTitle: "Game Over - Retirement!",
-            newLifeButton: "Start New Life",
-            achievementUnlocked: "Achievement Unlocked!",
-            achievementButton: "Nice!",
-            eventCloseButton: "OK",
-            pauseButton: "Pause",
-            resumeButton: "Resume",
-            speedButton: "Speed: "
-        },
-        
-        skillConfig: {
-            "Map Awareness": {
-                description: "Your ability to navigate and identify locations.",
-                maxLevel: 100,
-                icon: "fa-map-location-dot"
-            }
-        },
-        
-        shopItems: [
-            {
-                id: "lifeExtension",
-                name: "Life Extension",
-                description: "Extend your maximum age by 10 years.",
-                price: 500,
-                effect: "maxAge:10",
-                maxPurchases: 3,
-                icon: "fa-heart"
-            }
-        ]
-    };
-}
-
-// Ensure CONFIG is available globally
-if (typeof window.CONFIG === 'undefined') {
-    console.warn("CONFIG not found, using default configuration");
-    window.CONFIG = getDefaultConfig();
-}
-
-// Export initialization function for ES module usage
-export { initializeGame };

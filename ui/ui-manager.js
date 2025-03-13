@@ -1,1252 +1,990 @@
-// ui-manager.js - Consolidated UI System
-// This file consolidates functionality from:
-// - ui-setup.js
-// - display-module.js
-// - notifications.js
+// skill-ui.js
+// Enhanced UI for the skill system
 
-console.log("ui-manager.js - Loading consolidated UI system");
+console.log("skill-ui.js - Module loading");
 
-/**
- * Initialize the UI system
- */
-export function initializeUISystem() {
-    console.log("initializeUISystem() - Setting up UI system");
-    
-    // Set up notification system
-    setupNotificationSystem();
-    
-    // Set up game UI components
-    setupGameControls();
-    setupEventLog();
-    setupPanels();
-    
-    // Set up event listeners for action buttons
-    setupActionButtons();
-    
-    // Make functions available globally
-    exposeGlobalFunctions();
-    
-    // Initial UI update
-    updateAllDisplays();
-    
-    console.log("UI system initialized successfully");
-    return true;
-}
+import { initializeTabSystem, switchToTab, switchToNextTab, switchToPreviousTab } from './ui-manager.js';
 
-/**
- * Expose global functions
- */
-function exposeGlobalFunctions() {
-    window.initializeUISystem = initializeUISystem;
-    window.displayNotification = displayNotification;
-    window.showNotification = showNotification;
-    window.showErrorNotification = showErrorNotification;
-    window.logEvent = logEvent;
-    window.setupEventLog = setupEventLog;
-    window.setupGameControls = setupGameControls;
-    window.updateAllDisplays = updateAllDisplays;
-    window.updateStatusDisplay = updateStatusDisplay;
-    window.updateResourceDisplay = updateResourceDisplay;
-    window.updateJobDisplay = updateJobDisplay;
-    window.updateSkillDisplay = updateSkillDisplay;
-    window.updateTimeDisplay = updateTimeDisplay;
-    window.setupJobsUI = setupJobsUI;
-    window.closeJobsPanel = closeJobsPanel;
-    window.setupAchievementsUI = setupAchievementsUI;
-    window.setupShopUI = setupShopUI;
-    window.showConfirmDialog = showConfirmDialog;
-    window.endGame = endGame;
-    window.startNewLife = startNewLife;
-    window.playSound = playSound;
-    window.showPrestigeAnimation = showPrestigeAnimation;
-}
+// DOM references
+let skillsPanel;
+let skillsList;
+let attributesSection;
+let categoriesNav;
+let skillDetailsPanel;
+let currentCategory = null;
 
-console.log("ui-manager.js - Consolidated UI system loaded successfully");
-
-// Export functions for ES module usage
-export {
-    initializeUISystem,
-    displayNotification,
-    showNotification,
-    showErrorNotification,
-    logEvent,
-    setupEventLog,
-    setupGameControls,
-    updateAllDisplays,
-    updateStatusDisplay,
-    updateResourceDisplay,
-    updateJobDisplay,
-    updateSkillDisplay,
-    updateTimeDisplay,
-    setupJobsUI,
-    setupAchievementsUI,
-    setupShopUI,
-    showConfirmDialog,
-    endGame,
-    startNewLife,
-    playSound,
-    showPrestigeAnimation
-};
-
-/**
- * Set up notification system
- */
-function setupNotificationSystem() {
-    console.log("setupNotificationSystem() - Setting up notification container");
+// Initialize the skill UI
+export function setupSkillUI() {
+    console.log("setupSkillUI() - Setting up skill UI");
     
-    // Create notification container if it doesn't exist
-    let container = document.getElementById('notification-container');
+    // Get references to DOM elements
+    skillsPanel = document.getElementById('skills-panel');
+    skillsList = document.getElementById('skills-list');
     
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'notification-container';
-        container.style.position = 'fixed';
-        container.style.top = '20px';
-        container.style.right = '20px';
-        container.style.zIndex = '9999';
-        document.body.appendChild(container);
-    }
-}
-
-/**
- * Display a notification
- * @param {string} message - Notification message
- * @param {string} type - Notification type ('info', 'success', 'error', 'warning')
- * @param {number} duration - Duration in milliseconds
- * @returns {HTMLElement} - The notification element
- */
-export function displayNotification(message, type = 'info', duration = 3000) {
-    console.log(`Notification: ${message} (${type})`);
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-
-    // Add to notification container
-    let container = document.getElementById('notification-container');
-    
-    if (!container) {
-        setupNotificationSystem();
-        container = document.getElementById('notification-container');
+    if (!skillsPanel || !skillsList) {
+        console.error("setupSkillUI() - Skills panel or list not found");
+        return false;
     }
     
-    container.appendChild(notification);
-
-    // Add entry animation
-    notification.classList.add('notification-enter');
-
-    // Set up removal after duration
-    setTimeout(() => {
-        // Add exit animation
-        notification.classList.add('notification-exit');
-
-        // Remove from DOM after animation completes
-        notification.addEventListener('animationend', () => {
-            notification.remove();
-        });
-    }, duration);
-
-    return notification;
-}
-
-/**
- * Show a notification with title and message
- * @param {string} title - Notification title
- * @param {string} message - Notification message
- * @param {string} type - Notification type
- */
-export function showNotification(title, message, type = 'info') {
-    displayNotification(`${title}: ${message}`, type);
-}
-
-/**
- * Show an error notification
- * @param {string} message - Error message
- */
-export function showErrorNotification(message) {
-    console.error(`Error: ${message}`);
-    displayNotification(message, 'error');
-}
-
-/**
- * Log an event to the event log
- * @param {string} message - Event message
- * @param {string} category - Event category
- */
-export function logEvent(message, category = 'general') {
-    console.log(`Event Log (${category}): ${message}`);
+    // Create enhanced UI structure
+    createEnhancedSkillUI();
     
-    // Create event log entry
-    const eventEntry = {
-        timestamp: new Date().toISOString(),
-        message: message,
-        category: category,
-        day: gameState.day || 1
-    };
-
-    // Add to event log array
-    if (!gameState.eventLog) {
-        gameState.eventLog = [];
-    }
-    gameState.eventLog.unshift(eventEntry);
-
-    // Keep log at a reasonable size
-    if (gameState.eventLog.length > 100) {
-        gameState.eventLog.pop();
-    }
-
-    // Update event log display
-    updateEventLogDisplay();
-}
-
-/**
- * Set up the event log display
- */
-export function setupEventLog() {
-    console.log("setupEventLog() - Setting up event log display");
-    
-    const eventLogList = document.getElementById('event-log-list');
-    
-    if (!eventLogList) {
-        console.error("Event log list element not found");
-        return;
-    }
-    
-    // Clear existing log entries
-    eventLogList.innerHTML = '';
-    
-    // Add initial welcome messages
-    const welcomeEntry = document.createElement('li');
-    welcomeEntry.textContent = 'Welcome to Guezzard, the Career Master Game!';
-    eventLogList.appendChild(welcomeEntry);
-    
-    const startEntry = document.createElement('li');
-    startEntry.textContent = 'Your journey begins. What will you become?';
-    eventLogList.appendChild(startEntry);
-}
-
-/**
- * Update the event log display
- */
-function updateEventLogDisplay() {
-    const eventLogList = document.getElementById('event-log-list');
-    
-    if (!eventLogList || !gameState.eventLog) {
-        return;
-    }
-    
-    // Don't update if no new events (optimization)
-    if (eventLogList._lastUpdateCount === gameState.eventLog.length) {
-        return;
-    }
-    
-    // Clear existing log entries
-    eventLogList.innerHTML = '';
-    
-    // Get the most recent entries (limit to 5 for now)
-    const recentEntries = gameState.eventLog.slice(0, 5);
-    
-    // Add entries to the log display
-    recentEntries.forEach(entry => {
-        const listItem = document.createElement('li');
-        listItem.textContent = entry.message;
-        
-        // Add category as a class for potential styling
-        if (entry.category) {
-            listItem.classList.add(`event-${entry.category}`);
-        }
-        
-        eventLogList.appendChild(listItem);
-    });
-    
-    // Store the update count to prevent unnecessary re-renders
-    eventLogList._lastUpdateCount = gameState.eventLog.length;
-}
-
-/**
- * Set up game controls
- */
-export function setupGameControls() {
-    console.log("setupGameControls() - Setting up game controls");
-    
-    // Pause button
-    const pauseButton = document.getElementById('pause-button');
-    if (pauseButton) {
-        pauseButton.addEventListener('click', togglePause);
-    }
-    
-    // Speed button
-    const speedButton = document.getElementById('speed-button');
-    if (speedButton) {
-        speedButton.addEventListener('click', cycleGameSpeed);
-    }
-}
-
-/**
- * Toggle game pause state
- */
-function togglePause() {
-    gameState.gamePaused = !gameState.gamePaused;
-    
-    const pauseButton = document.getElementById('pause-button');
-    if (pauseButton) {
-        pauseButton.textContent = gameState.gamePaused ? '▶ Resume' : '|| Pause';
-    }
-    
-    logEvent(gameState.gamePaused ? "Game paused" : "Game resumed", 'system');
-}
-
-/**
- * Cycle through game speed options
- */
-function cycleGameSpeed() {
-    // Get available speed multipliers from config
-    const speedMultipliers = CONFIG.settings.speedMultipliers || [1, 2, 4];
-    
-    // Find current speed index
-    let currentIndex = speedMultipliers.indexOf(gameState.gameSpeed);
-    
-    // Go to next speed (or back to first if at end)
-    currentIndex = (currentIndex + 1) % speedMultipliers.length;
-    gameState.gameSpeed = speedMultipliers[currentIndex];
-    
-    // Update speed button text
-    const speedButton = document.getElementById('speed-button');
-    if (speedButton) {
-        speedButton.textContent = `▶ ${gameState.gameSpeed}x Speed`;
-    }
-    
-    logEvent(`Game speed set to ${gameState.gameSpeed}x`, 'system');
-}
-
-/**
- * Set up UI panels
- */
-function setupPanels() {
-    console.log("setupPanels() - Setting up panel system");
-    
-    // Set up panel close buttons
-    setupPanelCloseButtons();
-}
-
-/**
- * Set up panel close buttons
- */
-function setupPanelCloseButtons() {
-    const closeButtons = document.querySelectorAll('.close-button');
-    closeButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const panelId = button.getAttribute('data-panel');
-            if (panelId) {
-                const panel = document.getElementById(panelId);
-                if (panel) {
-                    panel.style.display = 'none';
-                }
-            }
-        });
-    });
-}
-
-/**
- * Set up action buttons
- */
-function setupActionButtons() {
-    console.log("setupActionButtons() - Setting up action buttons");
-    
-    // Job button
-    const jobButton = document.getElementById('job-button');
-    if (jobButton) {
-        jobButton.addEventListener('click', () => {
-            const jobsPanel = document.getElementById('jobs-panel');
-            if (jobsPanel) {
-                if (typeof window.setupJobsUI === 'function') {
-                    window.setupJobsUI();
-                }
-                jobsPanel.style.display = 'block';
-            }
-        });
-    }
-    
-    // Skill button
+    // Add event listener to the skills button in the main UI
     const skillButton = document.getElementById('skill-button');
     if (skillButton) {
         skillButton.addEventListener('click', () => {
-            const skillsPanel = document.getElementById('skills-panel');
+            updateSkillDisplay();
             if (skillsPanel) {
-                if (typeof window.updateSkillDisplay === 'function') {
-                    window.updateSkillDisplay();
-                }
                 skillsPanel.style.display = 'block';
             }
         });
     }
     
-    // Shop button
-    const shopButton = document.getElementById('shop-button');
-    if (shopButton) {
-        shopButton.addEventListener('click', () => {
-            const shopPanel = document.getElementById('shop-panel');
-            if (shopPanel) {
-                if (typeof window.setupShopUI === 'function') {
-                    window.setupShopUI();
-                }
-                shopPanel.style.display = 'block';
+    // Add event listener to close button
+    const closeButton = skillsPanel.querySelector('.close-button');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            skillsPanel.style.display = 'none';
+            
+            // Clear skill details panel when closing
+            if (skillDetailsPanel) {
+                skillDetailsPanel.style.display = 'none';
             }
         });
     }
     
-    // Achievements button
-    const achievementsButton = document.getElementById('achievements-button');
-    if (achievementsButton) {
-        achievementsButton.addEventListener('click', () => {
-            const achievementsPanel = document.getElementById('achievements-panel');
-            if (achievementsPanel) {
-                if (typeof window.setupAchievementsUI === 'function') {
-                    window.setupAchievementsUI();
-                }
-                achievementsPanel.style.display = 'block';
-            }
-        });
-    }
-    
-    // Prestige button
-    const prestigeButton = document.getElementById('prestige-button');
-    if (prestigeButton) {
-        prestigeButton.addEventListener('click', () => {
-            const prestigePanel = document.getElementById('prestige-panel');
-            if (prestigePanel) {
-                if (typeof window.setupPrestigeUI === 'function') {
-                    window.setupPrestigeUI();
-                }
-                prestigePanel.style.display = 'block';
-            }
-        });
-    }
+    console.log("setupSkillUI() - Skill UI setup complete");
+    return true;
 }
 
-/**
- * Update all displays
- */
-export function updateAllDisplays() {
-    updateStatusDisplay();
-    updateResourceDisplay();
-    updateJobDisplay();
-    updateSkillDisplay();
-    updateTimeDisplay();
-    updateEventLogDisplay();
+// Create enhanced skill UI structure
+function createEnhancedSkillUI() {
+    console.log("createEnhancedSkillUI() - Creating enhanced skill UI");
+    
+    // Clear existing content
+    skillsPanel.innerHTML = '';
+    
+    // Create header
+    const header = document.createElement('h3');
+    header.textContent = 'Skills & Attributes';
+    skillsPanel.appendChild(header);
+    
+    // Create attributes section
+    attributesSection = document.createElement('div');
+    attributesSection.className = 'attributes-section';
+    skillsPanel.appendChild(attributesSection);
+    
+    // Create categories navigation
+    categoriesNav = document.createElement('div');
+    categoriesNav.className = 'skill-categories-nav';
+    skillsPanel.appendChild(categoriesNav);
+    
+    // Create skills container
+    const skillsContainer = document.createElement('div');
+    skillsContainer.className = 'skills-container';
+    skillsPanel.appendChild(skillsContainer);
+    
+    // Create skills list inside container
+    skillsList = document.createElement('div');
+    skillsList.id = 'skills-list';
+    skillsList.className = 'skills-list';
+    skillsContainer.appendChild(skillsList);
+    
+    // Create skill details panel
+    skillDetailsPanel = document.createElement('div');
+    skillDetailsPanel.className = 'skill-details-panel';
+    skillDetailsPanel.style.display = 'none';
+    skillsPanel.appendChild(skillDetailsPanel);
+    
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'close-button';
+    closeButton.textContent = 'Close';
+    closeButton.setAttribute('data-panel', 'skills-panel');
+    skillsPanel.appendChild(closeButton);
+    
+    // Add CSS styles for the enhanced UI
+    addSkillUIStyles();
 }
 
-/**
- * Update status displays (gold, age, etc.)
- */
-export function updateStatusDisplay() {
-    // Get elements
-    const goldDisplay = document.getElementById('gold-display');
-    const ageDisplay = document.getElementById('age-display');
-    const lifeQualityDisplay = document.getElementById('life-quality-display');
-    
-    // Update gold display
-    if (goldDisplay) {
-        goldDisplay.textContent = Math.floor(gameState.gold);
-    }
-    
-    // Update age display
-    if (ageDisplay) {
-        ageDisplay.textContent = gameState.age || 18;
-    }
-    
-    // Update life quality display
-    if (lifeQualityDisplay) {
-        lifeQualityDisplay.textContent = gameState.lifeQuality || 50;
-    }
-}
-
-/**
- * Update resource displays (energy, etc.)
- */
-export function updateResourceDisplay() {
-    // Get elements
-    const energyDisplay = document.getElementById('energy-display');
-    const energyBarFill = document.getElementById('energy-bar-fill');
-    
-    // Update energy display if elements exist
-    if (energyDisplay) {
-        energyDisplay.textContent = `${Math.floor(gameState.energy)}/${gameState.maxEnergy}`;
-    }
-    
-    // Update energy bar fill
-    if (energyBarFill) {
-        const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100;
-        energyBarFill.style.width = `${energyPercentage}%`;
-    }
-    
-    // Update prestige display if it exists
-    const prestigeDisplay = document.getElementById('prestige-display');
-    if (prestigeDisplay) {
-        prestigeDisplay.textContent = gameState.prestigeLevel || 0;
-    }
-}
-
-/**
- * Update job display
- */
-export function updateJobDisplay() {
-    // Get elements
-    const currentJobName = document.getElementById('current-job-name');
-    const jobProgressFill = document.getElementById('job-progress-fill');
-    const jobProgressText = document.getElementById('job-progress-text');
-    
-    // Update current job name
-    if (currentJobName) {
-        const jobTitle = gameState.activeJob ? gameState.activeJob.title : 'Unemployed';
-        currentJobName.textContent = jobTitle;
-        
-        // Add tooltip with job details if employed
-        if (gameState.activeJob) {
-            const tier = gameState.currentJobTier || 0;
-            const level = gameState.jobLevels && gameState.jobLevels[gameState.activeJob.id] || 1;
-            currentJobName.title = `${jobTitle} (Tier ${tier}, Level ${level})`;
-        } else {
-            currentJobName.title = '';
-        }
-    }
-    
-    // Update job progress bar
-    if (jobProgressFill && jobProgressText) {
-        if (gameState.activeJob) {
-            // Get current job level
-            const jobId = gameState.activeJob.id;
-            const currentLevel = gameState.jobLevels && gameState.jobLevels[jobId] || 1;
-            
-            // Calculate progress percentage
-            let progressPercent = 0;
-            
-            // Use getJobProgressPercentage if available
-            if (typeof window.getJobProgressPercentage === 'function') {
-                progressPercent = window.getJobProgressPercentage();
-            } else {
-                // Fallback calculation - basic formula
-                const baseProgressNeeded = 100;
-                const progressNeeded = baseProgressNeeded * Math.pow(1.1, currentLevel - 1);
-                progressPercent = Math.min(100, (gameState.jobProgress / progressNeeded) * 100);
-            }
-            
-            // Update progress bar width
-            jobProgressFill.style.width = `${progressPercent}%`;
-            
-            // Update progress text
-            jobProgressText.textContent = `Job Level ${currentLevel} - ${Math.floor(progressPercent)}%`;
-        } else {
-            // No active job
-            jobProgressFill.style.width = '0%';
-            jobProgressText.textContent = 'No Active Job';
-        }
-    }
-}
-
-/**
- * Update skill display progress bar
- */
-export function updateSkillDisplay() {
-    // Get elements
-    const skillProgressFill = document.getElementById('skill-progress-fill');
-    const skillProgressText = document.getElementById('skill-progress-text');
-    
-    // Update skill progress bar
-    if (skillProgressFill && skillProgressText) {
-        if (gameState.currentTrainingSkill) {
-            // Get skill data
-            const skillName = gameState.currentTrainingSkill;
-            const skillData = gameState.skills[skillName];
-            let skillLevel = 0;
-            
-            // Handle different skill data formats
-            if (typeof skillData === 'object') {
-                skillLevel = skillData.level || 0;
-            } else if (typeof skillData === 'number') {
-                skillLevel = skillData;
-            }
-            
-            // Get skill progress
-            const skillProgress = gameState.skillProgress && gameState.skillProgress[skillName] || 0;
-            
-            // Calculate progress needed (default formula)
-            const progressNeeded = 10 + (skillLevel * 5);
-            
-            // Calculate percentage
-            const progressPercent = Math.min(100, (skillProgress / progressNeeded) * 100);
-            
-            // Update progress bar
-            skillProgressFill.style.width = `${progressPercent}%`;
-            skillProgressText.textContent = `${skillName} Level ${skillLevel} - ${Math.floor(progressPercent)}%`;
-        } else {
-            // No skill training
-            skillProgressFill.style.width = '0%';
-            skillProgressText.textContent = 'No Skill Training';
-        }
-    }
-}
-
-/**
- * Update time and season displays
- */
-export function updateTimeDisplay() {
-    // Get elements
-    const seasonDisplay = document.getElementById('season-display');
-    
-    // Update season display
-    if (seasonDisplay) {
-        const season = gameState.currentSeason || 'Spring';
-        const year = gameState.year || 1;
-        const day = gameState.day || 1;
-        
-        seasonDisplay.textContent = `Day ${day}, ${season}, Year ${year}`;
-    }
-}
-
-/**
- * Set up achievements UI
- */
-export function setupAchievementsUI() {
-    console.log("setupAchievementsUI() - Setting up achievements UI");
-    
-    const achievementsList = document.getElementById('achievements-list');
-    
-    if (!achievementsList) {
-        console.error("Achievements list element not found");
+// Add CSS styles for the skill UI
+function addSkillUIStyles() {
+    // Check if styles are already added
+    if (document.getElementById('skill-ui-styles')) {
         return;
     }
     
-    // Clear existing achievements
-    achievementsList.innerHTML = '';
+    // Create style element
+    const styleElement = document.createElement('style');
+    styleElement.id = 'skill-ui-styles';
     
-    // Check if achievements data is available
-    if (!gameState.achievements || !Array.isArray(gameState.achievements) || gameState.achievements.length === 0) {
-        achievementsList.innerHTML = '<li class="no-achievements">No achievements available yet.</li>';
-        return;
-    }
-    
-    // Add achievements to the list
-    gameState.achievements.forEach(achievement => {
-        const achievementItem = document.createElement('li');
-        achievementItem.className = 'achievement-item';
-        
-        // Check if achievement is unlocked
-        const isUnlocked = achievement.unlocked || false;
-        
-        if (isUnlocked) {
-            achievementItem.classList.add('unlocked');
-        } else {
-            achievementItem.classList.add('locked');
+    // Add CSS rules
+    styleElement.textContent = `
+        /* Enhanced Skills Panel Styles */
+        #skills-panel {
+            max-width: 800px;
+            width: 90%;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow: hidden;
         }
         
-        // Create achievement HTML
-        achievementItem.innerHTML = `
-            <div class="achievement-icon">
-                <i class="fas ${isUnlocked ? 'fa-trophy' : 'fa-lock'}"></i>
-            </div>
-            <div class="achievement-details">
-                <h3>${achievement.name}</h3>
-                <p>${achievement.description}</p>
-            </div>
-        `;
+        #skills-panel h3 {
+            padding: 15px;
+            margin: 0;
+            text-align: center;
+            background-color: rgba(123, 104, 238, 0.1);
+            border-bottom: 1px solid rgba(123, 104, 238, 0.2);
+        }
         
-        achievementsList.appendChild(achievementItem);
-    });
-}
-
-/**
- * Function to show confirmation dialog
- * @param {string} title - Dialog title
- * @param {string} message - Dialog message
- * @param {Function} onConfirm - Function to call on confirm
- * @param {Function} onCancel - Function to call on cancel
- * @returns {HTMLElement} - The dialog element
- */
-export function showConfirmDialog(title, message, onConfirm, onCancel = null) {
-    // Create dialog container
-    const dialogOverlay = document.createElement('div');
-    dialogOverlay.className = 'dialog-overlay';
-    dialogOverlay.style.position = 'fixed';
-    dialogOverlay.style.top = '0';
-    dialogOverlay.style.left = '0';
-    dialogOverlay.style.width = '100%';
-    dialogOverlay.style.height = '100%';
-    dialogOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    dialogOverlay.style.display = 'flex';
-    dialogOverlay.style.justifyContent = 'center';
-    dialogOverlay.style.alignItems = 'center';
-    dialogOverlay.style.zIndex = '10000';
-    
-    // Create dialog box
-    const dialogBox = document.createElement('div');
-    dialogBox.className = 'dialog-box';
-    dialogBox.style.backgroundColor = 'rgba(30, 30, 45, 0.95)';
-    dialogBox.style.borderRadius = '12px';
-    dialogBox.style.padding = '25px';
-    dialogBox.style.maxWidth = '400px';
-    dialogBox.style.width = '90%';
-    dialogBox.style.boxShadow = '0 0 30px rgba(123, 104, 238, 0.5)';
-    dialogBox.style.border = '1px solid rgba(123, 104, 238, 0.6)';
-    
-    // Add title
-    const dialogTitle = document.createElement('h3');
-    dialogTitle.textContent = title;
-    dialogTitle.style.margin = '0 0 15px 0';
-    dialogTitle.style.color = '#a496ff';
-    dialogTitle.style.textAlign = 'center';
-    
-    // Add message
-    const dialogMessage = document.createElement('p');
-    dialogMessage.textContent = message;
-    dialogMessage.style.marginBottom = '20px';
-    
-    // Add buttons
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.display = 'flex';
-    buttonContainer.style.justifyContent = 'space-around';
-    
-    // Confirm button
-    const confirmButton = document.createElement('button');
-    confirmButton.textContent = 'Confirm';
-    confirmButton.style.padding = '10px 20px';
-    confirmButton.style.backgroundColor = '#4776E6';
-    confirmButton.style.color = 'white';
-    confirmButton.style.border = 'none';
-    confirmButton.style.borderRadius = '20px';
-    confirmButton.style.cursor = 'pointer';
-    
-    // Cancel button
-    const cancelButton = document.createElement('button');
-    cancelButton.textContent = 'Cancel';
-    cancelButton.style.padding = '10px 20px';
-    cancelButton.style.backgroundColor = '#6c757d';
-    cancelButton.style.color = 'white';
-    cancelButton.style.border = 'none';
-    cancelButton.style.borderRadius = '20px';
-    cancelButton.style.cursor = 'pointer';
-    
-    // Add buttons to container
-    buttonContainer.appendChild(cancelButton);
-    buttonContainer.appendChild(confirmButton);
-    
-    // Add elements to dialog box
-    dialogBox.appendChild(dialogTitle);
-    dialogBox.appendChild(dialogMessage);
-    dialogBox.appendChild(buttonContainer);
-    
-    // Add dialog box to overlay
-    dialogOverlay.appendChild(dialogBox);
-    
-    // Add overlay to body
-    document.body.appendChild(dialogOverlay);
-    
-    // Add event listeners
-    confirmButton.addEventListener('click', () => {
-        dialogOverlay.remove();
-        if (typeof onConfirm === 'function') {
-            onConfirm();
+        .attributes-section {
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 10px;
+            background-color: rgba(40, 40, 60, 0.5);
+            border-bottom: 1px solid rgba(123, 104, 238, 0.2);
         }
-    });
-    
-    cancelButton.addEventListener('click', () => {
-        dialogOverlay.remove();
-        if (typeof onCancel === 'function') {
-            onCancel();
+        
+        .attribute-item {
+            background-color: rgba(50, 50, 70, 0.8);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-    });
-    
-    // Also allow clicking outside to cancel
-    dialogOverlay.addEventListener('click', (e) => {
-        if (e.target === dialogOverlay) {
-            dialogOverlay.remove();
-            if (typeof onCancel === 'function') {
-                onCancel();
-            }
+        
+        .attribute-item:hover {
+            background-color: rgba(70, 70, 90, 0.8);
+            transform: translateY(-2px);
         }
-    });
-    
-    return dialogOverlay;
-}
-
-/**
- * End game function
- */
-export function endGame() {
-    console.log("endGame() - Game has ended");
-    
-    // Display end game message
-    const message = `
-        <h2>${CONFIG.uiText.endGameTitle}</h2>
-        <p>You've reached age ${gameState.age} and it's time to retire.</p>
-        <p>Your final stats:</p>
-        <ul>
-            <li>Total Gold Earned: ${Math.floor(gameState.statistics?.totalGoldEarned || 0)}</li>
-            <li>Jobs Held: ${gameState.statistics?.jobsHeld || 0}</li>
-            <li>Prestige Level: ${gameState.prestigeLevel || 0}</li>
-        </ul>
-        <p>Would you like to start a new life?</p>
-        <button id="prestige-button" style="margin-right: 10px;">Prestige & Start New Life</button>
-        <button id="new-life-button">${CONFIG.uiText.newLifeButton}</button>
+        
+        .attribute-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            color: #a496ff;
+        }
+        
+        .attribute-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .attribute-value {
+            background-color: rgba(123, 104, 238, 0.2);
+            border-radius: 15px;
+            padding: 2px 8px;
+            font-weight: bold;
+        }
+        
+        .skill-categories-nav {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px;
+            background-color: rgba(30, 30, 45, 0.8);
+            border-bottom: 1px solid rgba(123, 104, 238, 0.2);
+        }
+        
+        .category-tab {
+            padding: 8px 15px;
+            background-color: rgba(50, 50, 70, 0.5);
+            border-radius: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        
+        .category-tab:hover {
+            background-color: rgba(70, 70, 90, 0.8);
+        }
+        
+        .category-tab.active {
+            background-color: rgba(123, 104, 238, 0.6);
+            color: white;
+        }
+        
+        .skills-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .skills-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .skill-item {
+            background-color: rgba(40, 40, 60, 0.7);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(123, 104, 238, 0.2);
+        }
+        
+        .skill-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-color: rgba(123, 104, 238, 0.5);
+        }
+        
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .skill-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .skill-level {
+            background-color: rgba(123, 104, 238, 0.2);
+            border-radius: 15px;
+            padding: 2px 8px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .skill-progress-bar {
+            height: 8px;
+            background-color: rgba(30, 30, 45, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .skill-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4776E6, #8E54E9);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .skill-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+        
+        .skill-details-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 500px;
+            background-color: rgba(30, 30, 45, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            z-index: 10;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(123, 104, 238, 0.4);
+        }
+        
+        .skill-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(123, 104, 238, 0.2);
+        }
+        
+        .skill-details-name {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        
+        .skill-details-level {
+            background-color: rgba(123, 104, 238, 0.3);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-weight: bold;
+        }
+        
+        .skill-details-description {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .skill-details-progress {
+            margin-bottom: 20px;
+        }
+        
+        .skill-details-progress-bar {
+            height: 12px;
+            background-color: rgba(30, 30, 45, 0.5);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .skill-details-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4776E6, #8E54E9);
+            border-radius: 6px;
+        }
+        
+        .skill-details-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .skill-stat-item {
+            background-color: rgba(40, 40, 60, 0.7);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .skill-stat-label {
+            font-size: 0.8em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .skill-stat-value {
+            font-weight: bold;
+        }
+        
+        .skill-details-synergies {
+            margin-bottom: 20px;
+        }
+        
+        .skill-details-synergies h4 {
+            margin-bottom: 10px;
+            color: #a496ff;
+        }
+        
+        .synergy-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .synergy-item {
+            background-color: rgba(40, 40, 60, 0.7);
+            border-radius: 15px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .synergy-item:hover {
+            background-color: rgba(123, 104, 238, 0.3);
+        }
+        
+        .skill-details-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .skill-details-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: none;
+            background: linear-gradient(135deg, #4776E6, #8E54E9);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .skill-details-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .skill-details-actions button:disabled {
+            background: linear-gradient(135deg, #666, #999);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .close-details-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #a496ff;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        
+        .training-options {
+            background-color: rgba(40, 40, 60, 0.7);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .training-options h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #a496ff;
+        }
+        
+        .training-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .training-time {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .focus-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .focus-option {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            background-color: rgba(30, 30, 45, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        .focus-option.selected {
+            background-color: rgba(123, 104, 238, 0.3);
+            border: 1px solid rgba(123, 104, 238, 0.6);
+        }
+        
+        .focus-option:hover {
+            background-color: rgba(50, 50, 70, 0.8);
+        }
+        
+        .training-result {
+            background-color: rgba(30, 30, 45, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        
+        .energy-cost {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .xp-gain {
+            color: #4dd0e1;
+            font-weight: bold;
+        }
     `;
     
-    // Create modal for end game
-    const endGameModal = document.createElement('div');
-    endGameModal.id = 'end-game-modal';
-    endGameModal.style.position = 'fixed';
-    endGameModal.style.top = '0';
-    endGameModal.style.left = '0';
-    endGameModal.style.width = '100%';
-    endGameModal.style.height = '100%';
-    endGameModal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    endGameModal.style.display = 'flex';
-    endGameModal.style.justifyContent = 'center';
-    endGameModal.style.alignItems = 'center';
-    endGameModal.style.zIndex = '9999';
-    
-    // Create content container
-    const modalContent = document.createElement('div');
-    modalContent.style.backgroundColor = 'rgba(30, 30, 45, 0.95)';
-    modalContent.style.padding = '30px';
-    modalContent.style.borderRadius = '10px';
-    modalContent.style.maxWidth = '500px';
-    modalContent.style.width = '80%';
-    modalContent.style.textAlign = 'center';
-    modalContent.innerHTML = message;
-    
-    endGameModal.appendChild(modalContent);
-    document.body.appendChild(endGameModal);
-    
-    // Pause the game
-    gameState.gamePaused = true;
-    
-    // Add event listener to prestige button
-    const prestigeButton = document.getElementById('prestige-button');
-    if (prestigeButton) {
-        prestigeButton.addEventListener('click', () => {
-            endGameModal.remove();
-            
-            // Call prestige function if available
-            if (typeof window.performPrestige === 'function') {
-                window.performPrestige();
-            } else {
-                // Fallback to starting new life
-                startNewLife();
-            }
-        });
-    }
-    
-    // Add event listener to new life button
-    const newLifeButton = document.getElementById('new-life-button');
-    if (newLifeButton) {
-        newLifeButton.addEventListener('click', () => {
-            endGameModal.remove();
-            startNewLife();
-        });
-    }
+    // Add style element to document head
+    document.head.appendChild(styleElement);
+    console.log("addSkillUIStyles() - Skill UI styles added");
 }
 
-/**
- * Start a new life
- */
-export function startNewLife() {
-    console.log("startNewLife() - Starting a new life");
+// Update skill display
+export function updateSkillDisplay() {
+    console.log("updateSkillDisplay() - Updating skill display");
     
-    // Remove end game modal if it exists
-    const endGameModal = document.getElementById('end-game-modal');
-    if (endGameModal) {
-        endGameModal.remove();
-    }
-    
-    // Reset game state but keep prestige data
-    const prestigeKeepData = {
-        prestigePoints: gameState.prestigePoints || 0,
-        prestigeLevel: gameState.prestigeLevel || 0,
-        statistics: gameState.statistics || {}
-    };
-    
-    // Get default game state
-    const defaultState = window.getDefaultGameState ? window.getDefaultGameState() : {};
-    
-    // Apply default state
-    Object.assign(gameState, defaultState);
-    
-    // Restore prestige data
-    gameState.prestigePoints = prestigeKeepData.prestigePoints;
-    gameState.prestigeLevel = prestigeKeepData.prestigeLevel;
-    gameState.statistics = prestigeKeepData.statistics;
-    
-    // Unpause the game
-    gameState.gamePaused = false;
-    
-    // Update display
-    updateAllDisplays();
-    
-    // Log event
-    logEvent("Starting a new life!", 'system');
-}
-
-
-/**
- * Show prestige animation
- */
-export function showPrestigeAnimation() {
-    // Create animation container
-    const animationContainer = document.createElement('div');
-    animationContainer.className = 'prestige-animation';
-    animationContainer.style.position = 'fixed';
-    animationContainer.style.top = '0';
-    animationContainer.style.left = '0';
-    animationContainer.style.width = '100%';
-    animationContainer.style.height = '100%';
-    animationContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    animationContainer.style.display = 'flex';
-    animationContainer.style.justifyContent = 'center';
-    animationContainer.style.alignItems = 'center';
-    animationContainer.style.zIndex = '10000';
-    animationContainer.style.opacity = '0';
-    animationContainer.style.transition = 'opacity 0.5s ease';
-    
-    // Create animation text
-    const animationText = document.createElement('div');
-    animationText.textContent = 'PRESTIGE!';
-    animationText.style.fontSize = '5rem';
-    animationText.style.color = '#8E54E9';
-    animationText.style.textShadow = '0 0 20px rgba(123, 104, 238, 0.8)';
-    animationText.style.fontWeight = 'bold';
-    animationText.style.transform = 'scale(0.5)';
-    animationText.style.transition = 'all 1s ease';
-    
-    // Add text to container
-    animationContainer.appendChild(animationText);
-    
-    // Add container to body
-    document.body.appendChild(animationContainer);
-    
-    // Start animation
-    setTimeout(() => {
-        animationContainer.style.opacity = '1';
-        animationText.style.transform = 'scale(1.2)';
-        
-        // End animation
-        setTimeout(() => {
-            animationText.style.transform = 'scale(5)';
-            animationText.style.opacity = '0';
-            
-            setTimeout(() => {
-                animationContainer.style.opacity = '0';
-                
-                // Remove from DOM after animation
-                setTimeout(() => {
-                    animationContainer.remove();
-                }, 500);
-            }, 800);
-        }, 1500);
-    }, 100);
-}
-
-/**
- * Set up jobs UI
- */
-export function setupJobsUI() {
-    console.log("setupJobsUI() - Setting up jobs UI");
-    
-    // Get jobs panel and list
-    const jobsPanel = document.getElementById('jobs-panel');
-    const jobsList = document.getElementById('jobs-list');
-    
-    if (!jobsList) {
-        console.error("Jobs list element not found");
+    // Check if UI elements exist
+    if (!skillsPanel || !attributesSection || !categoriesNav || !skillsList) {
+        console.error("updateSkillDisplay() - UI elements not found");
+        setupSkillUI();
         return;
     }
     
-    // Clear existing jobs
-    jobsList.innerHTML = '';
+    // Update attributes section
+    updateAttributesSection();
     
-    // Add a default message if no functions exist to get jobs
-    if (typeof window.getAvailableJobs !== 'function') {
-        jobsList.innerHTML = '<li class="no-jobs">Job system not fully initialized yet.</li>';
+    // Update categories navigation
+    updateCategoriesNav();
+    
+    // Update skills list based on current category
+    updateSkillsList();
+    
+    console.log("updateSkillDisplay() - Skill display updated");
+}
+
+// Update attributes section
+function updateAttributesSection() {
+    console.log("updateAttributesSection() - Updating attributes");
+    
+    // Clear existing content
+    attributesSection.innerHTML = '';
+    
+    // Get all attributes
+    const attributes = typeof window.getAllAttributes === 'function' ? 
+        window.getAllAttributes() : [];
+    
+    if (!attributes || attributes.length === 0) {
+        attributesSection.innerHTML = '<div class="no-attributes">No attributes found.</div>';
         return;
     }
     
-    // Get available jobs
-    const availableJobs = window.getAvailableJobs();
-    
-    // Check if jobs data is available
-    if (!availableJobs || availableJobs.length === 0) {
-        jobsList.innerHTML = '<li class="no-jobs">No jobs available yet. Gain some skills first!</li>';
-        return;
-    }
-    
-    // Add jobs to the list
-    availableJobs.forEach(job => {
-        const jobItem = document.createElement('li');
-        jobItem.className = 'job-item';
+    // Create attribute items
+    attributes.forEach(attribute => {
+        const attributeItem = document.createElement('div');
+        attributeItem.className = 'attribute-item';
+        attributeItem.setAttribute('data-attribute', attribute.id);
         
-        // Highlight if it's the player's current job
-        if (gameState.activeJob && gameState.activeJob.id === job.id && gameState.currentJobTier === job.tier) {
-            jobItem.classList.add('current-job');
-        }
-        
-        // Simple job HTML
-        const jobLevel = gameState.jobLevels && gameState.jobLevels[job.id] || 0;
-        
-        jobItem.innerHTML = `
-            <div class="job-header">
-                <h3>${job.title} ${job.tier > 0 ? `(Tier ${job.tier})` : ''}</h3>
+        // Create attribute content
+        attributeItem.innerHTML = `
+            <div class="attribute-icon">
+                <i class="fas fa-${attribute.icon || 'star'}"></i>
             </div>
-            <div class="job-details">
-                <div class="job-income">Income: ${job.incomePerYear} gold/year</div>
-                <div class="job-level">${jobLevel > 0 ? `Level: ${jobLevel}` : 'New Job'}</div>
-                <div class="job-requirements">
-                    <h4>Requirements:</h4>
-                    ${getJobRequirementsHTML(job)}
-                </div>
-                <div class="job-skills">
-                    <h4>Skill Gains:</h4>
-                    ${getJobSkillGainsHTML(job)}
-                </div>
-            </div>
-            <button class="apply-button" data-job-index="${availableJobs.indexOf(job)}" data-job-tier="${job.tier}">
-                ${gameState.activeJob && gameState.activeJob.id === job.id && gameState.currentJobTier === job.tier ? 'Current Job' : 'Apply'}
-            </button>
+            <div class="attribute-name">${attribute.name}</div>
+            <div class="attribute-value">${attribute.value}</div>
         `;
         
-        jobsList.appendChild(jobItem);
-    });
-    
-    // Add event listeners to apply buttons
-    const applyButtons = jobsList.querySelectorAll('.apply-button');
-    applyButtons.forEach(button => {
-        // Disable the button if it's already the current job
-        if (button.textContent.trim() === 'Current Job') {
-            button.disabled = true;
-        }
+        // Add tooltip with description
+        attributeItem.title = attribute.description;
         
-        button.addEventListener('click', (e) => {
-            const jobIndex = parseInt(e.target.getAttribute('data-job-index'), 10);
-            const jobTier = parseInt(e.target.getAttribute('data-job-tier'), 10);
-            
-            // Check if it's a valid job
-            if (isNaN(jobIndex) || jobIndex < 0) {
-                console.error(`Invalid job index: ${jobIndex}`);
-                return;
-            }
-            
-            // Call the applyForJob function with the selected job
-            if (typeof window.applyForJob === 'function') {
-                const success = window.applyForJob(jobIndex, jobTier);
-                if (success) {
-                    closeJobsPanel();
-                    updateAllDisplays();
-                }
-            } else {
-                console.error("applyForJob function not available globally");
-            }
+        // Add click event to show attribute details
+        attributeItem.addEventListener('click', () => {
+            showAttributeDetails(attribute.id);
         });
+        
+        attributesSection.appendChild(attributeItem);
     });
 }
 
-/**
- * Get HTML for job requirements
- */
-function getJobRequirementsHTML(job) {
-    let html = '';
+// Update categories navigation
+function updateCategoriesNav() {
+    console.log("updateCategoriesNav() - Updating categories");
     
-    // Handle different job requirement formats
-    if (job.minSkill !== undefined) {
-        const skillName = "Map Awareness";
-        const requiredLevel = job.minSkill;
-        const currentLevel = getSkillLevel(skillName);
-        const isMet = currentLevel >= requiredLevel;
-        
-        html += `
-            <div class="requirement ${isMet ? 'met' : 'not-met'}">
-                ${skillName}: ${currentLevel}/${requiredLevel}
-            </div>
-        `;
-    }
+    // Clear existing content
+    categoriesNav.innerHTML = '';
     
-    // Check for required previous job
-    if (job.requiredJobId && job.requiredJobLevel) {
-        const requiredJobLevel = job.requiredJobLevel;
-        const currentJobLevel = gameState.jobLevels && gameState.jobLevels[job.requiredJobId] || 0;
-        const isMet = currentJobLevel >= requiredJobLevel;
-        
-        // Find job name
-        const jobName = findJobName(job.requiredJobId) || job.requiredJobId;
-        
-        html += `
-            <div class="requirement ${isMet ? 'met' : 'not-met'}">
-                ${jobName} Level: ${currentJobLevel}/${requiredJobLevel}
-            </div>
-        `;
-    }
+    // Get all categories
+    const categories = typeof window.getAllCategories === 'function' ? 
+        window.getAllCategories() : [];
     
-    // Advanced skill requirements
-    if (job.requiredSkills) {
-        for (const [skillName, level] of Object.entries(job.requiredSkills)) {
-            const currentLevel = getSkillLevel(skillName);
-            const isMet = currentLevel >= level;
-            
-            html += `
-                <div class="requirement ${isMet ? 'met' : 'not-met'}">
-                    ${skillName}: ${currentLevel}/${level}
-                </div>
-            `;
-        }
-    }
-    
-    // If no requirements were added
-    if (html === '') {
-        html = '<div class="no-requirements">No special requirements</div>';
-    }
-    
-    return html;
-}
-
-/**
- * Get HTML for job skill gains
- */
-function getJobSkillGainsHTML(job) {
-    let html = '';
-    
-    if (job.skillGainPerYear && Object.keys(job.skillGainPerYear).length > 0) {
-        html += '<ul class="skill-gains-list">';
-        
-        for (const [skillName, gain] of Object.entries(job.skillGainPerYear)) {
-            html += `<li>${skillName}: +${gain}/year</li>`;
-        }
-        
-        html += '</ul>';
-    } else {
-        html = '<div class="no-skill-gains">No skill gains</div>';
-    }
-    
-    return html;
-}
-
-/**
- * Get skill level
- */
-function getSkillLevel(skillName) {
-    if (!gameState.skills) return 0;
-    
-    const skill = gameState.skills[skillName];
-    if (!skill) return 0;
-    
-    if (typeof skill === 'object') {
-        return skill.level || 0;
-    }
-    
-    return skill || 0;
-}
-
-/**
- * Find job name by ID
- */
-function findJobName(jobId) {
-    if (!gameState.jobs) return null;
-    
-    for (const job of gameState.jobs) {
-        if (job.id === jobId) {
-            return job.title;
-        }
-    }
-    
-    return null;
-}
-
-/**
- * Close jobs panel
- */
-export function closeJobsPanel() {
-    const jobsPanel = document.getElementById('jobs-panel');
-    if (jobsPanel) {
-        jobsPanel.style.display = 'none';
-    }
-}
-
-/**
- * Set up shop UI
- */
-export function setupShopUI() {
-    console.log("setupShopUI() - Setting up shop UI");
-    
-    const shopItemsList = document.getElementById('shop-items-list');
-    
-    if (!shopItemsList) {
-        console.error("Shop items list element not found");
+    if (!categories || categories.length === 0) {
+        categoriesNav.innerHTML = '<div class="no-categories">No skill categories found.</div>';
         return;
     }
     
-    // Clear existing shop items
-    shopItemsList.innerHTML = '';
+    // Create "All" category tab
+    const allCategoryTab = document.createElement('div');
+    allCategoryTab.className = 'category-tab';
+    allCategoryTab.textContent = 'All Skills';
+    allCategoryTab.setAttribute('data-category', 'all');
     
-    // Get shop items from config
-    const shopItems = CONFIG.shopItems || [];
-    
-    // Check if shop items are available
-    if (!shopItems || shopItems.length === 0) {
-        shopItemsList.innerHTML = '<li class="no-items">No items available in the shop.</li>';
-        return;
+    // Set active class if no category is selected or "all" is selected
+    if (!currentCategory || currentCategory === 'all') {
+        allCategoryTab.classList.add('active');
+        currentCategory = 'all';
     }
     
-    // Add shop items to the list
-    shopItems.forEach(item => {
-        const itemElement = document.createElement('li');
-        itemElement.className = 'shop-item';
-        
-        // Check if player can afford the item
-        const canAfford = gameState.gold >= item.price;
-        
-        // Check if player has reached max purchases
-        const purchasedCount = gameState.purchasedItems && gameState.purchasedItems[item.id] ? 
-            gameState.purchasedItems[item.id] : 0;
-        const reachedMaxPurchases = item.maxPurchases && purchasedCount >= item.maxPurchases;
-        
-        // Create shop item HTML
-        itemElement.innerHTML = `
-            <div class="item-header">
-                <div class="item-name">${item.name}</div>
-                <div class="item-price">${item.price} gold</div>
-            </div>
-            <div class="item-description">${item.description}</div>
-            ${item.maxPurchases ? `<div class="item-limit">Purchased: ${purchasedCount}/${item.maxPurchases}</div>` : ''}
-            <button class="buy-button" data-item-id="${item.id}" 
-                ${!canAfford || reachedMaxPurchases ? 'disabled' : ''}>
-                ${!canAfford ? 'Not enough gold' : (reachedMaxPurchases ? 'Limit reached' : 'Buy')}
-            </button>
-        `;
-        
-        shopItemsList.appendChild(itemElement);
+    // Add click event
+    allCategoryTab.addEventListener('click', () => {
+        setActiveCategory('all');
     });
     
-    // Add event listeners to buy buttons
-    const buyButtons = shopItemsList.querySelectorAll('.buy-button');
-    buyButtons.forEach(button => {
-        // Skip if button is disabled
-        if (button.disabled) {
+    categoriesNav.appendChild(allCategoryTab);
+    
+    // Create category tabs
+    categories.forEach(category => {
+        // Skip attributes category
+        if (category.id === 'attributes') {
             return;
         }
         
-        button.addEventListener('click', (e) => {
-            const itemId = e.target.getAttribute('data-item-id');
-            
-            if (typeof window.buyShopItem === 'function') {
-                const success = window.buyShopItem(itemId);
-                
-                if (success) {
-                    // Refresh shop UI
-                    setupShopUI();
-                    
-                    // Update displays
-                    updateAllDisplays();
+        const categoryTab = document.createElement('div');
+        categoryTab.className = 'category-tab';
+        categoryTab.textContent = category.name;
+        categoryTab.setAttribute('data-category', category.id);
+        
+        // Set active class if this category is selected
+        if (currentCategory === category.id) {
+            categoryTab.classList.add('active');
+        }
+        
+        // Add click event
+        categoryTab.addEventListener('click', () => {
+            setActiveCategory(category.id);
+        });
+        
+        categoriesNav.appendChild(categoryTab);
+    });
+}
+
+// Set active category
+function setActiveCategory(categoryId) {
+    console.log(`setActiveCategory() - Setting active category to ${categoryId}`);
+    
+    // Update current category
+    currentCategory = categoryId;
+    
+    // Update active class in category tabs
+    const categoryTabs = categoriesNav.querySelectorAll('.category-tab');
+    categoryTabs.forEach(tab => {
+        if (tab.getAttribute('data-category') === categoryId) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+    
+    // Update skills list
+    updateSkillsList();
+}
+
+// Update skills list
+function updateSkillsList() {
+    console.log("updateSkillsList() - Updating skills list");
+    
+    // Clear existing content
+    skillsList.innerHTML = '';
+    
+    // Get skills based on current category
+    let skills = [];
+    
+    if (currentCategory === 'all') {
+        // Get all skills
+        for (const skillId in gameState.skills) {
+            if (typeof window.getSkillInfo === 'function') {
+                const skillInfo = window.getSkillInfo(skillId);
+                if (skillInfo) {
+                    skills.push(skillInfo);
                 }
             } else {
-                console.error("buyShopItem function not available globally");
+                // Fallback if getSkillInfo is not available
+                skills.push(gameState.skills[skillId]);
+            }
+        }
+    } else {
+        // Get skills for specific category
+        if (typeof window.getSkillsByCategory === 'function') {
+            skills = window.getSkillsByCategory(currentCategory);
+        } else {
+            // Fallback if getSkillsByCategory is not available
+            skills = Object.values(gameState.skills).filter(
+                skill => skill.categoryId === currentCategory
+            );
+        }
+    }
+    
+    // Display message if no skills
+    if (!skills || skills.length === 0) {
+        skillsList.innerHTML = '<div class="no-skills">No skills found in this category.</div>';
+        return;
+    }
+    
+    // Create skill items
+    skills.forEach(skill => {
+        // Skip skills with level 0 that are not yet unlocked
+        if (skill.level === 0 && skill.baseValue === 0) {
+            return;
+        }
+        
+        const skillItem = document.createElement('div');
+        skillItem.className = 'skill-item';
+        skillItem.setAttribute('data-skill', skill.id);
+        
+        // Calculate percentage to next level
+        let percentToNextLevel = 0;
+        if (typeof skill.percentToNextLevel !== 'undefined') {
+            percentToNextLevel = skill.percentToNextLevel;
+        } else if (typeof window.calculateXPForLevel === 'function') {
+            const xpNeeded = window.calculateXPForLevel(skill.level);
+            percentToNextLevel = (skill.xp / xpNeeded) * 100;
+        }
+        
+        // Create skill content
+        skillItem.innerHTML = `
+            <div class="skill-header">
+                <div class="skill-name">${skill.name}</div>
+                <div class="skill-level">Lvl ${skill.level}</div>
+            </div>
+            <div class="skill-progress-bar">
+                <div class="skill-progress-fill" style="width: ${percentToNextLevel}%"></div>
+            </div>
+            <div class="skill-stats">
+                <div class="skill-category">${getCategoryName(skill.categoryId)}</div>
+                <div class="skill-xp">${Math.floor(skill.xp)} / ${typeof window.calculateXPForLevel === 'function' ? window.calculateXPForLevel(skill.level) : '?'} XP</div>
+            </div>
+        `;
+        
+        // Add click event to show skill details
+        skillItem.addEventListener('click', () => {
+            showSkillDetails(skill.id);
+        });
+        
+        skillsList.appendChild(skillItem);
+    });
+}
+
+// Get category name from id
+function getCategoryName(categoryId) {
+    if (gameState.skillCategories && gameState.skillCategories[categoryId]) {
+        return gameState.skillCategories[categoryId].name;
+    }
+    return categoryId || 'Unknown';
+}
+
+// Show skill details
+export function showSkillDetails(skillId) {
+    console.log(`showSkillDetails() - Showing details for skill ${skillId}`);
+    
+    // Get skill info
+    const skillInfo = typeof window.getSkillInfo === 'function' ? 
+        window.getSkillInfo(skillId) : gameState.skills[skillId];
+    
+    if (!skillInfo) {
+        console.error(`showSkillDetails() - Skill ${skillId} not found`);
+        return;
+    }
+    
+    // Show details panel
+    skillDetailsPanel.style.display = 'block';
+    
+    // Create skill details content
+    skillDetailsPanel.innerHTML = `
+        <button class="close-details-button">&times;</button>
+        <div class="skill-details-header">
+            <div class="skill-details-name">${skillInfo.name}</div>
+            <div class="skill-details-level">Level ${skillInfo.level}</div>
+        </div>
+        <div class="skill-details-description">${skillInfo.description}</div>
+        <div class="skill-details-progress">
+            <div class="skill-progress-text">Progress to Level ${skillInfo.level + 1}</div>
+            <div class="skill-details-progress-bar">
+                <div class="skill-details-progress-fill" style="width: ${skillInfo.percentToNextLevel}%"></div>
+            </div>
+            <div class="skill-xp-text">${Math.floor(skillInfo.xp)} / ${skillInfo.xpForNextLevel} XP</div>
+        </div>
+        <div class="skill-details-stats">
+            <div class="skill-stat-item">
+                <div class="skill-stat-label">Category</div>
+                <div class="skill-stat-value">${getCategoryName(skillInfo.categoryId)}</div>
+            </div>
+            <div class="skill-stat-item">
+                <div class="skill-stat-label">Base Growth Rate</div>
+                <div class="skill-stat-value">${(skillInfo.growthRate * 100).toFixed(1)}%</div>
+            </div>
+            <div class="skill-stat-item">
+                <div class="skill-stat-label">Effective Growth</div>
+                <div class="skill-stat-value">${(skillInfo.effectiveGrowthRate * 100).toFixed(1)}%</div>
+            </div>
+            <div class="skill-stat-item">
+                <div class="skill-stat-label">Synergy Bonus</div>
+                <div class="skill-stat-value">+${(skillInfo.synergyBonus * 100).toFixed(1)}%</div>
+            </div>
+        </div>
+    `;
+    
+    // Add synergies section if there are synergies
+    if (skillInfo.synergies && skillInfo.synergies.length > 0) {
+        const synergiesSection = document.createElement('div');
+        synergiesSection.className = 'skill-details-synergies';
+        synergiesSection.innerHTML = '<h4>Skill Synergies</h4>';
+        
+        const synergyList = document.createElement('div');
+        synergyList.className = 'synergy-list';
+        
+        skillInfo.synergies.forEach(synergyId => {
+            const synergySkill = gameState.skills[synergyId];
+            if (synergySkill) {
+                const synergyItem = document.createElement('div');
+                synergyItem.className = 'synergy-item';
+                synergyItem.textContent = synergySkill.name;
+                synergyItem.setAttribute('data-skill', synergyId);
+                
+                // Add click event to show synergy skill details
+                synergyItem.addEventListener('click', () => {
+                    showSkillDetails(synergyId);
+                });
+                
+                synergyList.appendChild(synergyItem);
             }
         });
+        
+        synergiesSection.appendChild(synergyList);
+        skillDetailsPanel.appendChild(synergiesSection);
+    }
+    
+    // Add training options
+    const trainingOptions = document.createElement('div');
+    trainingOptions.className = 'training-options';
+    trainingOptions.innerHTML = `
+        <h4>Training Options</h4>
+        <div class="training-time">
+            <span>Training Duration</span>
+            <span class="hours-value">1 hour</span>
+        </div>
+        <input type="range" min="1" max="8" value="1" class="training-slider" id="hours-slider">
+        
+        <div class="focus-label">Focus Level</div>
+        <div class="focus-options">
+            <div class="focus-option selected" data-focus="0">Casual</div>
+            <div class="focus-option" data-focus="1">Focused</div>
+            <div class="focus-option" data-focus="2">Intense</div>
+        </div>
+        
+        <div class="training-result">
+            <div>Energy Cost: <span class="energy-cost">5</span></div>
+            <div>Estimated XP Gain: <span class="xp-gain">10</span></div>
+        </div>
+    `;
+    
+    // Add training button
+    const trainButton = document.createElement('button');
+    trainButton.className = 'train-button';
+    trainButton.textContent = 'Train Skill';
+    trainButton.setAttribute('data-skill', skillId);
+    
+    const energyCostSpan = trainingOptions.querySelector('.energy-cost');
+    const xpGainSpan = trainingOptions.querySelector('.xp-gain');
+    
+    // Energy check
+    if (gameState.energy < 5) {
+        trainButton.disabled = true;
+        trainButton.textContent = 'Not Enough Energy';
+    }
+    
+    // Add event listeners for training options
+    const hoursSlider = trainingOptions.querySelector('#hours-slider');
+    const hoursValue = trainingOptions.querySelector('.hours-value');
+    const focusOptions = trainingOptions.querySelectorAll('.focus-option');
+    
+    let hours = 1;
+    let focusLevel = 0;
+    
+    // Update training calculations
+    function updateTrainingCalc() {
+        // Calculate energy cost and XP gain
+        const energyCost = 5 * hours * (focusLevel + 1);
+        
+        // Base XP gain
+        let xpGain = 10 * hours;
+        
+        // Apply focus modifier
+        const focusModifier = 0.5 + (focusLevel * 0.5); // 0.5 to 1.5
+        xpGain *= focusModifier;
+        
+        // Apply attribute bonus if available
+        if (typeof window.getAttributeValue === 'function') {
+            const focusAttr = window.getAttributeValue('focus');
+            const focusBonus = 1 + ((focusAttr - 5) / 15);
+            xpGain *= focusBonus;
+        }
+        
+        // Apply effective growth rate if available
+        if (typeof window.calculateEffectiveGrowthRate === 'function') {
+            const effectiveRate = window.calculateEffectiveGrowthRate(skillId);
+            xpGain *= effectiveRate;
+        } else if (skillInfo.effectiveGrowthRate) {
+            xpGain *= skillInfo.effectiveGrowthRate;
+        }
+        
+        // Update display
+        energyCostSpan.textContent = energyCost;
+        xpGainSpan.textContent = Math.floor(xpGain);
+        
+        // Check if player has enough energy
+        if (gameState.energy < energyCost) {
+            trainButton.disabled = true;
+            trainButton.textContent = 'Not Enough Energy';
+        } else {
+            trainButton.disabled = false;
+            trainButton.textContent = 'Train Skill';
+        }
+    }
+    
+    // Hours slider event
+    hoursSlider.addEventListener('input', () => {
+        hours = parseInt(hoursSlider.value);
+        hoursValue.textContent = `${hours} hour${hours > 1 ? 's' : ''}`;
+        updateTrainingCalc();
+    });
+    
+    // Focus options event
+    focusOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            // Remove selected class from all options
+            focusOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class to clicked option
+            option.classList.add('selected');
+            
+            // Update focus level
+            focusLevel = parseInt(option.getAttribute('data-focus'));
+            
+            updateTrainingCalc();
+        });
+    });
+    
+    // Initial calculation
+    updateTrainingCalc();
+    
+    // Add training button event
+    trainButton.addEventListener('click', () => {
+        if (typeof window.trainSkill === 'function') {
+            const success = window.trainSkill(skillId, hours, focusLevel);
+            
+            if (success) {
+                // Play training sound
+                if (typeof window.playSound === 'function') {
+                    window.playSound('skill-training');
+                }
+                
+                // Close details panel
+                skillDetailsPanel.style.display = 'none';
+                
+                // Update skill display
+                updateSkillDisplay();
+            }
+        } else {
+            console.error("trainSkill function not available");
+        }
+    });
+    
+    // Add training actions
+    const trainingActions = document.createElement('div');
+    trainingActions.className = 'skill-details-actions';
+    trainingActions.appendChild(trainButton);
+    
+    // Add cancel button
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'cancel-button';
+    cancelButton.textContent = 'Cancel';
+    cancelButton.addEventListener('click', () => {
+        skillDetailsPanel.style.display = 'none';
+    });
+    
+    trainingActions.appendChild(cancelButton);
+    
+    // Add training options and actions to details panel
+    trainingOptions.appendChild(trainingActions);
+    skillDetailsPanel.appendChild(trainingOptions);
+    
+    // Add close button event
+    const closeButton = skillDetailsPanel.querySelector('.close-details-button');
+    closeButton.addEventListener('click', () => {
+        skillDetailsPanel.style.display = 'none';
     });
 }

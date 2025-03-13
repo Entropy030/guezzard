@@ -202,65 +202,27 @@ function stopAutoSave() {
 // -------------------------------------------------------------------------
 
 /**
- * Main game initialization function
- * This orchestrates the entire initialization process
+ * Set up all game systems
  */
-async function initializeGame() {
-    console.log("initializeGame() - Starting game initialization");
-
-    try {
-        // Step 1: Initialize game state
-        initializeGameState();
-        console.log("Game state initialized");
-
-        // Step 2: Load saved game if exists
-        try {
-            const savedGame = loadGameState();
-            if (savedGame) {
-                // Found a saved game, apply it
-                Object.assign(window.gameState, savedGame);
-                console.log("Saved game loaded successfully");
-            }
-        } catch (error) {
-            console.error("Error loading saved game:", error);
-        }
-
-        // Step 3: Load game data
-        await loadGameData();
-        console.log("Game data loaded");
-
-        // Step 4: Initialize UI system
-        initializeUI();
-        console.log("UI system initialized");
-
-        // Step 5: Initialize game systems
-        initializeGameSystems();
-        console.log("Game systems initialized");
-
-        // Step 6: Start game loop
-        startGameLoop();
-        console.log("Game loop started");
-
-        // Step 7: Initial UI update
-        if (typeof window.updateAllDisplays === 'function') {
-            window.updateAllDisplays();
-        }
-
-        // Step 8: Start auto-save
-        startAutoSave(30); // Auto-save every 30 seconds
-
-        // Welcome message
-        if (typeof window.logEvent === 'function') {
-            window.logEvent("Welcome to Guezzard! Start your career journey now.", 'system');
-        }
-        
-        console.log("Game initialization completed successfully");
-    } catch (error) {
-        console.error("Error during game initialization:", error);
-        if (typeof window.showErrorNotification === 'function') {
-            window.showErrorNotification("Failed to initialize game. Please try refreshing the page.");
-        }
+function setupGameSystems() {
+    console.log("setupGameSystems() - Setting up core game systems");
+    
+    // Initialize job system if available
+    if (typeof window.initializeJobSystem === 'function') {
+        window.initializeJobSystem();
     }
+
+    // Initialize skill system if available
+    if (typeof window.initializeSkillSystem === 'function') {
+        window.initializeSkillSystem();
+    }
+
+    // Initialize prestige system if available
+    if (typeof window.initializePrestigeSystem === 'function') {
+        window.initializePrestigeSystem();
+    }
+    
+    return true;
 }
 
 /**
@@ -272,7 +234,7 @@ async function loadGameData() {
     try {
         // Create an array of promises for each fetch
         const promises = [
-            fetch("skills.json").then(response => {
+            fetch("data/skills.json").then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to load skills.json: ${response.status} ${response.statusText}`);
                 }
@@ -282,7 +244,7 @@ async function loadGameData() {
                 return []; // Default empty array on error
             }),
             
-            fetch("jobs.json").then(response => {
+            fetch("data/jobs.json").then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to load jobs.json: ${response.status} ${response.statusText}`);
                 }
@@ -292,7 +254,7 @@ async function loadGameData() {
                 return []; // Default empty array on error
             }),
             
-            fetch("achievements.json").then(response => {
+            fetch("data/achievements.json").then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to load achievements.json: ${response.status} ${response.statusText}`);
                 }
@@ -302,7 +264,7 @@ async function loadGameData() {
                 return []; // Default empty array on error
             }),
             
-            fetch("events.json").then(response => {
+            fetch("data/events.json").then(response => {
                 if (!response.ok) {
                     throw new Error(`Failed to load events.json: ${response.status} ${response.statusText}`);
                 }
@@ -556,26 +518,6 @@ function initializeUI() {
         if (typeof window.setupJobsUI === 'function') {
             window.setupJobsUI();
         }
-    }
-}
-
-/**
- * Initialize all game systems
- */
-function initializeGameSystems() {
-    // Initialize job system if available
-    if (typeof window.initializeJobSystem === 'function') {
-        window.initializeJobSystem();
-    }
-
-    // Initialize skill system if available
-    if (typeof window.initializeSkillSystem === 'function') {
-        window.initializeSkillSystem();
-    }
-
-    // Initialize prestige system if available
-    if (typeof window.initPrestigeSystem === 'function') {
-        window.initPrestigeSystem();
     }
 }
 
@@ -934,8 +876,9 @@ window.loadGameState = loadGameState;
 window.resetGameState = resetGameState;
 window.startAutoSave = startAutoSave;
 window.stopAutoSave = stopAutoSave;
-window.initializeGame = initializeGame;
 window.loadGameData = loadGameData;
+window.setupGameSystems = setupGameSystems;
+window.initializeUI = initializeUI;
 window.gameLoop = gameLoop;
 window.startGameLoop = startGameLoop;
 window.regenerateEnergy = regenerateEnergy;
@@ -948,9 +891,6 @@ window.checkAchievements = checkAchievements;
 
 console.log("core.js - Fully integrated core system loaded successfully");
 
-// Auto-initialize on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', initializeGame);
-
 // Export functions for ES module usage
 export {
     getDefaultGameState,
@@ -960,8 +900,9 @@ export {
     resetGameState,
     startAutoSave,
     stopAutoSave,
-    initializeGame,
     loadGameData,
+    setupGameSystems,
+    initializeUI,
     gameLoop,
     startGameLoop,
     regenerateEnergy,
