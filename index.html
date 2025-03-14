@@ -4,132 +4,538 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guezzard - Master Your Career</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-   <!-- Configuration and Game Initialization -->
-<script src="config.js" defer></script>
-<script src="initialization.js" type="module" defer></script>
+    <!-- Configuration and Game Initialization -->
+    <script src="config.js" defer></script>
+    <script src="initialization.js" type="module" defer></script>
 </head>
 <body>
     <div id="game-container">
         <!-- Top Bar with Game Stats -->
         <div id="top-bar">
-            <div id="game-state-indicators">
-                <div class="indicator">
-                    <span class="indicator-label">Gold:</span>
-                    <span id="gold-display">0</span>
+            <div class="game-info">
+                <span class="date-display">14/03/2025</span>
+                <span class="age-display">Age: 27</span>
+            </div>
+            
+            <div id="game-controls">
+                <button id="pause-button" class="control-button">
+                    <svg class="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                </button>
+                <button id="speed-button" class="control-button">1x</button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="content-container">
+            <!-- Left Panel - Player Stats -->
+            <div class="left-panel">
+                <!-- Job title and level -->
+                <div class="job-header">
+                    <div class="job-title">GeoGuessr Player</div>
+                    <div class="job-level-bar">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 45%;"></div>
+                        </div>
+                        <span class="level-indicator">L. 14</span>
+                    </div>
                 </div>
-                <div class="indicator">
-                    <span class="indicator-label">Age:</span>
-                    <span id="age-display">18</span>
+                
+                <!-- Financial stats -->
+                <div class="financial-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Bank:</span>
+                        <span class="stat-value">$4,562</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Income:</span>
+                        <span class="stat-value positive-value">56.25</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Salary:</span>
+                        <span class="stat-value">68.70</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Expenses:</span>
+                        <span class="stat-value negative-value">-12.45</span>
+                    </div>
                 </div>
-                <div class="indicator">
-                    <span class="indicator-label">Energy:</span>
-                    <span id="energy-display">100/100</span>
+                
+                <!-- Time allocation -->
+                <div class="time-allocation">
+                    <div class="time-division">
+                        <span class="division-label">Division:</span>
+                        <span class="division-value">1 hour</span>
+                    </div>
+                    
+                    <div class="activity-row">
+                        <div class="activity-header">
+                            <span>Working</span>
+                            <div class="time-controls">
+                                <button class="time-button">-</button>
+                                <span class="time-display">5:45</span>
+                                <button class="time-button">+</button>
+                            </div>
+                        </div>
+                        <div class="activity-progress">
+                            <div class="progress-fill" style="width: 70%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-row">
+                        <div class="activity-header">
+                            <span>Training</span>
+                            <div class="time-controls">
+                                <button class="time-button">-</button>
+                                <span class="time-display">3:30</span>
+                                <button class="time-button">+</button>
+                            </div>
+                        </div>
+                        <div class="activity-progress">
+                            <div class="progress-fill" style="width: 40%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="other-activities">
+                        <div class="other-activity">
+                            <span class="other-label">Sleeping:</span>
+                            <span>8:00</span>
+                        </div>
+                        <div class="other-activity">
+                            <span class="other-label">Traveling:</span>
+                            <span>4:00</span>
+                        </div>
+                        <div class="other-activity">
+                            <span class="other-label">Cleaning:</span>
+                            <span>0:30</span>
+                        </div>
+                        <div class="other-activity">
+                            <span class="other-label">Cooking:</span>
+                            <span>0:45</span>
+                        </div>
+                    </div>
+                    
+                    <div class="free-time">
+                        <span class="free-time-label">Free time:</span>
+                        <span class="free-time-value">1:30</span>
+                    </div>
                 </div>
-                <div class="energy-bar-container">
-                    <div class="energy-bar">
-                        <div id="energy-bar-fill" class="energy-bar-fill" style="width: 100%;"></div>
+                
+                <!-- Lifestyle stats -->
+                <div class="lifestyle-stats">
+                    <div class="lifestyle-header">Lifestyle:</div>
+                    <div class="lifestyle-bar">
+                        <div class="progress-fill" style="width: 78%;"></div>
+                    </div>
+                    <div class="lifestyle-metric">Experience × 0.78</div>
+                    <div class="lifestyle-metric">Mortality: 0.23%</div>
+                    <div class="lifestyle-metric">Avg. years left: 38</div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Game Content (Jobs) -->
+            <div class="right-panel" id="jobs-panel">
+                <h2 class="section-header">Available Careers</h2>
+                
+                <div class="job-item">
+                    <div class="job-item-header">
+                        <span class="job-item-title">GeoGuessr Champion</span>
+                        <span class="job-item-level">L. 10</span>
+                    </div>
+                    <div class="job-item-progress">
+                        <div class="progress-bar" style="flex-grow: 1; margin-right: 8px;">
+                            <div class="progress-fill" style="width: 40%;"></div>
+                        </div>
+                        <span>1.90 $/h</span>
+                    </div>
+                    <div class="job-item-requirements">
+                        Req: GeoGuessr Player 10/15
+                    </div>
+                </div>
+                
+                <div class="job-item">
+                    <div class="job-item-header">
+                        <span class="job-item-title">Cartographer</span>
+                        <span class="job-item-level">L. 0</span>
+                    </div>
+                    <div class="job-item-progress">
+                        <div class="progress-bar" style="flex-grow: 1; margin-right: 8px;">
+                            <div class="progress-fill" style="width: 0%;"></div>
+                        </div>
+                        <span>2.85 $/h</span>
+                    </div>
+                    <div class="job-item-requirements">
+                        Req: Map Awareness 25/30
+                    </div>
+                </div>
+                
+                <div class="job-category">
+                    <h2 class="section-header">Career Organizations</h2>
+                    
+                    <div class="job-organization">
+                        <div class="organization-header">
+                            <span>Mapping Association</span>
+                            <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="job-item-requirements">
+                            Req: Map Awareness 35/50
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div id="active-job-display">
-                <span class="label">Active Job:</span>
-                <span id="current-job-name">Unemployed</span>
-            </div>
-
-            <div id="job-progress-bar-container" class="progress-bar-container">
-                <div class="progress-bar progressBar">
-                    <div class="progress-fill progressFill" id="job-progress-fill"></div>
-                    <div class="progress-text name" id="job-progress-text">No Job</div>
+            
+            <!-- Right Panel - Skills (Initially Hidden) -->
+            <div class="right-panel" id="skills-panel" style="display: none;">
+                <div class="skills-header">
+                    <h2 class="section-header">Skills</h2>
+                    <div class="auto-learn-toggle">
+                        <span>Auto Learn</span>
+                        <div class="toggle-switch on">
+                            <div class="toggle-handle"></div>
+                        </div>
+                        <button class="config-button">CONFIG...</button>
+                    </div>
+                </div>
+                
+                <div class="skill-category">
+                    <div class="category-header">
+                        <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                        <span>Self Development</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span>Map Awareness</span>
+                            <span class="skill-level">L. 33</span>
+                        </div>
+                        <div class="skill-progress">
+                            <div class="progress-fill" style="width: 75%;"></div>
+                        </div>
+                        <div class="skill-meta">
+                            <span class="skill-exp positive">Exp +32%</span>
+                            <span class="skill-effect">Increases work experience</span>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span>Navigation</span>
+                            <span class="skill-level">L. 21</span>
+                        </div>
+                        <div class="skill-progress">
+                            <div class="progress-fill" style="width: 45%;"></div>
+                        </div>
+                        <div class="skill-meta">
+                            <span class="skill-exp positive">Exp +20%</span>
+                            <span class="skill-effect">Increases work salary</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skill-category">
+                    <div class="category-header">
+                        <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                        <span>Professional Skills</span>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span>Spatial Awareness</span>
+                            <span class="skill-level">L. 15</span>
+                        </div>
+                        <div class="skill-progress">
+                            <div class="progress-fill" style="width: 30%;"></div>
+                        </div>
+                        <div class="skill-meta">
+                            <span class="skill-exp positive">Exp +18%</span>
+                            <span class="skill-effect">Enhances map reading abilities</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div id="skill-progress-bar-container" class="progress-bar-container">
-                <div class="progress-bar progressBar">
-                    <div class="progress-fill progressFill" id="skill-progress-fill"></div>
-                    <div class="progress-text name" id="skill-progress-text">No Skill</div>
+            
+            <!-- Right Panel - Lifestyle (Initially Hidden) -->
+            <div class="right-panel" id="lifestyle-panel" style="display: none;">
+                <h2 class="section-header">Lifestyle</h2>
+                
+                <div class="lifestyle-category">
+                    <div class="lifestyle-category-header">
+                        <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                        <span>House</span>
+                    </div>
+                    
+                    <div class="lifestyle-option">
+                        <span>Shared Room</span>
+                        <div class="option-cost">
+                            <span>$4/day</span>
+                            <button class="info-button">i</button>
+                        </div>
+                    </div>
+                    
+                    <div class="lifestyle-option selected">
+                        <span>Tiny Apartment</span>
+                        <div class="option-cost">
+                            <span>$12/day</span>
+                            <button class="info-button">i</button>
+                        </div>
+                    </div>
+                    
+                    <div class="lifestyle-option">
+                        <span>Apartment</span>
+                        <div class="option-cost">
+                            <span>$32/day</span>
+                            <button class="info-button">i</button>
+                        </div>
+                    </div>
+                    
+                    <div class="lifestyle-requirement">
+                        Req: $200k
+                    </div>
+                </div>
+                
+                <div class="lifestyle-category">
+                    <div class="lifestyle-category-header">
+                        <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                        <span>Transportation</span>
+                    </div>
+                    
+                    <div class="lifestyle-option">
+                        <span>Walking</span>
+                        <div class="option-cost">
+                            <span>$0/day</span>
+                            <button class="info-button">i</button>
+                        </div>
+                    </div>
+                    
+                    <div class="lifestyle-option selected">
+                        <span>Bicycle</span>
+                        <div class="option-cost">
+                            <span>$6/day</span>
+                            <button class="info-button">i</button>
+                        </div>
+                    </div>
+                    
+                    <div class="lifestyle-requirement">
+                        Req: $200k
+                    </div>
                 </div>
             </div>
-
-            <span id="season-display">Day 1, Spring, Year 1</span>
-
-            <div id="game-controls">
-                <button id="pause-button">|| Pause</button>
-                <button id="speed-button">▶ 1x Speed</button>
+        </div>
+        
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item" id="lifestyle-tab">
+                <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="nav-label">Lifestyle</span>
             </div>
-        </div>
-
-        <div id="event-log">
-            <h3>Event Log</h3>
-            <ul id="event-log-list">
-                <li>Welcome to Guezzard, the Career Master Game!</li>
-                <li>Your journey begins at 18 years old. What will you become?</li>
-            </ul>
-        </div>
-
-        <div id="action-buttons">
-            <h3>Actions</h3>
-            <button id="job-button">Jobs</button>
-            <button id="skill-button">Skills</button>
-            <button id="shop-button">Shop</button>
-            <button id="achievements-button">Achievements</button>
-            <button id="relationships-button">Relationships</button>
-            <button id="prestige-button">Prestige</button>
-        </div>
-
-        <!-- Hidden Panels -->
-        <div id="jobs-panel" class="hidden-panel">
-            <h3>Available Jobs</h3>
-            <ul id="jobs-list">
-                <!-- Jobs will be loaded here -->
-            </ul>
-            <button class="close-button" data-panel="jobs-panel">Close</button>
-        </div>
-
-        <div id="skills-panel" class="hidden-panel">
-            <h3>Skills Training</h3>
-            <div id="skills-list">
-                <!-- Skills will be loaded here -->
+            
+            <div class="nav-item active" id="job-tab">
+                <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                    <path d="M8 21v-4"></path>
+                    <path d="M16 21v-4"></path>
+                    <path d="M12 11v.01"></path>
+                    <path d="M3 11h18"></path>
+                </svg>
+                <span class="nav-label">Work</span>
             </div>
-            <button class="close-button" data-panel="skills-panel">Close</button>
-        </div>
-
-        <div id="shop-panel" class="hidden-panel">
-            <h3>Item Shop</h3>
-            <ul id="shop-items-list">
-                <!-- Shop items will be loaded here -->
-            </ul>
-            <button class="close-button" data-panel="shop-panel">Close</button>
-        </div>
-
-        <div id="achievements-panel" class="hidden-panel">
-            <h3>Career Achievements</h3>
-            <ul id="achievements-list">
-                <!-- Achievements will be loaded here -->
-            </ul>
-            <button class="close-button" data-panel="achievements-panel">Close</button>
-        </div>
-
-        <div id="relationships-panel" class="hidden-panel">
-            <h3>Social Connections</h3>
-            <ul id="relationships-list">
-                <!-- Relationships will be loaded here -->
-            </ul>
-            <button class="close-button" data-panel="relationships-panel">Close</button>
-        </div>
-
-        <div id="prestige-panel" class="hidden-panel">
-            <h3>Career Legacy</h3>
-            <div id="prestige-area">
-                Prestige options will unlock after you reach retirement age.
+            
+            <div class="nav-item" id="skills-tab">
+                <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v4"></path>
+                    <path d="M12 18v4"></path>
+                    <path d="m4.93 4.93 2.83 2.83"></path>
+                    <path d="m16.24 16.24 2.83 2.83"></path>
+                    <path d="M2 12h4"></path>
+                    <path d="M18 12h4"></path>
+                    <path d="m4.93 19.07 2.83-2.83"></path>
+                    <path d="m16.24 7.76 2.83-2.83"></path>
+                </svg>
+                <span class="nav-label">Skills</span>
             </div>
-            <button class="close-button" data-panel="prestige-panel">Close</button>
         </div>
     </div>
+    
+    <!-- Auto-Learn Configuration Modal (Hidden by default) -->
+    <div class="modal-overlay" id="auto-learn-modal" style="display: none;">
+        <div class="auto-learn-config">
+            <div class="config-header">
+                <h3 class="config-title">Auto Learn [6/20]</h3>
+                <button class="close-button">&times;</button>
+            </div>
+            
+            <div class="config-rows">
+                <div class="config-row">
+                    <div class="skill-config">
+                        <span class="skill-name">Discipline</span>
+                        <div class="level-config">
+                            <button class="row-button">-</button>
+                            <span class="level-value">20</span>
+                            <button class="row-button">+</button>
+                        </div>
+                    </div>
+                    <div class="row-actions">
+                        <button class="row-button">↓</button>
+                        <button class="row-button">↑</button>
+                        <button class="row-button">🗑</button>
+                    </div>
+                </div>
+                
+                <div class="config-row">
+                    <div class="skill-config">
+                        <span class="skill-name">Charisma</span>
+                        <div class="level-config">
+                            <button class="row-button">-</button>
+                            <span class="level-value">20</span>
+                            <button class="row-button">+</button>
+                        </div>
+                    </div>
+                    <div class="row-actions">
+                        <button class="row-button">↓</button>
+                        <button class="row-button">↑</button>
+                        <button class="row-button">🗑</button>
+                    </div>
+                </div>
+                
+                <div class="config-row">
+                    <div class="skill-config">
+                        <span class="skill-name">Bargaining</span>
+                        <div class="level-config">
+                            <button class="row-button">-</button>
+                            <span class="level-value">10</span>
+                            <button class="row-button">+</button>
+                        </div>
+                    </div>
+                    <div class="row-actions">
+                        <button class="row-button">↓</button>
+                        <button class="row-button">↑</button>
+                        <button class="row-button">🗑</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="add-row-button">ADD ROW</button>
+            
+            <div class="config-actions">
+                <button class="modal-button">CANCEL</button>
+                <button class="modal-button primary">SAVE</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Example (Hidden by default) -->
+    <div class="notification" id="notification-example" style="display: none;">
+        <div class="notification-title">Achievement Unlocked</div>
+        <div class="notification-body">You've reached level 10 in Map Awareness!</div>
+    </div>
+    
+    <!-- JavaScript for tab switching -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get tab elements
+            const lifestyleTab = document.getElementById('lifestyle-tab');
+            const jobTab = document.getElementById('job-tab');
+            const skillsTab = document.getElementById('skills-tab');
+            
+            // Get panel elements
+            const lifestylePanel = document.getElementById('lifestyle-panel');
+            const jobsPanel = document.getElementById('jobs-panel');
+            const skillsPanel = document.getElementById('skills-panel');
+            
+            // Function to set active tab and show corresponding panel
+            function setActiveTab(tab, panel) {
+                // Remove active class from all tabs
+                lifestyleTab.classList.remove('active');
+                jobTab.classList.remove('active');
+                skillsTab.classList.remove('active');
+                
+                // Hide all panels
+                lifestylePanel.style.display = 'none';
+                jobsPanel.style.display = 'none';
+                skillsPanel.style.display = 'none';
+                
+                // Set active tab and show corresponding panel
+                tab.classList.add('active');
+                panel.style.display = 'block';
+            }
+            
+            // Add click event listeners to tabs
+            lifestyleTab.addEventListener('click', function() {
+                setActiveTab(lifestyleTab, lifestylePanel);
+            });
+            
+            jobTab.addEventListener('click', function() {
+                setActiveTab(jobTab, jobsPanel);
+            });
+            
+            skillsTab.addEventListener('click', function() {
+                setActiveTab(skillsTab, skillsPanel);
+            });
+            
+            // Add click event listener to config button
+            const configButton = document.querySelector('.config-button');
+            const autoLearnModal = document.getElementById('auto-learn-modal');
+            const closeButton = document.querySelector('.close-button');
+            
+            configButton.addEventListener('click', function() {
+                autoLearnModal.style.display = 'flex';
+            });
+            
+            closeButton.addEventListener('click', function() {
+                autoLearnModal.style.display = 'none';
+            });
+            
+            // Example toggle switch functionality
+            const toggleSwitch = document.querySelector('.toggle-switch');
+            
+            toggleSwitch.addEventListener('click', function() {
+                this.classList.toggle('on');
+            });
+            
+            // Example pause button functionality
+            const pauseButton = document.getElementById('pause-button');
+            
+            pauseButton.addEventListener('click', function() {
+                this.classList.toggle('paused');
+                
+                // Toggle between pause and play icons
+                const isPaused = this.classList.contains('paused');
+                
+                if (isPaused) {
+                    this.innerHTML = `
+                        <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    `;
+                } else {
+                    this.innerHTML = `
+                        <svg class="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
+                        </svg>
+                    `;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
