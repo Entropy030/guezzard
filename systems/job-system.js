@@ -1,11 +1,7 @@
-// job-system.js - Consolidated Job System
-// This file combines functionality from:
-// - job-manager.js
-// - enhanced-job-manager.js
-// - systems/job-system.js
-// - parts of career-progression.js (system functionality)
+// job-system.js - Enhanced job system for career tracks and organization-based structure
+// This file extends and modifies the original job-system.js
 
-console.log("job-system.js - Loading consolidated job system");
+console.log("job-system.js - Loading enhanced job system");
 
 // Constants for job system
 const JOB_CONSTANTS = {
@@ -61,6 +57,55 @@ function initializeJobStructures() {
     if (!gameState.shownPromotions) {
         gameState.shownPromotions = {};
     }
+    
+    // Initialize organizations (career tracks) and jobs
+    if (!gameState.organizations) {
+        gameState.organizations = [];
+    }
+    
+    // Convert jobs data from flat array to organization-based structure if needed
+    if (gameState.jobs && Array.isArray(gameState.jobs) && gameState.jobs.length > 0 && 
+        (!gameState.organizations || gameState.organizations.length === 0)) {
+        convertJobsToOrganizations();
+    }
+}
+
+/**
+ * Convert old jobs format to organization-based structure
+ */
+function convertJobsToOrganizations() {
+    console.log("convertJobsToOrganizations() - Converting job data to organization structure");
+    
+    // Get career tracks from jobs.json (assuming it has been loaded with the new structure)
+    fetch("data/jobs.json")
+        .then(response => response.json())
+        .then(orgData => {
+            gameState.organizations = orgData;
+            console.log(`Loaded ${orgData.length} organizations with career tracks`);
+        })
+        .catch(error => {
+            console.error("Error loading organization data:", error);
+            
+            // Fallback - create basic structure from existing jobs
+            const orgMap = {};
+            
+            // Group jobs by potential organization
+            gameState.jobs.forEach(job => {
+                const orgId = job.id.split('_')[0]; // Simple guess at organization from job id
+                if (!orgMap[orgId]) {
+                    orgMap[orgId] = {
+                        id: orgId,
+                        name: orgId.charAt(0).toUpperCase() + orgId.slice(1) + " Track",
+                        jobs: []
+                    };
+                }
+                
+                orgMap[orgId].jobs.push(job);
+            });
+            
+            // Convert map to array
+            gameState.organizations = Object.values(orgMap);
+        });
 }
 
 /**
@@ -111,28 +156,222 @@ function setupPeriodicChecks() {
     
     window.promotionCheckTimer = setInterval(() => {
         if (!gameState.gamePaused && gameState.activeJob) {
-            const promotion = checkForPromotion();
-            if (promotion) {
-                showPromotionNotification(promotion);
+            const promotions = checkForPromotions();
+            if (promotions && promotions.length > 0) {
+                showPromotionNotification(promotions[0]);
             }
         }
     }, JOB_CONSTANTS.PROMOTION_CHECK_INTERVAL);
 }
 
 /**
+ * Get all organizations with their jobs
+ * @returns {Array} - Array of organizations with job availability info
+ */
+export function getOrganizationsWithJobs() {
+    console.log("getOrganizationsWithJobs() - Getting all career tracks and jobs");
+    
+    const result = [];
+    
+    // Check if organizations are loaded
+    if (!gameState.organizations || gameState.organizations.length === 0) {
+        console.warn("getOrganizationsWithJobs() - No organizations found");
+        return [];
+    }
+    
+    // Process each organization
+    gameState.organizations.forEach(org => {
+        // Check if organization has requirements
+        const orgAvailable = checkOrganizationAvailability(org);
+        
+        // Get jobs in this organization with availability info
+        const jobsWithAvailability = [];
+        
+        // Process each job in the organization
+        (org.jobs || []).forEach(job => {
+            const jobsInOrg = getJobsForOrganization(job, orgAvailable);
+            jobsWithAvailability.push(...jobsInOrg);
+        });
+        
+        // Add organization with its jobs
+        result.push({
+            id: org.id,
+            name: org.name,
+            description: org.description,
+            available: orgAvailable,
+            jobs: jobsWithAvailability
+        });
+    });
+    
+    return result;
+}
+
+/**
+ * Check if an organization is available based on its requirements
+ * @param {Object} org - Organization data
+ * @returns {boolean} - Whether the organization is available
+ */
+function checkOrganizationAvailability(org) {
+    // If no requirements, organization is available
+    if (!org.requirements) {
+        return true;
+    }
+    
+    // Check skill requirements
+    if (org.requirements.skills) {
+        for (const [skillId, requiredLevel] of Object.entries(org.requirements.skills)) {
+            const playerSkillLevel = getPlayerSkillLevel(skillId);
+            if (playerSkillLevel < requiredLevel) {
+                return false;
+            }
+        }
+    }
+    
+    // Check attribute requirements
+    if (org.requirements.attributes) {
+        for (const [attrId, requiredValue] of Object.entries(org.requirements.attributes)) {
+            const playerAttrValue = getAttributeValue(attrId);
+            if (playerAttrValue < requiredValue) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Get jobs for an organization with availability info
+ * @param {Object} job - Job data
+ * @param {boolean} orgAvailable - Whether the parent organization is available
+ * @returns {Array} - Array of jobs with availability info
+ */
+function getJobsForOrganization(job, orgAvailable) {
+    const result = [];
+    
+    // Skip if organization is not available
+    if (!orgAvailable) {
+        // Add job with unavailable status
+        result.push({
+            ...job,
+            available: false,
+            level: 0,
+            hourlyRate: 0
+        });
+        return result;
+    }
+    
+    // Get current job level if player has worked this job
+    const jobLevel = gameState.jobLevels[job.id] || 0;
+    
+    // Process job tiers
+    job.tiers.forEach(tier => {
+        // Check if player meets requirements for this tier
+        const isAvailable = meetsJobRequirements(job, tier.tier);
+        
+        // Calculate hourly rate
+        const hourlyRate = calculateHourlyRate(job, tier);
+        
+        // Add job with availability info
+        result.push({
+            ...job,
+            ...tier,
+            id: job.id,  // Ensure ID is preserved
+            available: isAvailable,
+            level: jobLevel,
+            hourlyRate: hourlyRate
+        });
+    });
+    
+    return result;
+}
+
+/**
+ * Calculate hourly rate for a job
+ * @param {Object} job - Job data
+ * @param {Object} tier - Tier data
+ * @returns {number} - Hourly rate
+ */
+function calculateHourlyRate(job, tier) {
+    // Use tier's hourly rate if provided
+    if (tier.incomePerHour) {
+        return tier.incomePerHour;
+    }
+    
+    // Calculate from yearly income
+    if (tier.incomePerYear) {
+        // Default to 2000 working hours per year if CONFIG not available
+        const workingHoursPerYear = (window.CONFIG && window.CONFIG.settings && 
+            window.CONFIG.settings.ticksInOneGameYear) ? 
+            window.CONFIG.settings.ticksInOneGameYear / 5 : 2000;
+        
+        return tier.incomePerYear / workingHoursPerYear;
+    }
+    
+    return 0;
+}
+
+/**
+ * Select and apply for a job
+ * @param {string} jobId - ID of the job
+ * @param {number} tierLevel - Tier level of the job
+ * @returns {boolean} - Success/failure of job selection
+ */
+export function selectJob(jobId, tierLevel = 0) {
+    console.log(`selectJob() - Selecting job ${jobId}, tier ${tierLevel}`);
+    
+    // Get job data
+    const jobData = getJobByIdAndTier(jobId, tierLevel);
+    
+    if (!jobData) {
+        console.error(`selectJob() - Job ${jobId} at tier ${tierLevel} not found`);
+        return false;
+    }
+    
+    // Apply for the job using the existing system
+    return applyForJob(jobData, tierLevel);
+}
+
+/**
+ * Get job data by ID and tier
+ * @param {string} jobId - ID of the job
+ * @param {number} tierLevel - Tier level of the job
+ * @returns {Object|null} - Job data or null if not found
+ */
+function getJobByIdAndTier(jobId, tierLevel = 0) {
+    // Search through organizations
+    for (const org of gameState.organizations || []) {
+        for (const job of org.jobs || []) {
+            if (job.id === jobId) {
+                // Find the specific tier
+                const tier = job.tiers.find(t => t.tier === tierLevel);
+                if (tier) {
+                    // Combine job and tier data
+                    return {
+                        ...job,
+                        ...tier,
+                        id: job.id,  // Ensure ID is preserved
+                        organizationId: org.id
+                    };
+                }
+            }
+        }
+    }
+    
+    return null;
+}
+
+/**
  * Apply for a job
- * @param {number} jobIndex - Index of the job in the jobs array
+ * @param {Object} jobData - Job data
  * @param {number} tierLevel - Tier level of the job
  * @returns {boolean} - Success/failure of job application
  */
-export function applyForJob(jobIndex, tierLevel = 0) {
-    console.log(`applyForJob() - Applying for job at index ${jobIndex}, tier ${tierLevel}`);
-    
-    // Get the job data
-    const jobData = getJobData(jobIndex, tierLevel);
+export function applyForJob(jobData, tierLevel = 0) {
+    console.log(`applyForJob() - Applying for job ${jobData.title}, tier ${tierLevel}`);
     
     if (!jobData) {
-        console.error("applyForJob() - Job data not found");
+        console.error("applyForJob() - Job data not provided");
         return false;
     }
     
@@ -141,7 +380,7 @@ export function applyForJob(jobIndex, tierLevel = 0) {
         console.warn("applyForJob() - Player does not meet job requirements");
         
         if (typeof window.showNotification === 'function') {
-            window.showNotification("Job Application", "You don't meet the requirements for this job", "error");
+            window.showNotification("Job Selection", "You don't meet the requirements for this job", "error");
         }
         
         return false;
@@ -156,6 +395,11 @@ export function applyForJob(jobIndex, tierLevel = 0) {
     gameState.activeJob = { ...jobData };
     gameState.currentJobTier = tierLevel;
     gameState.jobProgress = 0;
+    
+    // Initialize job level if not exist
+    if (!gameState.jobLevels[jobData.id]) {
+        gameState.jobLevels[jobData.id] = 1;
+    }
     
     // Initialize job time tracking
     trackJobStartTime();
@@ -184,69 +428,24 @@ export function applyForJob(jobIndex, tierLevel = 0) {
 }
 
 /**
- * Get job data based on index and tier
- * @param {number} jobIndex - Index of the job in the jobs array
- * @param {number} tierLevel - Tier level of the job
- * @returns {object|null} - Job data or null if not found
- */
-export function getJobData(jobIndex, tierLevel = 0) {
-    if (!gameState.jobs || jobIndex >= gameState.jobs.length) {
-        return null;
-    }
-    
-    const job = gameState.jobs[jobIndex];
-    
-    // If job has tiers, get the specific tier data
-    if (job.tiers && job.tiers.length > 0) {
-        const tierData = job.tiers.find(t => t.tier === tierLevel);
-        
-        if (tierData) {
-            // Combine job base data with tier data
-            return { ...job, ...tierData, id: job.id };
-        }
-    }
-    
-    // Return base job data if no tiers or tier not found
-    return job;
-}
-
-/**
  * Check if player meets job requirements
- * @param {object} jobData - Job data
+ * @param {Object} jobData - Job data
  * @param {number} tierLevel - Tier level of the job
  * @returns {boolean} - Whether player meets requirements
  */
 export function meetsJobRequirements(jobData, tierLevel = 0) {
     console.log(`meetsJobRequirements() - Checking requirements for job ${jobData?.id}, tier ${tierLevel}`);
     
-    // Check skill requirements
-    const requiredSkill = "map_awareness";
-    const requiredLevel = jobData.minSkill || 0;
-    
-    // Get player's current level for required skill
-    const playerSkillLevel = getPlayerSkillLevel(requiredSkill);
-    
-    if (playerSkillLevel < requiredLevel) {
-        console.log(`meetsJobRequirements() - Player's ${requiredSkill} level (${playerSkillLevel}) is below required level (${requiredLevel})`);
-        return false;
+    // Get tier data
+    let tierData = jobData;
+    if (jobData.tiers) {
+        tierData = jobData.tiers.find(tier => tier.tier === tierLevel) || jobData;
     }
     
-    // Check previous job requirement if applicable
-    if (jobData.requiredJobId && jobData.requiredJobLevel) {
-        const requiredJobLevel = jobData.requiredJobLevel;
-        const currentPrevJobLevel = gameState.jobLevels && gameState.jobLevels[jobData.requiredJobId] || 0;
-        
-        if (currentPrevJobLevel < requiredJobLevel) {
-            console.log(`meetsJobRequirements() - Player's previous job level (${currentPrevJobLevel}) is below required level (${requiredJobLevel})`);
-            return false;
-        }
-    }
-    
-    // Check advanced skill requirements if any
-    if (jobData.requiredSkills) {
-        for (const [skillId, requiredLevel] of Object.entries(jobData.requiredSkills)) {
+    // Check skill requirements first
+    if (tierData.requiredSkills) {
+        for (const [skillId, requiredLevel] of Object.entries(tierData.requiredSkills)) {
             const playerSkillLevel = getPlayerSkillLevel(skillId);
-            
             if (playerSkillLevel < requiredLevel) {
                 console.log(`meetsJobRequirements() - Player's ${skillId} level (${playerSkillLevel}) is below required level (${requiredLevel})`);
                 return false;
@@ -254,9 +453,31 @@ export function meetsJobRequirements(jobData, tierLevel = 0) {
         }
     }
     
+    // Check minimum skill level (back-compat)
+    if (tierData.minSkill) {
+        // Use map_awareness as default skill
+        const skillId = "map_awareness";
+        const playerSkillLevel = getPlayerSkillLevel(skillId);
+        if (playerSkillLevel < tierData.minSkill) {
+            console.log(`meetsJobRequirements() - Player's ${skillId} level (${playerSkillLevel}) is below minimum level (${tierData.minSkill})`);
+            return false;
+        }
+    }
+    
+    // Check previous job requirement if applicable
+    if (tierData.requiredJobId && tierData.requiredJobLevel) {
+        const requiredJobLevel = tierData.requiredJobLevel;
+        const currentPrevJobLevel = gameState.jobLevels && gameState.jobLevels[tierData.requiredJobId] || 0;
+        
+        if (currentPrevJobLevel < requiredJobLevel) {
+            console.log(`meetsJobRequirements() - Player's previous job level (${currentPrevJobLevel}) is below required level (${requiredJobLevel})`);
+            return false;
+        }
+    }
+    
     // Check attribute requirements if any
-    if (jobData.requiredAttributes) {
-        for (const [attrId, requiredValue] of Object.entries(jobData.requiredAttributes)) {
+    if (tierData.requiredAttributes) {
+        for (const [attrId, requiredValue] of Object.entries(tierData.requiredAttributes)) {
             const playerAttrValue = getAttributeValue(attrId);
             
             if (playerAttrValue < requiredValue) {
@@ -534,7 +755,7 @@ function applyJobLevelBonuses(jobId, level) {
  */
 function processJobIncome(job, deltaTime, performanceModifier = 1.0) {
     // Skip if job has no income
-    if (!job || !job.incomePerYear) {
+    if (!job || (!job.incomePerYear && !job.incomePerHour)) {
         return;
     }
     
@@ -551,8 +772,28 @@ function processJobIncome(job, deltaTime, performanceModifier = 1.0) {
         goldMultiplier *= gameState.multipliers.gold;
     }
     
+    // Get income per year (either directly or calculated from hourly rate)
+    let incomePerYear = job.incomePerYear;
+    if (!incomePerYear && job.incomePerHour) {
+        // Default to 2000 working hours per year if CONFIG not available
+        const workingHoursPerYear = (window.CONFIG && window.CONFIG.settings && 
+            window.CONFIG.settings.ticksInOneGameYear) ? 
+            window.CONFIG.settings.ticksInOneGameYear / 5 : 2000;
+        
+        incomePerYear = job.incomePerHour * workingHoursPerYear;
+    }
+    
+    // Safe access to CONFIG for tick values
+    const ticksInOneGameYear = (window.CONFIG && window.CONFIG.settings && 
+        window.CONFIG.settings.ticksInOneGameYear) ? 
+        window.CONFIG.settings.ticksInOneGameYear : 600;
+    
+    const tickInterval = (window.CONFIG && window.CONFIG.settings && 
+        window.CONFIG.settings.tickInterval) ? 
+        window.CONFIG.settings.tickInterval : 25;
+    
     // Calculate income per second with all modifiers
-    const incomePerSecond = (job.incomePerYear / (CONFIG.settings.ticksInOneGameYear * (1000 / CONFIG.settings.tickInterval))) * 
+    const incomePerSecond = (incomePerYear / (ticksInOneGameYear * (1000 / tickInterval))) * 
         performanceModifier * goldMultiplier;
     
     // Apply income for this tick
@@ -594,10 +835,19 @@ function processSkillGains(job, deltaTime, performanceModifier = 1.0) {
         skillMultiplier *= gameState.multipliers.skill;
     }
     
+    // Safe access to CONFIG for tick values
+    const ticksInOneGameYear = (window.CONFIG && window.CONFIG.settings && 
+        window.CONFIG.settings.ticksInOneGameYear) ? 
+        window.CONFIG.settings.ticksInOneGameYear : 600;
+    
+    const tickInterval = (window.CONFIG && window.CONFIG.settings && 
+        window.CONFIG.settings.tickInterval) ? 
+        window.CONFIG.settings.tickInterval : 25;
+    
     // Process each skill gain
     for (const [skillId, gainPerYear] of Object.entries(job.skillGainPerYear)) {
         // Convert yearly gain to per millisecond
-        const gainPerMs = gainPerYear / (CONFIG.settings.ticksInOneGameYear * (1000 / CONFIG.settings.tickInterval));
+        const gainPerMs = gainPerYear / (ticksInOneGameYear * (1000 / tickInterval));
         
         // Apply gain for this tick with modifiers
         const gain = gainPerMs * deltaTime * performanceModifier * skillMultiplier;
@@ -855,62 +1105,93 @@ function trackJobStartTime() {
 }
 
 /**
- * Check for promotion
- * @returns {object|null} - Promotion data or null if not eligible
+ * Check for promotions based on organization structure
+ * @returns {Array} - Array of possible promotions
  */
-function checkForPromotion() {
-    console.log("checkForPromotion() - Checking for promotion opportunities");
+function checkForPromotions() {
+    console.log("checkForPromotions() - Checking for promotion opportunities");
     
     // Skip if no active job
     if (!gameState.activeJob) {
-        return null;
+        return [];
     }
     
     const currentJob = gameState.activeJob;
     const currentTier = gameState.currentJobTier;
     const jobId = currentJob.id;
     
-    // Find the job in the jobs array
-    const job = gameState.jobs.find(j => j.id === jobId);
-    if (!job) {
-        return null;
-    }
+    const promotions = [];
     
-    // Check if there's a higher tier for this job
-    const nextTier = currentTier + 1;
-    const nextTierData = job.tiers && job.tiers.find(tier => tier.tier === nextTier);
+    // Get all organizations (cached for performance)
+    const organizations = gameState.organizations || [];
     
-    // If no higher tier exists for this job, return null
-    if (!nextTierData) {
-        return null;
-    }
-    
-    // Check if player meets requirements for next tier
-    const meetsRequirements = meetsJobRequirements(job, nextTier);
-    
-    if (meetsRequirements) {
-        // Check if this promotion has already been shown
-        if (gameState.shownPromotions && gameState.shownPromotions[`${jobId}-${nextTier}`]) {
-            return null;
+    // Find possible promotions by searching jobs in all organizations
+    organizations.forEach(org => {
+        // Check organization availability first
+        if (checkOrganizationAvailability(org)) {
+            org.jobs.forEach(job => {
+                // Same job (check higher tier)
+                if (job.id === jobId) {
+                    for (const tier of job.tiers) {
+                        // Higher tier of same job
+                        if (tier.tier > currentTier && meetsJobRequirements({...job, ...tier})) {
+                            // Already shown?
+                            const promotionKey = `${job.id}-${tier.tier}`;
+                            if (!gameState.shownPromotions || !gameState.shownPromotions[promotionKey]) {
+                                promotions.push({
+                                    sourceJob: currentJob,
+                                    targetJob: {...job, ...tier, id: job.id},
+                                    sourceTier: currentTier,
+                                    targetTier: tier.tier,
+                                    type: 'tier-promotion',
+                                    organizationId: org.id
+                                });
+                                
+                                // Mark as shown
+                                if (!gameState.shownPromotions) {
+                                    gameState.shownPromotions = {};
+                                }
+                                gameState.shownPromotions[promotionKey] = true;
+                            }
+                        }
+                    }
+                }
+                // Different job (check if current job is required)
+                else {
+                    for (const tier of job.tiers) {
+                        if (tier.requiredJobId === jobId && 
+                            tier.requiredJobLevel && 
+                            gameState.jobLevels[jobId] >= tier.requiredJobLevel) {
+                            
+                            // Check if meets requirements
+                            if (meetsJobRequirements({...job, ...tier})) {
+                                // Already shown?
+                                const promotionKey = `${job.id}-${tier.tier}`;
+                                if (!gameState.shownPromotions || !gameState.shownPromotions[promotionKey]) {
+                                    promotions.push({
+                                        sourceJob: currentJob,
+                                        targetJob: {...job, ...tier, id: job.id},
+                                        sourceTier: currentTier,
+                                        targetTier: tier.tier,
+                                        type: 'job-promotion',
+                                        organizationId: org.id
+                                    });
+                                    
+                                    // Mark as shown
+                                    if (!gameState.shownPromotions) {
+                                        gameState.shownPromotions = {};
+                                    }
+                                    gameState.shownPromotions[promotionKey] = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
-        
-        // Mark this promotion as shown
-        if (!gameState.shownPromotions) {
-            gameState.shownPromotions = {};
-        }
-        gameState.shownPromotions[`${jobId}-${nextTier}`] = true;
-        
-        // Return promotion data
-        return {
-            currentJob: currentJob,
-            currentTier: currentTier,
-            nextTier: nextTier,
-            nextTierData: nextTierData,
-            jobInfo: job
-        };
-    }
+    });
     
-    return null;
+    return promotions;
 }
 
 /**
@@ -924,31 +1205,26 @@ function showPromotionNotification(promotion) {
         return;
     }
     
-    // Find the job title for the next tier
-    let nextTierTitle = promotion.currentJob.title;
-    promotion.jobInfo.tiers.forEach(tier => {
-        if (tier.tier === promotion.nextTier && tier.title) {
-            nextTierTitle = tier.title;
-        }
-    });
-    
-    // Create a notification
+    // Create notification
     if (typeof window.showNotification === 'function') {
+        const message = promotion.type === 'tier-promotion' ?
+            `You're eligible for a promotion to ${promotion.targetJob.title} (Tier ${promotion.targetTier})!` :
+            `You've unlocked a new job: ${promotion.targetJob.title}!`;
+            
         window.showNotification(
-            "Promotion Available",
-            `You're eligible for a promotion to ${nextTierTitle}!`,
+            "Career Opportunity",
+            message,
             "success"
         );
     }
     
     // Log the promotion opportunity
     if (typeof window.logEvent === 'function') {
-        window.logEvent(`You're now eligible for a promotion to ${nextTierTitle}!`, 'career');
-    }
-    
-    // Show promotion UI if available
-    if (typeof window.showPromotionUI === 'function') {
-        window.showPromotionUI(promotion);
+        const message = promotion.type === 'tier-promotion' ?
+            `You're eligible for a promotion to ${promotion.targetJob.title}!` :
+            `You've unlocked a new job: ${promotion.targetJob.title}!`;
+            
+        window.logEvent(message, 'career');
     }
 }
 
@@ -970,71 +1246,52 @@ export function getJobProgressPercentage() {
 }
 
 /**
- * Get available jobs
- * @returns {Array} - Array of available jobs
+ * Get job title by ID
+ * @param {string} jobId - Job identifier
+ * @returns {string} - Job title or ID if not found
  */
-export function getAvailableJobs() {
-    console.log("getAvailableJobs() - Getting available jobs");
-    
-    const availableJobs = [];
-    
-    if (!gameState.jobs) {
-        return availableJobs;
+export function getJobTitle(jobId) {
+    // Search through organizations
+    for (const org of gameState.organizations || []) {
+        for (const job of org.jobs || []) {
+            if (job.id === jobId) {
+                return job.title;
+            }
+        }
     }
     
-    // Process each job
-    gameState.jobs.forEach(job => {
-        // Base job with no tiers
-        if (!job.tiers || job.tiers.length === 0) {
-            if (meetsJobRequirements(job, 0)) {
-                availableJobs.push(job);
-            }
-            return;
-        }
-        
-        // Jobs with tiers
-        job.tiers.forEach(tier => {
-            // Create a combined job object for this tier
-            const tierJob = { 
-                ...job, 
-                ...tier,
-                id: job.id,
-                title: tier.title || job.title
-            };
-            
-            // Check if player meets requirements
-            if (meetsJobRequirements(tierJob, tier.tier)) {
-                availableJobs.push(tierJob);
-            }
-        });
-    });
-    
-    return availableJobs;
+    return jobId; // Fallback to ID if not found
 }
 
 // Make essential functions available globally
+window.getOrganizationsWithJobs = getOrganizationsWithJobs;
+window.selectJob = selectJob;
 window.applyForJob = applyForJob;
 window.quitJob = quitJob;
-window.getJobData = getJobData;
 window.meetsJobRequirements = meetsJobRequirements;
 window.processJobProgress = processJobProgress;
 window.calculateXPForJobLevel = calculateXPForJobLevel;
-window.getAvailableJobs = getAvailableJobs;
 window.getJobProgressPercentage = getJobProgressPercentage;
-window.checkForPromotion = checkForPromotion;
+window.checkForPromotions = checkForPromotions;
 window.getRelevantSkillsForJob = getRelevantSkillsForJob;
 window.getRelevantAttributesForJob = getRelevantAttributesForJob;
 window.initializeJobSystem = initializeJobSystem;
+window.getJobTitle = getJobTitle;
 
-console.log("job-system.js - Consolidated job system loaded successfully");
+console.log("job-system.js - Enhanced job system loaded successfully");
 
 // Export functions for ES module usage
 export {
     initializeJobSystem,
+    getOrganizationsWithJobs,
+    selectJob,
     applyForJob,
     quitJob,
     processJobProgress,
     calculateXPForJobLevel,
-    getAvailableJobs,
-    getJobProgressPercentage
+    getJobProgressPercentage,
+    checkForPromotions,
+    getRelevantSkillsForJob,
+    getRelevantAttributesForJob,
+    getJobTitle
 };

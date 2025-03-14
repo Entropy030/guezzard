@@ -84,7 +84,10 @@ function updateLifestyleStats() {
   // Example lifestyle metrics (replace with your actual game calculations)
   const experienceMultiplier = 0.78;
   const mortalityRate = 0.23;
-  const avgYearsLeft = Math.max(0, window.CONFIG.settings.maxAge - (window.gameState.age || 18));
+  
+  // Add null check before accessing CONFIG.settings
+  const maxAge = (window.CONFIG && window.CONFIG.settings && window.CONFIG.settings.maxAge) || 65;
+  const avgYearsLeft = Math.max(0, maxAge - (window.gameState.age || 18));
   
   if(lifestyleBar) {
     lifestyleBar.style.width = `${experienceMultiplier * 100}%`;
