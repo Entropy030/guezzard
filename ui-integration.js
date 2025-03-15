@@ -130,91 +130,141 @@ function updateJobsPanel() {
     tempContainer.appendChild(newHeader);
   }
   
-  // Get available jobs
+  // Get available jobs from organizations structure
   let availableJobs = [];
-  if(typeof window.getAvailableJobs === 'function') {
-    availableJobs = window.getAvailableJobs();
-  } else {
-    // Example jobs data for testing
-    availableJobs = [
-      {
-        title: "Google Maps User",
-        level: window.gameState.activeJob && window.gameState.activeJob.title === "Google Maps User" ? 1 : 0,
-        incomePerYear: 200,
-        requirements: "Starting Job - No Requirements"
-      },
-      {
-        title: "GeoGuessr Player",
-        level: window.gameState.activeJob && window.gameState.activeJob.title === "GeoGuessr Player" ? 1 : 0,
-        incomePerYear: 500,
-        requirements: "Map Awareness 20/30"
-      }
-    ];
-  }
   
-  // Add jobs to the panel
-  availableJobs.forEach(job => {
-    const jobItem = document.createElement('div');
-    jobItem.className = 'job-item';
-    
-    let hourlyRate = 0;
-    if (window.CONFIG && window.CONFIG.settings && window.CONFIG.settings.ticksInOneGameYear) {
-      hourlyRate = job.incomePerYear / (window.CONFIG.settings.ticksInOneGameYear * (1000 / window.CONFIG.settings.tickInterval));
-    } else {
-      hourlyRate = job.incomePerYear / 600; // Fallback to default 600 ticks per year
-    }
-    
-    jobItem.innerHTML = `
-      <div class="job-item-header">
-        <span class="job-item-title">${job.title}</span>
-        <span class="job-item-level">L. ${job.level}</span>
-      </div>
-      <div class="job-item-progress">
-        <div class="progress-bar" style="flex-grow: 1; margin-right: 8px;">
-          <div class="progress-fill" style="width: ${job.level > 0 ? '40%' : '0%'};"></div>
-        </div>
-        <span>${hourlyRate.toFixed(2)} $/h</span>
-      </div>
-      <div class="job-item-requirements">
-        ${job.requirements ? 'Req: ' + job.requirements : ''}
-      </div>
-    `;
-    
-    // Add click handler for job application
-    jobItem.addEventListener('click', () => {
-      if(typeof window.applyForJob === 'function') {
-        // Find job index in available jobs array
-        const jobIndex = availableJobs.indexOf(job);
-        if(jobIndex !== -1) {
-          window.applyForJob(jobIndex);
-          updateAllDisplays();
-        }
+  // Process organizations and jobs
+  if (gameState.organizations && Array.isArray(gameState.organizations)) {
+    gameState.organizations.forEach(org => {
+      // Create organization section
+      const orgSection = document.createElement('div');
+      orgSection.className = 'job-category';
+      orgSection.innerHTML = `
+        <h2 class="section-header">${org.name}</h2>
+        <p>${org.description || ''}</p>
+      `;
+      
+      // Process jobs in this organization
+      const jobsInOrg = [];
+      (org.jobs || []).forEach(job => {
+        // Process each tier of the job
+        (job.tiers || []).forEach(tier => {
+          // Check if the player meets requirements for this job tier
+          const isAvailable = typeof window.meetsJobRequirements === 'function' ? 
+            window.meetsJobRequirements(job, tier.tier) : true;
+          
+          // Current job level
+          const jobLevel = gameState.jobLevels && gameState.jobLevels[job.id] ? 
+            gameState.jobLevels[job.id] : 0;
+          
+          // Calculate hourly rate
+          let hourlyRate = tier.incomePerHour || 0;
+          if (!hourlyRate && tier.incomePerYear) {
+            // Default to 2000 working hours per year if CONFIG not available
+            const workingHoursPerYear = (window.CONFIG && window.CONFIG.settings && 
+                window.CONFIG.settings.ticksInOneGameYear) ? 
+                window.CONFIG.settings.ticksInOneGameYear / 5 : 2000;
+            
+            hourlyRate = tier.incomePerYear / workingHoursPerYear;
+          }
+          
+          // Add job item
+          const jobItem = document.createElement('div');
+          jobItem.className = `job-item ${isAvailable ? '' : 'unavailable'}`;
+          jobItem.setAttribute('data-job-id', job.id);
+          jobItem.setAttribute('data-tier', tier.tier);
+          
+          jobItem.innerHTML = `
+            <div class="job-item-header">
+              <span class="job-item-title">${job.title} (Tier ${tier.tier})</span>
+              <span class="job-item-level">L. ${jobLevel}</span>
+            </div>
+            <div class="job-item-progress">
+              <div class="progress-bar" style="flex-grow: 1; margin-right: 8px;">
+                <div class="progress-fill" style="width: ${(gameState.activeJob && gameState.activeJob.id === job.id) ? 
+                  (typeof window.getJobProgressPercentage === 'function' ? window.getJobProgressPercentage() : '40') : '0'}%;"></div>
+              </div>
+              <span>${hourlyRate.toFixed(2)} $/h</span>
+            </div>
+            <div class="job-item-requirements">
+              ${formatRequirements(job, tier)}
+            </div>
+          `;
+          
+          // Add click handler to apply for job
+          if (isAvailable) {
+            jobItem.addEventListener('click', () => {
+              if (typeof window.selectJob === 'function') {
+                window.selectJob(job.id, tier.tier);
+              } else if (typeof window.applyForJob === 'function') {
+                window.applyForJob({...job, ...tier, id: job.id}, tier.tier);
+              }
+              updateAllDisplays();
+            });
+          }
+          
+          jobsInOrg.push(jobItem);
+        });
+      });
+      
+      // Add jobs to the organization section
+      if (jobsInOrg.length > 0) {
+        const jobsContainer = document.createElement('div');
+        jobsContainer.className = 'jobs-container';
+        jobsInOrg.forEach(jobItem => jobsContainer.appendChild(jobItem));
+        orgSection.appendChild(jobsContainer);
+        tempContainer.appendChild(orgSection);
       }
     });
+  } else {
+    // Fallback to old job display if organizations not available
+    const availableJobs = gameState.jobs || [];
     
-    tempContainer.appendChild(jobItem);
-  });
+    availableJobs.forEach(job => {
+      const jobItem = document.createElement('div');
+      jobItem.className = 'job-item';
+      
+      let hourlyRate = 0;
+      if (window.CONFIG && window.CONFIG.settings && window.CONFIG.settings.ticksInOneGameYear) {
+        hourlyRate = job.incomePerYear / (window.CONFIG.settings.ticksInOneGameYear * (1000 / window.CONFIG.settings.tickInterval));
+      } else {
+        hourlyRate = job.incomePerYear / 600; // Fallback to default 600 ticks per year
+      }
+      
+      jobItem.innerHTML = `
+        <div class="job-item-header">
+          <span class="job-item-title">${job.title}</span>
+          <span class="job-item-level">L. ${gameState.jobLevels && gameState.jobLevels[job.id] ? gameState.jobLevels[job.id] : 0}</span>
+        </div>
+        <div class="job-item-progress">
+          <div class="progress-bar" style="flex-grow: 1; margin-right: 8px;">
+            <div class="progress-fill" style="width: ${job.id === gameState.activeJob?.id ? '40%' : '0%'};"></div>
+          </div>
+          <span>${hourlyRate.toFixed(2)} $/h</span>
+        </div>
+        <div class="job-item-requirements">
+          ${job.requirements ? 'Req: ' + job.requirements : ''}
+        </div>
+      `;
+      
+      // Add click handler for job application
+      jobItem.addEventListener('click', () => {
+        if (typeof window.applyForJob === 'function') {
+          // Find job index in available jobs array
+          const jobIndex = availableJobs.indexOf(job);
+          if (jobIndex !== -1) {
+            window.applyForJob(jobIndex);
+            updateAllDisplays();
+          }
+        }
+      });
+      
+      tempContainer.appendChild(jobItem);
+    });
+  }
   
-  // Add career organizations section
-  const organizationsSection = document.createElement('div');
-  organizationsSection.className = 'job-category';
-  organizationsSection.innerHTML = `
-    <h2 class="section-header">Career Organizations</h2>
-    
-    <div class="job-organization">
-      <div class="organization-header">
-        <span>Mapping Association</span>
-        <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </div>
-      <div class="job-item-requirements">
-        Req: Map Awareness 35/50
-      </div>
-    </div>
-  `;
-  
-  tempContainer.appendChild(organizationsSection);
+  // Add career organizations section (if needed)
+  // ...
   
   // Add the event log back
   if (eventLog) {
@@ -234,6 +284,72 @@ function updateJobsPanel() {
   
   // Replace the content of the jobs panel
   jobsPanel.innerHTML = tempContainer.innerHTML;
+  
+  // Helper function to format job requirements
+  function formatRequirements(job, tier) {
+    if (tier.tier === 1 && !tier.minSkill && !tier.requiredSkills && !tier.requiredJobId) {
+      return "Starting Job - No Requirements";
+    }
+    
+    let requirements = [];
+    
+    // Check minSkill (default to map_awareness)
+    if (tier.minSkill) {
+      const skillLevel = getSkillLevel('map_awareness');
+      requirements.push(`Map Awareness ${skillLevel}/${tier.minSkill}`);
+    }
+    
+    // Check specific skill requirements
+    if (tier.requiredSkills) {
+      for (const [skillId, level] of Object.entries(tier.requiredSkills)) {
+        const playerLevel = getSkillLevel(skillId);
+        const skillName = skillId.split('_').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        
+        requirements.push(`${skillName} ${playerLevel}/${level}`);
+      }
+    }
+    
+    // Check previous job requirement
+    if (tier.requiredJobId && tier.requiredJobLevel) {
+      const jobLevel = gameState.jobLevels && gameState.jobLevels[tier.requiredJobId] || 0;
+      const jobName = getJobTitle(tier.requiredJobId);
+      
+      requirements.push(`${jobName} L.${jobLevel}/${tier.requiredJobLevel}`);
+    }
+    
+    return requirements.length > 0 ? `Req: ${requirements.join(', ')}` : "";
+  }
+  
+  // Helper function to get skill level
+  function getSkillLevel(skillId) {
+    if (!gameState.skills || !gameState.skills[skillId]) {
+      return 0;
+    }
+    
+    const skill = gameState.skills[skillId];
+    return typeof skill === 'object' ? skill.level || 0 : skill || 0;
+  }
+  
+  // Helper function to get job title from ID
+  function getJobTitle(jobId) {
+    // Check all organizations for this job
+    if (gameState.organizations) {
+      for (const org of gameState.organizations) {
+        for (const job of org.jobs || []) {
+          if (job.id === jobId) {
+            return job.title;
+          }
+        }
+      }
+    }
+    
+    // Fallback to formatting job ID
+    return jobId.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  }
 }
 
 /**
@@ -257,128 +373,92 @@ function updateSkillsPanel() {
     </div>
   `;
   
-  // Define skill categories (either from game state or example data)
-  const skillCategories = [];
+  // Group skills by category
+  const skillsByCategory = {};
   
-  // If we have skill categories in game state
-  if(window.gameState.skillCategories) {
-    // Group skills by category
-    const skillsByCategory = {};
-    
-    // Initialize categories
-    for(const categoryId in window.gameState.skillCategories) {
-      skillsByCategory[categoryId] = [];
-    }
-    
-    // Add skills to categories
-    for(const skillId in window.gameState.skills) {
-      const skill = window.gameState.skills[skillId];
-      if(skill.categoryId && skillsByCategory[skill.categoryId]) {
-        skillsByCategory[skill.categoryId].push({
-          id: skillId,
-          ...skill
-        });
-      } else if (!skill.categoryId) {
-        // For skills without category, assign to "analytical" as default
-        if (!skillsByCategory["analytical"]) {
-          skillsByCategory["analytical"] = [];
-        }
-        skillsByCategory["analytical"].push({
-          id: skillId,
-          ...skill
-        });
+  // Process skills from game state
+  if (gameState.skills) {
+    for (const skillId in gameState.skills) {
+      const skill = gameState.skills[skillId];
+      if (!skill) continue;
+      
+      // Get skill data
+      const skillLevel = typeof skill === 'object' ? skill.level || 0 : skill || 0;
+      if (skillLevel === 0) continue; // Skip skills with level 0
+      
+      // Get category
+      let categoryId = 'general';
+      if (typeof skill === 'object' && skill.categoryId) {
+        categoryId = skill.categoryId;
+      } else if (skillId.includes('map') || skillId.includes('data')) {
+        categoryId = 'analytical';
+      } else if (skillId.includes('program') || skillId.includes('coding')) {
+        categoryId = 'technical';
+      } else if (skillId.includes('communication') || skillId.includes('charisma')) {
+        categoryId = 'social';
       }
-    }
-    
-    // Create category objects
-    for(const categoryId in skillsByCategory) {
-      if (skillsByCategory[categoryId].length > 0) {
-        const category = window.gameState.skillCategories[categoryId] || { name: categoryId };
-        skillCategories.push({
-          id: categoryId,
-          name: category.name,
-          skills: skillsByCategory[categoryId]
-        });
+      
+      // Initialize category if needed
+      if (!skillsByCategory[categoryId]) {
+        skillsByCategory[categoryId] = [];
       }
+      
+      // Format skill name and description
+      const skillName = typeof skill === 'object' ? 
+        (skill.name || formatSkillName(skillId)) : formatSkillName(skillId);
+      
+      const skillDescription = typeof skill === 'object' ? 
+        (skill.description || `Ability related to ${skillName}`) : 
+        `Ability related to ${skillName}`;
+      
+      // Add skill to category
+      skillsByCategory[categoryId].push({
+        id: skillId,
+        name: skillName,
+        level: skillLevel,
+        description: skillDescription,
+        xp: typeof skill === 'object' ? skill.xp || 0 : 0
+      });
     }
-  } else {
-    // Example skill categories for testing
-    skillCategories.push({
-      name: "Analytical Skills",
-      skills: [
-        { 
-          id: "map_awareness",
-          name: "Map Awareness", 
-          level: 1, 
-          experience: "+0%", 
-          effect: "Ability to read and understand maps",
-          xp: 0, 
-          xpForNextLevel: 100 
-        },
-        { 
-          id: "data_analysis",
-          name: "Data Analysis", 
-          level: 1, 
-          experience: "+0%", 
-          effect: "Ability to interpret and derive insights from data",
-          xp: 0, 
-          xpForNextLevel: 100 
-        }
-      ]
-    });
-    
-    skillCategories.push({
-      name: "Practical Skills",
-      skills: [
-        { 
-          id: "navigation",
-          name: "Navigation", 
-          level: 1, 
-          experience: "+0%", 
-          effect: "Ability to find and follow routes",
-          xp: 0, 
-          xpForNextLevel: 100 
-        }
-      ]
-    });
   }
   
-  // Add skill categories to the panel
-  skillCategories.forEach(category => {
+  // Create skill categories
+  for (const categoryId in skillsByCategory) {
+    const categorySkills = skillsByCategory[categoryId];
+    if (categorySkills.length === 0) continue;
+    
+    // Create category element
     const categoryElement = document.createElement('div');
     categoryElement.className = 'skill-category';
     
-    // Create category header
     categoryElement.innerHTML = `
       <div class="category-header">
         <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-        <span>${category.name}</span>
+        <span>${formatCategoryName(categoryId)}</span>
       </div>
     `;
     
     // Add skills to category
-    category.skills.forEach(skill => {
+    categorySkills.forEach(skill => {
       const skillElement = document.createElement('div');
       skillElement.className = 'skill-item';
       skillElement.setAttribute('data-skill', skill.id);
       
-      // Calculate percentage to next level
-      let percentToNextLevel = 0;
-      let xpForNextLevel = 100;
-      
-      if (typeof skill.percentToNextLevel !== 'undefined') {
-        percentToNextLevel = skill.percentToNextLevel;
-      } else if (typeof window.calculateXPForLevel === 'function') {
-        xpForNextLevel = window.calculateXPForLevel(skill.level);
-        percentToNextLevel = skill.xp ? (skill.xp / xpForNextLevel) * 100 : 0;
-      } else if (skill.xpForNextLevel) {
-        percentToNextLevel = skill.xp ? (skill.xp / skill.xpForNextLevel) * 100 : 0;
+      // Calculate progress percentage
+      let progressPercent = 0;
+      if (gameState.skillProgress && gameState.skillProgress[skill.id] !== undefined) {
+        const progress = gameState.skillProgress[skill.id];
+        const progressNeeded = 10 + (skill.level * 5); // Simple progression formula
+        progressPercent = Math.min(100, (progress / progressNeeded) * 100);
+      } else if (skill.xp !== undefined) {
+        // Use XP-based formula if available
+        const baseXP = 100;
+        const scalingFactor = 1.1;
+        const xpNeeded = Math.floor(baseXP * Math.pow(scalingFactor, skill.level - 1));
+        progressPercent = Math.min(100, (skill.xp / xpNeeded) * 100);
       }
-      
-      // Default experience value if not provided
-      const experienceValue = skill.experience || "+0%";
       
       skillElement.innerHTML = `
         <div class="skill-header">
@@ -386,20 +466,18 @@ function updateSkillsPanel() {
           <span class="skill-level">L. ${skill.level}</span>
         </div>
         <div class="skill-progress">
-          <div class="progress-fill" style="width: ${percentToNextLevel}%;"></div>
+          <div class="progress-fill" style="width: ${progressPercent}%;"></div>
         </div>
         <div class="skill-meta">
-          <span class="skill-exp ${experienceValue.includes('+') ? 'positive' : 'negative'}">
-            Exp ${experienceValue}
-          </span>
-          <span class="skill-effect">${skill.description || skill.effect || ""}</span>
+          <span class="skill-exp positive">Exp +0%</span>
+          <span class="skill-effect">${skill.description}</span>
         </div>
       `;
       
       // Add click handler for skill training
       skillElement.addEventListener('click', () => {
-        if(typeof window.trainSkill === 'function') {
-          window.trainSkill(skill.id || skill.name, 1);
+        if (typeof window.trainSkill === 'function') {
+          window.trainSkill(skill.id, 1);
           updateAllDisplays();
         }
       });
@@ -408,7 +486,7 @@ function updateSkillsPanel() {
     });
     
     skillsPanel.appendChild(categoryElement);
-  });
+  }
   
   // Add skill progress panel
   const skillProgressPanel = document.createElement('div');
@@ -423,25 +501,39 @@ function updateSkillsPanel() {
   
   // Set up auto-learn toggle
   const toggleSwitch = skillsPanel.querySelector('.toggle-switch');
-  if(toggleSwitch) {
+  if (toggleSwitch) {
     toggleSwitch.addEventListener('click', function() {
       this.classList.toggle('on');
       // Update game state
-      window.gameState.autoLearnEnabled = this.classList.contains('on');
+      gameState.autoLearnEnabled = this.classList.contains('on');
     });
     
     // Set initial state
-    if(window.gameState.autoLearnEnabled) {
+    if (gameState.autoLearnEnabled) {
       toggleSwitch.classList.add('on');
     }
   }
   
   // Set up config button
   const configButton = skillsPanel.querySelector('.config-button');
-  if(configButton) {
+  if (configButton) {
     configButton.addEventListener('click', () => {
       showAutoLearnConfig();
     });
+  }
+  
+  // Helper function to format skill name
+  function formatSkillName(skillId) {
+    return skillId
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+  
+  // Helper function to format category name
+  function formatCategoryName(categoryId) {
+    const name = categoryId.charAt(0).toUpperCase() + categoryId.slice(1);
+    return name.endsWith('s') ? name : name + ' Skills';
   }
 }
 
