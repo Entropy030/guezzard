@@ -566,14 +566,22 @@ function updatePlayerStats() {
   }
 }
 
+// Patches for ui-integration.js to change gold to kudos in display
+
 /**
- * Update financial stats
+ * Update financial stats with Kudos instead of Gold
  */
 function updateFinancialStats() {
   const bankValue = document.querySelector('.financial-stats .stat-row:nth-child(1) .stat-value');
   const incomeValue = document.querySelector('.financial-stats .stat-row:nth-child(2) .stat-value');
   const salaryValue = document.querySelector('.financial-stats .stat-row:nth-child(3) .stat-value');
   const expensesValue = document.querySelector('.financial-stats .stat-row:nth-child(4) .stat-value');
+  
+  // Update bank label to Kudos
+  const bankLabel = document.querySelector('.financial-stats .stat-row:nth-child(1) .stat-label');
+  if (bankLabel) {
+    bankLabel.textContent = "Kudos:";
+  }
   
   if(bankValue) {
     bankValue.textContent = `${formatNumber(Math.floor(window.gameState.gold || 0))}`;
@@ -622,6 +630,309 @@ function updateFinancialStats() {
     }
   }
 }
+
+/**
+ * Update jobs panel with Kudos instead of $ symbol
+ */
+function updateJobsPanel() {
+  const jobsPanel = document.getElementById('jobs-panel');
+  if(!jobsPanel) return;
+  
+  // Don't clear everything, just the job listings
+  const jobsHeader = jobsPanel.querySelector('.section-header');
+  const eventLog = jobsPanel.querySelector('.event-log');
+  
+  // Create a temporary container
+  const tempContainer = document.createElement('div');
+  
+  // Add the header
+  if (jobsHeader) {
+    tempContainer.appendChild(jobsHeader.cloneNode(true));
+  } else {
+    const newHeader = document.createElement('h2');
+    newHeader.className = 'section-header';
+    newHeader.textContent = 'Available Careers';
+    tempContainer.appendChild(newHeader);
+  }
+  
+  // Get available jobs from organizations structure
+  let availableJobs = [];
+  
+  // Process organizations and jobs
+  if (gameState.organizations && Array.isArray(gameState.organizations)) {
+    gameState.organizations.forEach(org => {
+      // Create organization section
+      const orgSection = document.createElement('div');
+      orgSection.className = 'job-category';
+      orgSection.innerHTML = `
+        <h2 class="section-header">${org.name}</h2>
+        <p>${org.description || ''}</p>
+      `;
+      
+      // Process jobs in this organization
+      const jobsInOrg = [];
+      (org.jobs || []).forEach(job => {
+        // Process each tier of the job
+        (job.tiers || []).forEach(tier => {
+          // Check if the player meets requirements for this job tier
+          const isAvailable = typeof window.meetsJobRequirements === 'function' ? 
+            window.meetsJobRequirements(job, tier.tier) : true;
+          
+          // Current job level
+          const jobLevel = gameState.jobLevels && gameState.jobLevels[job.id] ? 
+            gameState.jobLevels[job.id] : 0;
+          
+          // Calculate hourly rate
+          let hourlyRate = tier.incomePerHour || 0;
+          if (!hourlyRate && tier.incomePerYear) {
+            // Default to 2000 working hours per year if CONFIG not available
+            const workingHoursPerYear = (window.CONFIG && window.CONFIG.settings && 
+                window.CONFIG.settings.ticksInOneGameYear) ? 
+                window.CONFIG.settings.ticksInOneGameYear / 5 : 2000;
+            
+            hourlyRate = tier.incomePerYear / workingHoursPerYear;
+          }
+          
+          // Add job item
+          const jobItem = document.createElement('div');
+          jobItem.className = `job-item ${isAvailable ? '' : 'unavailable'}`;
+          jobItem.setAttribute('data-job-id', job.id);
+          jobItem.setAttribute('data-tier', tier.tier);
+          
+          jobItem.innerHTML = `
+            <div class="job-item-header">
+              <span class="job-item-title">${job.title} (Tier ${tier.tier})</span>
+              <span class="job-item-level">L. ${jobLevel}</span>
+            </div>
+            <div class="job-item-progress">
+              <div class="progress-bar" style="flex-grow: 1; margin-right: 8px;">
+                <div class="progress-fill" style="width: ${(gameState.activeJob && gameState.activeJob.id === job.id) ? 
+                  (typeof window.getJobProgressPercentage === 'function' ? window.getJobProgressPercentage() : '40') : '0'}%;"></div>
+              </div>
+              <span>${hourlyRate.toFixed(2)} kudos/h</span>
+            </div>
+            <div class="job-item-requirements">
+              ${formatRequirements(job, tier)}
+            </div>
+            ${tier.popCultureRef ? `<div class="job-item-quote">"${tier.popCultureRef}"</div>` : ''}
+          `;
+          
+          // Add click handler to apply for job
+          if (isAvailable) {
+            jobItem.addEventListener('click', () => {
+              if (typeof window.selectJob === 'function') {
+                window.selectJob(job.id, tier.tier);
+              } else if (typeof window.applyForJob === 'function') {
+                window.applyForJob({...job, ...tier, id: job.id}, tier.tier);
+              }
+              updateAllDisplays();
+            });
+          }
+          
+          jobsInOrg.push(jobItem);
+        });
+      });
+      
+      // Add jobs to the organization section
+      if (jobsInOrg.length > 0) {
+        const jobsContainer = document.createElement('div');
+        jobsContainer.className = 'jobs-container';
+        jobsInOrg.forEach(jobItem => jobsContainer.appendChild(jobItem));
+        orgSection.appendChild(jobsContainer);
+        tempContainer.appendChild(orgSection);
+      }
+    });
+  } else {
+    // Fallback to old job display if organizations not available
+    const availableJobs = gameState.jobs || [];
+    
+    availableJobs.forEach(job => {
+      const jobItem = document.createElement('div');
+      jobItem.className = 'job-item';
+      
+      let hourlyRate = 0;
+      if (window.CONFIG && window.CONFIG.settings && window.CONFIG.settings.ticksInOneGameYear) {
+        hourlyRate = job.incomePerYear / (window.CONFIG.settings.ticksInOneGameYear * (1000 / window.CONFIG.settings.tickInterval));
+      } else {
+        hourlyRate = job.incomePerYear / 600; // Fallback to default 600 ticks per year
+      }
+      
+      jobItem.innerHTML = `
+        <div class="job-item-header">
+          <span class="job-item-title">${job.title}</span>
+          <span class="job-item-level">L. ${gameState.jobLevels && gameState.jobLevels[job.id] ? gameState.jobLevels[job.id] : 0}</span>
+        </div>
+        <div class="job-item-progress">
+          <div class="progress-bar" style="flex-grow: 1; margin-right: 8px;">
+            <div class="progress-fill" style="width: ${job.id === gameState.activeJob?.id ? '40%' : '0%'};"></div>
+          </div>
+          <span>${hourlyRate.toFixed(2)} kudos/h</span>
+        </div>
+        <div class="job-item-requirements">
+          ${job.requirements ? 'Req: ' + job.requirements : ''}
+        </div>
+      `;
+      
+      // Add click handler for job application
+      jobItem.addEventListener('click', () => {
+        if (typeof window.applyForJob === 'function') {
+          // Find job index in available jobs array
+          const jobIndex = availableJobs.indexOf(job);
+          if (jobIndex !== -1) {
+            window.applyForJob(jobIndex);
+            updateAllDisplays();
+          }
+        }
+      });
+      
+      tempContainer.appendChild(jobItem);
+    });
+  }
+  
+  // Add the event log back
+  if (eventLog) {
+    tempContainer.appendChild(eventLog.cloneNode(true));
+  } else {
+    // Create an event log if it doesn't exist
+    const newEventLog = document.createElement('div');
+    newEventLog.className = 'event-log';
+    newEventLog.innerHTML = `
+      <div class="event-log-header">Recent Events</div>
+      <ul id="event-list" class="event-list">
+        <li class="event-item">Welcome to Guezzard! Start your career journey now.</li>
+      </ul>
+    `;
+    tempContainer.appendChild(newEventLog);
+  }
+  
+  // Replace the content of the jobs panel
+  jobsPanel.innerHTML = tempContainer.innerHTML;
+}
+
+/**
+ * Update lifestyle panel with Kudos instead of $ in cost display
+ */
+function createLifestyleCategory(parentElement, categoryName, options) {
+  const categoryElement = document.createElement('div');
+  categoryElement.className = 'lifestyle-category';
+  
+  // Create category header
+  categoryElement.innerHTML = `
+    <div class="lifestyle-category-header">
+      <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      <span>${categoryName}</span>
+    </div>
+  `;
+  
+  // Add options to category
+  options.forEach(option => {
+    const optionElement = document.createElement('div');
+    optionElement.className = `lifestyle-option ${option.current ? 'selected' : ''} ${!option.available ? 'unavailable' : ''}`;
+    
+    optionElement.innerHTML = `
+      <span>${option.name}</span>
+      <div class="option-cost">
+        <span>${option.cost.toFixed(2)} kudos/day</span>
+        <button class="info-button">i</button>
+      </div>
+    `;
+    
+    // Add tooltip with description
+    if (option.description) {
+      optionElement.title = option.description;
+    }
+    
+    // Add click handler for option selection
+    if (option.available) {
+      optionElement.addEventListener('click', () => {
+        const category = categoryName.toLowerCase();
+        
+        if (typeof window.selectLifestyleOption === 'function') {
+          window.selectLifestyleOption(category, option.id);
+        } else {
+          // Fallback for simple lifestyle selection
+          if (!window.gameState.lifestyle) {
+            window.gameState.lifestyle = {};
+          }
+          window.gameState.lifestyle[category] = option.name;
+          
+          // Update UI
+          updateLifestylePanel();
+          updateLifestyleStats();
+        }
+      });
+    }
+    
+    categoryElement.appendChild(optionElement);
+  });
+  
+  // Add requirement if any option is unavailable
+  const hasUnavailableOptions = options.some(option => !option.available);
+  if (hasUnavailableOptions) {
+    const requirementElement = document.createElement('div');
+    requirementElement.className = 'lifestyle-requirement';
+    requirementElement.textContent = "Some options require more kudos or career achievements";
+    categoryElement.appendChild(requirementElement);
+  }
+  
+  parentElement.appendChild(categoryElement);
+}
+
+/**
+ * Update daily cost display in lifestyle panel
+ */
+function updateLifestylePanel() {
+  const lifestylePanel = document.getElementById('lifestyle-panel');
+  if(!lifestylePanel) return;
+  
+  // Implementation remains the same, just adding at the end:
+  
+  // Add daily cost display
+  const dailyCost = window.gameState.lifestyleEffects && window.gameState.lifestyleEffects.costPerDay;
+  if (dailyCost !== undefined) {
+    const costDisplay = document.createElement('div');
+    costDisplay.className = 'daily-cost-display';
+    costDisplay.innerHTML = `<div class="cost-label">Daily lifestyle cost:</div><div class="cost-value">${dailyCost.toFixed(2)} kudos/day</div>`;
+    lifestylePanel.appendChild(costDisplay);
+  }
+}
+
+// Additional CSS for kudos symbols
+document.addEventListener('DOMContentLoaded', function() {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+    /* Kudos Currency Styling */
+    .financial-stats .stat-label:first-child::after {
+      content: " 💰";
+    }
+    
+    .cost-value::after {
+      content: " 💰";
+    }
+    
+    /* Update daily cost styling */
+    .daily-cost-display {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: var(--bg-panel);
+      border-radius: var(--radius-md);
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .cost-label {
+      color: var(--text-secondary);
+    }
+    
+    .cost-value {
+      font-weight: bold;
+      color: var(--danger);
+    }
+  `;
+  document.head.appendChild(styleElement);
+});
 
 /**
  * Update time allocation display

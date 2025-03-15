@@ -750,10 +750,10 @@ function updateDaySeasonDisplay() {
  * @returns {number} Current mortality rate (0-1)
  */
 function calculateMortality() {
-    // Base mortality factors
+    // Base mortality factors (adjusted to match documentation)
     const baseMortality = 0.001; // Base rate at young age
     const midpointAge = 65;      // Age at which mortality is 50% of maximum
-    const kFactor = 0.15;        // Steepness of the sigmoid curve
+    const kFactor = 0.15;        // Steepness of the sigmoid curve (lower = flatter curve)
     
     // Apply lifestyle modifier to the k factor (steepness)
     let lifestyleModifier = 1.0; // Default modifier
@@ -771,10 +771,19 @@ function calculateMortality() {
     // Calculate mortality using sigmoid function as described in game mechanics document
     // Formula: Mortality Rate = Base × (1 / (1 + e^(-k × (Age - Midpoint))))
     const ageDifference = gameState.age - midpointAge;
-    const mortalityRate = baseMortality + (1 - baseMortality) * (1 / (1 + Math.exp(-finalKFactor * ageDifference)));
+    const sigmoidValue = 1 / (1 + Math.exp(-finalKFactor * ageDifference));
     
-    // Calculate average years left (simplified estimate)
-    const avgYearsLeft = Math.max(0, Math.round(100 * (1 - mortalityRate)));
+    // Combine base mortality with sigmoid scaling
+    const mortalityRate = baseMortality + (1 - baseMortality) * sigmoidValue;
+    
+    // Calculate average years left (improved estimate based on mortality)
+    // Using actuarial approximation: higher mortality = fewer years left
+    let avgYearsLeft = Math.max(0, Math.round((1 - mortalityRate) * (100 - gameState.age)));
+    
+    // Apply diminishing returns at very old ages
+    if (gameState.age > 90) {
+        avgYearsLeft = Math.min(avgYearsLeft, 10);
+    }
     
     // Store in game state
     gameState.mortalityRate = mortalityRate;
@@ -795,36 +804,36 @@ function getLifestyleKFactorModifier() {
         return modifier;
     }
     
-    // Housing impact
+    // Housing impact - Significant effect (30% of total lifestyle effect)
     const housing = gameState.lifestyle.housing || "Shared Room";
-    if (housing === "Castle") modifier *= 0.7;
-    else if (housing === "Mansion") modifier *= 0.75;
-    else if (housing === "Luxury Condo") modifier *= 0.8;
-    else if (housing === "Townhouse") modifier *= 0.85;
-    else if (housing === "Apartment") modifier *= 0.9;
-    else if (housing === "Tiny Apartment") modifier *= 0.95;
-    else if (housing === "Shared Room") modifier *= 1.0;
-    else if (housing === "Homeless") modifier *= 1.2;
+    if (housing === "Castle") modifier *= 0.7;        // -30% mortality rate
+    else if (housing === "Mansion") modifier *= 0.75; // -25% mortality rate
+    else if (housing === "Luxury Condo") modifier *= 0.8;  // -20% mortality rate
+    else if (housing === "Townhouse") modifier *= 0.85;    // -15% mortality rate
+    else if (housing === "Apartment") modifier *= 0.9;     // -10% mortality rate
+    else if (housing === "Tiny Apartment") modifier *= 0.95; // -5% mortality rate
+    else if (housing === "Shared Room") modifier *= 1.0;   // No effect
+    else if (housing === "Homeless") modifier *= 1.2;      // +20% mortality rate
     
-    // Diet impact
+    // Diet impact - Moderate effect (20% of total lifestyle effect)
     const diet = gameState.lifestyle.diet || "Basic Food";
-    if (diet === "Nutrient Optimization") modifier *= 0.8;
-    else if (diet === "Personal Chef") modifier *= 0.85;
-    else if (diet === "Organic Market") modifier *= 0.92;
-    else if (diet === "Meal Delivery") modifier *= 0.95;
-    else if (diet === "Grocery Store") modifier *= 0.97;
-    else if (diet === "Basic Food") modifier *= 1.05;
-    else if (diet === "Homeless Shelter") modifier *= 1.15;
+    if (diet === "Nutrient Optimization") modifier *= 0.8;  // -20% mortality rate
+    else if (diet === "Personal Chef") modifier *= 0.85;    // -15% mortality rate
+    else if (diet === "Organic Market") modifier *= 0.92;   // -8% mortality rate
+    else if (diet === "Meal Delivery") modifier *= 0.95;    // -5% mortality rate
+    else if (diet === "Grocery Store") modifier *= 0.97;    // -3% mortality rate
+    else if (diet === "Basic Food") modifier *= 1.05;       // +5% mortality rate
+    else if (diet === "Homeless Shelter") modifier *= 1.15; // +15% mortality rate
     
-    // Transportation impact
+    // Transportation impact - Minor effect (5% of total lifestyle effect)
     const transport = gameState.lifestyle.transportation || "Walking";
-    if (transport === "Teleportation") modifier *= 0.95;
-    else if (transport === "Helicopter") modifier *= 1.02; // Slight risk increase
-    else if (transport === "Luxury Car") modifier *= 0.98;
-    else if (transport === "Car") modifier *= 1.01; // Slight risk increase
-    else if (transport === "Public Transit") modifier *= 1.0;
-    else if (transport === "Bicycle") modifier *= 0.97; // Exercise benefit
-    else if (transport === "Walking") modifier *= 0.99; // Small exercise benefit
+    if (transport === "Teleportation") modifier *= 0.95;    // -5% mortality rate (no travel risks)
+    else if (transport === "Helicopter") modifier *= 1.02;  // +2% mortality rate (slight risk)
+    else if (transport === "Luxury Car") modifier *= 0.98;  // -2% mortality rate (safety features)
+    else if (transport === "Car") modifier *= 1.01;         // +1% mortality rate (accident risk)
+    else if (transport === "Public Transit") modifier *= 1.0; // No effect
+    else if (transport === "Bicycle") modifier *= 0.97;     // -3% mortality rate (exercise benefit)
+    else if (transport === "Walking") modifier *= 0.99;     // -1% mortality rate (small exercise benefit)
     
     return modifier;
 }
@@ -852,6 +861,41 @@ function checkForNaturalDeath() {
     }
     
     return false;
+}
+
+/**
+ * Apply daily lifestyle costs
+ * Called from the game loop during day advancement
+ */
+function applyLifestyleCosts() {
+    // Skip if lifestyle effects not calculated
+    if (!gameState.lifestyleEffects) {
+        return;
+    }
+    
+    // Get daily cost
+    const dailyCost = gameState.lifestyleEffects.costPerDay;
+    
+    // Deduct from gold
+    if (dailyCost > 0) {
+        gameState.gold -= dailyCost;
+        
+        // Track expenses in statistics
+        if (gameState.statistics) {
+            gameState.statistics.totalExpenses = (gameState.statistics.totalExpenses || 0) + dailyCost;
+        }
+        
+        // Ensure gold doesn't go negative
+        if (gameState.gold < 0) {
+            // If can't afford lifestyle, downgrade to cheapest options
+            downgradeLifestyleIfNeeded();
+            
+            // Log the financial difficulty
+            if (typeof window.logEvent === 'function') {
+                window.logEvent("You've run out of kudos! Your lifestyle has been downgraded.", 'financial');
+            }
+        }
+    }
 }
 
 /**

@@ -7,7 +7,7 @@
       {
         "id": "focus",
         "name": "Focus",
-        "description": "Ability to concentrate and avoid distractions",
+        "description": "The superpower of pretending the rest of the world doesn't exist for 10 minutes… until you remember you're hungry.",
         "icon": "bullseye",
         "baseValue": 1,
         "maxLevel": 100
@@ -15,7 +15,7 @@
       {
         "id": "intelligence",
         "name": "Intelligence",
-        "description": "General ability to learn and solve problems",
+        "description": "The ability to solve problems you didn't create... which is a miracle considering you're constantly creating new ones.",
         "icon": "brain",
         "baseValue": 1,
         "maxLevel": 100
@@ -23,7 +23,7 @@
       {
         "id": "communication",
         "name": "Communication",
-        "description": "Clarity in expressing ideas verbally and in writing",
+        "description": "Mastering the art of saying \"I'm fine\" when your soul is crumbling.",
         "icon": "comments",
         "baseValue": 1,
         "maxLevel": 100
@@ -31,7 +31,7 @@
       {
         "id": "creativity",
         "name": "Creativity",
-        "description": "Novel thinking and imaginative problem-solving",
+        "description": "Pretending new ways to procrastinate that look like actual work.",
         "icon": "lightbulb",
         "baseValue": 1,
         "maxLevel": 100
@@ -39,7 +39,7 @@
       {
         "id": "discipline",
         "name": "Discipline",
-        "description": "Self-control and structured approach to tasks",
+        "description": "The painful skill of doing things you hate because someone, somewhere, told you it's \"good for you.\"",
         "icon": "calendar-check",
         "baseValue": 1,
         "maxLevel": 100
@@ -47,7 +47,7 @@
       {
         "id": "charisma",
         "name": "Charisma",
-        "description": "Personal magnetism and ability to influence others",
+        "description": "Making people believe your Google Slides presentation isn't a complete waste of time.",
         "icon": "star",
         "baseValue": 1,
         "maxLevel": 100
@@ -55,7 +55,7 @@
       {
         "id": "patience",
         "name": "Patience",
-        "description": "Ability to remain calm and persist through difficulties",
+        "description": "Sitting through mind-numbing conversations, or waiting for your browser to load while silently contemplating your entire existence.",
         "icon": "hourglass-half",
         "baseValue": 1,
         "maxLevel": 100
@@ -63,7 +63,7 @@
       {
         "id": "adaptability",
         "name": "Adaptability",
-        "description": "Adjusting to new situations and requirements",
+        "description": "Switching from crying in the bathroom to smiling in meetings in under 5 minutes.",
         "icon": "sync",
         "baseValue": 1,
         "maxLevel": 100
@@ -71,7 +71,7 @@
       {
         "id": "confidence",
         "name": "Confidence",
-        "description": "Self-assurance and belief in one's abilities",
+        "description": "Walking into a room like you own it, even though you're secretly googling how to look \"professional.\"",
         "icon": "crown",
         "baseValue": 1,
         "maxLevel": 100
@@ -79,7 +79,7 @@
       {
         "id": "observation",
         "name": "Observation",
-        "description": "Noticing details in surroundings and situations",
+        "description": "Noticing everything that's wrong with the world, but too tired to do anything about it.",
         "icon": "eye",
         "baseValue": 1,
         "maxLevel": 100
@@ -87,7 +87,7 @@
       {
         "id": "critical_thinking",
         "name": "Critical Thinking",
-        "description": "Evaluating information objectively",
+        "description": "Figuring out that the \"innovative\" project is just a rehash of last year's failed idea.",
         "icon": "balance-scale",
         "baseValue": 1,
         "maxLevel": 100
@@ -95,7 +95,7 @@
       {
         "id": "empathy",
         "name": "Empathy",
-        "description": "Understanding others' emotions and perspectives",
+        "description": "Understanding people's feelings, even when you're trying to avoid talking to them.",
         "icon": "heart",
         "baseValue": 1,
         "maxLevel": 100
@@ -103,7 +103,7 @@
       {
         "id": "memory",
         "name": "Memory",
-        "description": "Retention and recall of information",
+        "description": "Remembering all the embarrassing things you've done, but forgetting what you had for lunch yesterday.",
         "icon": "book",
         "baseValue": 1,
         "maxLevel": 100
@@ -111,7 +111,7 @@
       {
         "id": "persuasion",
         "name": "Persuasion",
-        "description": "Ability to convince others and change minds",
+        "description": "Convincing someone that your completely unqualified opinion is actually a life-changing revelation.",
         "icon": "handshake",
         "baseValue": 1,
         "maxLevel": 100
@@ -119,7 +119,7 @@
       {
         "id": "organization",
         "name": "Organization",
-        "description": "Managing time, resources, and information",
+        "description": "Filing important documents in the \"I'll deal with it later\" folder and never looking at them again.",
         "icon": "tasks",
         "baseValue": 1,
         "maxLevel": 100
@@ -134,7 +134,7 @@
       {
         "id": "business_acumen",
         "name": "Business Acumen",
-        "description": "Understanding markets, strategy, and organizational dynamics",
+        "description": "Knowing how to make a profit off other people's misery.",
         "icon": "chart-line",
         "baseValue": 0,
         "maxLevel": 100
@@ -142,7 +142,7 @@
       {
         "id": "spatial_awareness",
         "name": "Spatial Awareness",
-        "description": "Understanding geographic locations and relationships",
+        "description": "Not walking into glass doors at the office (again).",
         "icon": "map",
         "baseValue": 0,
         "maxLevel": 100
@@ -150,7 +150,7 @@
       {
         "id": "coding",
         "name": "Coding",
-        "description": "Programming and software development capabilities",
+        "description": "Writing code that's so bad, it becomes sentient and starts fixing itself.",
         "icon": "code",
         "baseValue": 0,
         "maxLevel": 100
@@ -158,7 +158,7 @@
       {
         "id": "data_analysis",
         "name": "Data Analysis",
-        "description": "Processing and interpreting complex data sets",
+        "description": "Making graphs that prove your point, even if the data doesn't.",
         "icon": "chart-bar",
         "baseValue": 0,
         "maxLevel": 100
@@ -166,7 +166,7 @@
       {
         "id": "mathematical_reasoning",
         "name": "Mathematical Reasoning",
-        "description": "Advanced mathematical and logical thinking",
+        "description": "Solving problems that make you question the meaning of life.",
         "icon": "square-root-alt",
         "baseValue": 0,
         "maxLevel": 100
@@ -174,7 +174,7 @@
       {
         "id": "media_production",
         "name": "Media Production",
-        "description": "Creating engaging visual and audio content",
+        "description": "Making cringe-worthy videos of yourself dancing in your room, all in the name of \"branding\" and \"engagement.\"",
         "icon": "video",
         "baseValue": 0,
         "maxLevel": 100
@@ -182,7 +182,7 @@
       {
         "id": "marketing",
         "name": "Marketing",
-        "description": "Creating and targeting messages to specific audiences",
+        "description": "Mastering the art of convincing people they need your product… or maybe it's just good enough to convince them they're really missing out.",
         "icon": "ad",
         "baseValue": 0,
         "maxLevel": 100
@@ -190,7 +190,7 @@
       {
         "id": "mystical_knowledge",
         "name": "Mystical Knowledge",
-        "description": "Understanding of occult concepts and magical systems",
+        "description": "Understanding of occult concepts and magical systems... or just knowing which crystals look prettiest on your desk.",
         "icon": "hat-wizard",
         "baseValue": 0,
         "maxLevel": 100
@@ -198,7 +198,7 @@
       {
         "id": "networking",
         "name": "Networking",
-        "description": "Building and maintaining beneficial relationships",
+        "description": "Making friends at work by complimenting their new shoes, then hoping they'll help you get that promotion you don't deserve.",
         "icon": "users",
         "baseValue": 0,
         "maxLevel": 100
@@ -206,8 +206,24 @@
       {
         "id": "research",
         "name": "Research",
-        "description": "Systematic investigation to establish facts",
+        "description": "Spending hours on Reddit and calling it \"market analysis.\"",
         "icon": "microscope",
+        "baseValue": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "leadership",
+        "name": "Leadership",
+        "description": "The art of telling other people to do what you don't want to do yourself.",
+        "icon": "users-cog",
+        "baseValue": 0,
+        "maxLevel": 100
+      },
+      {
+        "id": "strategic_thinking",
+        "name": "Strategic Thinking",
+        "description": "Planning five steps ahead but still forgetting to buy milk on the way home.",
+        "icon": "chess",
         "baseValue": 0,
         "maxLevel": 100
       }
