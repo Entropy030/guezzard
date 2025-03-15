@@ -43,6 +43,27 @@ function getDefaultGameState() {
         maxEnergy: 100,
         energyRechargeRate: 0.1,
         
+        // Mortality tracking
+        mortalityRate: 0.001, // Base mortality rate for young age
+        avgYearsLeft: 47,     // Initial estimate
+        
+        // Lifestyle system
+        lifestyle: {
+            housing: "Shared Room",
+            transportation: "Walking",
+            diet: "Basic Food"
+        },
+        lifestyleEffects: {
+            mortalityModifier: 1.0,
+            timeAllocation: {
+                sleep: 8,
+                commute: 2,
+                meals: 3
+            },
+            satisfactionBonus: 0,
+            costPerDay: 7 // Default cost (4 for housing + 0 for walking + 3 for basic food)
+        },
+        
         // Career & skills
         currentJobTier: 0,
         activeJob: null,
@@ -57,6 +78,17 @@ function getDefaultGameState() {
         },
         currentTrainingSkill: null,
         
+        // Time allocation
+        timeAllocation: {
+            working: 5,
+            training: 3,
+            sleeping: 8,
+            traveling: 2,
+            cooking: 3,
+            cleaning: 0.5,
+            freeTime: 2.5
+        },
+        
         // Progress tracking
         achievements: [],
         unlockedAchievements: [],
@@ -65,7 +97,8 @@ function getDefaultGameState() {
             timePlayedSeconds: 0,
             totalGoldEarned: 0,
             jobsHeld: 0,
-            prestigeCount: 0
+            prestigeCount: 0,
+            lifetimeCount: 0
         },
         
         // Income tracking
@@ -220,6 +253,11 @@ function setupGameSystems() {
     // Initialize prestige system if available
     if (typeof window.initializePrestigeSystem === 'function') {
         window.initializePrestigeSystem();
+    }
+    
+    // Initialize lifestyle system if available
+    if (typeof window.initializeLifestyleSystem === 'function') {
+        window.initializeLifestyleSystem();
     }
     
     return true;
@@ -617,9 +655,6 @@ function regenerateEnergy() {
 /**
  * Advance the game day, handle season/year transitions
  */
-/**
- * Advance the game day, handle season/year transitions
- */
 function advanceDay() {
     // Skip if game is paused
     if (gameState.gamePaused) {
@@ -632,6 +667,11 @@ function advanceDay() {
     if (gameState.ticksSinceDayStart >= CONFIG.settings.ticksInOneGameDay) {
         gameState.day++;
         gameState.ticksSinceDayStart = 0; // Reset at the START of the new day
+        
+        // Apply lifestyle costs at the start of each day
+        if (typeof window.applyLifestyleCosts === 'function') {
+            window.applyLifestyleCosts();
+        }
         
         // Check for natural death based on mortality rate
         if (checkForNaturalDeath()) {
@@ -690,6 +730,154 @@ function advanceDay() {
 }
 
 /**
+ * Update day and season display
+ */
+function updateDaySeasonDisplay() {
+    const dateDisplay = document.getElementById('season-display');
+    if (dateDisplay) {
+        dateDisplay.textContent = `Day ${gameState.day}, ${gameState.currentSeason}, Year ${gameState.year}`;
+    }
+    
+    const ageDisplay = document.querySelector('.age-display');
+    if (ageDisplay) {
+        ageDisplay.textContent = `Age: ${gameState.age}`;
+    }
+}
+
+/**
+ * Calculate current mortality rate based on age and lifestyle
+ * Implements the sigmoid mortality curve from the game mechanics document
+ * @returns {number} Current mortality rate (0-1)
+ */
+function calculateMortality() {
+    // Base mortality factors
+    const baseMortality = 0.001; // Base rate at young age
+    const midpointAge = 65;      // Age at which mortality is 50% of maximum
+    const kFactor = 0.15;        // Steepness of the sigmoid curve
+    
+    // Apply lifestyle modifier to the k factor (steepness)
+    let lifestyleModifier = 1.0; // Default modifier
+    
+    // Use lifestyle system if available
+    if (typeof window.getLifestyleMortalityModifier === 'function') {
+        lifestyleModifier = window.getLifestyleMortalityModifier();
+    } else {
+        // Fallback to basic lifestyle calculation
+        lifestyleModifier = getLifestyleKFactorModifier();
+    }
+    
+    const finalKFactor = kFactor * lifestyleModifier;
+    
+    // Calculate mortality using sigmoid function as described in game mechanics document
+    // Formula: Mortality Rate = Base × (1 / (1 + e^(-k × (Age - Midpoint))))
+    const ageDifference = gameState.age - midpointAge;
+    const mortalityRate = baseMortality + (1 - baseMortality) * (1 / (1 + Math.exp(-finalKFactor * ageDifference)));
+    
+    // Calculate average years left (simplified estimate)
+    const avgYearsLeft = Math.max(0, Math.round(100 * (1 - mortalityRate)));
+    
+    // Store in game state
+    gameState.mortalityRate = mortalityRate;
+    gameState.avgYearsLeft = avgYearsLeft;
+    
+    return mortalityRate;
+}
+
+/**
+ * Get lifestyle impact on mortality curve steepness
+ * @returns {number} Modifier to k-factor (lower is better)
+ */
+function getLifestyleKFactorModifier() {
+    // Default modifier (higher = steeper curve = higher mortality)
+    let modifier = 1.0;
+    
+    if (!gameState.lifestyle) {
+        return modifier;
+    }
+    
+    // Housing impact
+    const housing = gameState.lifestyle.housing || "Shared Room";
+    if (housing === "Castle") modifier *= 0.7;
+    else if (housing === "Mansion") modifier *= 0.75;
+    else if (housing === "Luxury Condo") modifier *= 0.8;
+    else if (housing === "Townhouse") modifier *= 0.85;
+    else if (housing === "Apartment") modifier *= 0.9;
+    else if (housing === "Tiny Apartment") modifier *= 0.95;
+    else if (housing === "Shared Room") modifier *= 1.0;
+    else if (housing === "Homeless") modifier *= 1.2;
+    
+    // Diet impact
+    const diet = gameState.lifestyle.diet || "Basic Food";
+    if (diet === "Nutrient Optimization") modifier *= 0.8;
+    else if (diet === "Personal Chef") modifier *= 0.85;
+    else if (diet === "Organic Market") modifier *= 0.92;
+    else if (diet === "Meal Delivery") modifier *= 0.95;
+    else if (diet === "Grocery Store") modifier *= 0.97;
+    else if (diet === "Basic Food") modifier *= 1.05;
+    else if (diet === "Homeless Shelter") modifier *= 1.15;
+    
+    // Transportation impact
+    const transport = gameState.lifestyle.transportation || "Walking";
+    if (transport === "Teleportation") modifier *= 0.95;
+    else if (transport === "Helicopter") modifier *= 1.02; // Slight risk increase
+    else if (transport === "Luxury Car") modifier *= 0.98;
+    else if (transport === "Car") modifier *= 1.01; // Slight risk increase
+    else if (transport === "Public Transit") modifier *= 1.0;
+    else if (transport === "Bicycle") modifier *= 0.97; // Exercise benefit
+    else if (transport === "Walking") modifier *= 0.99; // Small exercise benefit
+    
+    return modifier;
+}
+
+/**
+ * Check for natural death based on mortality rate
+ * @returns {boolean} Whether death occurred
+ */
+function checkForNaturalDeath() {
+    // Skip if game is paused
+    if (gameState.gamePaused) {
+        return false;
+    }
+    
+    // Calculate current mortality
+    const mortalityRate = calculateMortality();
+    
+    // Daily death chance (convert annual rate to daily)
+    const dailyMortalityRate = mortalityRate / 365;
+    
+    // Check for death (random roll against daily mortality rate)
+    if (Math.random() < dailyMortalityRate) {
+        handlePlayerDeath();
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Handle player death and start new life
+ */
+function handlePlayerDeath() {
+    // Log event
+    if (typeof window.logEvent === 'function') {
+        window.logEvent(`You have died of natural causes at age ${gameState.age}.`, 'life');
+    }
+    
+    // Save multipliers from this life
+    saveMultipliersFromCurrentLife();
+    
+    // Show death message/screen
+    const message = `You have died of natural causes at age ${gameState.age}.`;
+    
+    if (typeof window.showDeathScreen === 'function') {
+        window.showDeathScreen(message);
+    } else {
+        alert(message);
+        startNewLife();
+    }
+}
+
+/**
  * Handle player retirement
  */
 function handleRetirement() {
@@ -708,6 +896,150 @@ function handleRetirement() {
         // Save multipliers and start new life
         saveMultipliersFromCurrentLife();
         startNewLife();
+    }
+}
+
+/**
+ * Save multipliers from current life for next life
+ */
+function saveMultipliersFromCurrentLife() {
+    // Simple implementation - create skill multipliers based on current skill levels
+    if (!gameState.skillMultipliers) {
+        gameState.skillMultipliers = {};
+    }
+    
+    // For each skill, calculate multiplier (1% per level, max 100%)
+    for (const skillId in gameState.skills) {
+        const skill = gameState.skills[skillId];
+        const skillLevel = typeof skill === 'object' ? skill.level : skill;
+        
+        // Create or update multiplier (taking max value)
+        const newMultiplier = Math.min(1.0, skillLevel / 100);
+        gameState.skillMultipliers[skillId] = Math.max(
+            newMultiplier,
+            gameState.skillMultipliers[skillId] || 0
+        );
+    }
+    
+    // Also save job multipliers if needed
+    if (gameState.jobLevels && !gameState.jobMultipliers) {
+        gameState.jobMultipliers = {};
+    }
+    
+    if (gameState.jobLevels) {
+        for (const jobId in gameState.jobLevels) {
+            const jobLevel = gameState.jobLevels[jobId];
+            
+            // Create or update multiplier (taking max value)
+            const newMultiplier = Math.min(1.0, jobLevel / 100);
+            gameState.jobMultipliers[jobId] = Math.max(
+                newMultiplier,
+                gameState.jobMultipliers[jobId] || 0
+            );
+        }
+    }
+    
+    // Save skill levels for the skill system if that function exists
+    if (typeof window.saveSkillLevelsForNextLife === 'function') {
+        window.saveSkillLevelsForNextLife();
+    }
+}
+
+/**
+ * Start a new life with multipliers from previous lives
+ */
+function startNewLife() {
+    // Save some data to keep
+    const keepData = {
+        skillMultipliers: gameState.skillMultipliers || {},
+        jobMultipliers: gameState.jobMultipliers || {},
+        achievements: gameState.achievements || [],
+        unlockedAchievements: gameState.unlockedAchievements || [],
+        statistics: gameState.statistics || {},
+        settings: gameState.settings || {},
+        previousLivesSkillLevels: gameState.previousLivesSkillLevels || {}
+    };
+    
+    // Update life count
+    if (!keepData.statistics.lifetimeCount) {
+        keepData.statistics.lifetimeCount = 0;
+    }
+    keepData.statistics.lifetimeCount++;
+    
+    // Reset game state
+    const defaultState = getDefaultGameState();
+    Object.assign(gameState, defaultState);
+    
+    // Restore saved data
+    gameState.skillMultipliers = keepData.skillMultipliers;
+    gameState.jobMultipliers = keepData.jobMultipliers;
+    gameState.achievements = keepData.achievements;
+    gameState.unlockedAchievements = keepData.unlockedAchievements;
+    gameState.statistics = keepData.statistics;
+    gameState.settings = keepData.settings;
+    gameState.previousLivesSkillLevels = keepData.previousLivesSkillLevels;
+    
+    // Apply multipliers to new life
+    applyPreviousLifeMultipliers();
+    
+    // Initialize lifestyle system if available
+    if (typeof window.initializeLifestyleSystem === 'function') {
+        window.initializeLifestyleSystem();
+    }
+    
+    // Update UI
+    if (typeof window.updateAllDisplays === 'function') {
+        window.updateAllDisplays();
+    }
+    
+    // Log event
+    if (typeof window.logEvent === 'function') {
+        window.logEvent(`Starting life #${gameState.statistics.lifetimeCount}!`, 'life');
+    }
+}
+
+/**
+ * Apply multipliers from previous lives
+ */
+function applyPreviousLifeMultipliers() {
+    // Apply skill multipliers
+    if (gameState.skillMultipliers) {
+        for (const skillId in gameState.skillMultipliers) {
+            const multiplier = gameState.skillMultipliers[skillId];
+            
+            // Skip if no multiplier
+            if (!multiplier) continue;
+            
+            // Apply to skill growth rate if skill exists
+            if (gameState.skills && gameState.skills[skillId]) {
+                if (typeof gameState.skills[skillId] === 'object') {
+                    gameState.skills[skillId].growthMultiplier = 1 + multiplier;
+                }
+            }
+        }
+    }
+    
+    // Apply job multipliers to global multipliers
+    if (gameState.jobMultipliers) {
+        let totalMultiplier = 0;
+        let jobCount = 0;
+        
+        for (const jobId in gameState.jobMultipliers) {
+            totalMultiplier += gameState.jobMultipliers[jobId];
+            jobCount++;
+        }
+        
+        // Apply average multiplier to gold and skill gains
+        if (jobCount > 0) {
+            const avgMultiplier = totalMultiplier / jobCount;
+            
+            if (!gameState.multipliers) {
+                gameState.multipliers = { gold: 1, skill: 1 };
+            }
+            
+            gameState.multipliers.gold = 1 + avgMultiplier;
+            gameState.multipliers.skill = 1 + (avgMultiplier * 0.5); // Half effect on skills
+        }
     }
 }
 
@@ -781,6 +1113,23 @@ function updateSkillProgressBar() {
     } else {
         skillProgressBarFill.style.width = '0%';
         skillProgressText.textContent = 'No Skill Training';
+    }
+}
+
+/**
+ * Update energy display
+ */
+function updateEnergyDisplay() {
+    const energyDisplay = document.getElementById('energy-display');
+    const energyBarFill = document.getElementById('energy-bar-fill');
+    
+    if(energyDisplay && typeof window.gameState !== 'undefined') {
+        energyDisplay.textContent = `${Math.floor(window.gameState.energy)}/${window.gameState.maxEnergy}`;
+    }
+    
+    if(energyBarFill && typeof window.gameState !== 'undefined') {
+        const energyPercentage = (window.gameState.energy / window.gameState.maxEnergy) * 100;
+        energyBarFill.style.width = `${energyPercentage}%`;
     }
 }
 
@@ -864,253 +1213,6 @@ function checkAchievements() {
     });
 }
 
-/**
- * Calculate current mortality rate based on age and lifestyle
- * @returns {number} Current mortality rate (0-1)
- */
-function calculateMortality() {
-    // Base mortality factors
-    const baseMortality = 0.001; // Base rate at young age
-    const midpointAge = 65;      // Age at which mortality is 50% of maximum
-    const kFactor = 0.15;        // Steepness of the sigmoid curve
-    
-    // Get lifestyle modifiers
-    const lifestyleModifier = getLifestyleKFactorModifier();
-    const finalKFactor = kFactor * lifestyleModifier;
-    
-    // Calculate using sigmoid function
-    const ageDifference = gameState.age - midpointAge;
-    const mortalityRate = baseMortality + (1 - baseMortality) * (1 / (1 + Math.exp(-finalKFactor * ageDifference)));
-    
-    // Calculate average years left (simplified estimate)
-    const avgYearsLeft = Math.max(0, Math.round(100 * (1 - mortalityRate)));
-    
-    // Store in game state
-    gameState.mortalityRate = mortalityRate;
-    gameState.avgYearsLeft = avgYearsLeft;
-    
-    return mortalityRate;
-}
-
-/**
- * Get lifestyle impact on mortality curve steepness
- * @returns {number} Modifier to k-factor (lower is better)
- */
-function getLifestyleKFactorModifier() {
-    // Default modifier (higher = steeper curve = higher mortality)
-    let modifier = 1.0;
-    
-    if (!gameState.lifestyle) {
-        return modifier;
-    }
-    
-    // Housing impact
-    const housing = gameState.lifestyle.house || "Homeless";
-    if (housing === "Apartment") modifier *= 0.85;
-    else if (housing === "Tiny Apartment") modifier *= 0.90;
-    else if (housing === "Shared Room") modifier *= 0.95;
-    else if (housing === "Homeless") modifier *= 1.2;
-    
-    // Diet impact
-    const diet = gameState.lifestyle.diet || "Split-A-Penny";
-    if (diet === "Euro Market") modifier *= 0.85;
-    else if (diet === "Dollar Market") modifier *= 0.92;
-    else if (diet === "Split-A-Penny") modifier *= 1.10;
-    
-    // Transportation impact
-    const transport = gameState.lifestyle.transportation || "Foot";
-    if (transport === "Bus") modifier *= 0.90;
-    else if (transport === "Bike") modifier *= 0.85;
-    else if (transport === "Foot") modifier *= 1.05;
-    
-    return modifier;
-}
-
-/**
- * Check for natural death based on mortality rate
- * @returns {boolean} Whether death occurred
- */
-function checkForNaturalDeath() {
-    // Skip if game is paused
-    if (gameState.gamePaused) {
-        return false;
-    }
-    
-    // Calculate current mortality
-    const mortalityRate = calculateMortality();
-    
-    // Check for death (daily chance based on mortality)
-    // Converting to per-tick probability
-    const mortalityPerTick = mortalityRate / CONFIG.settings.ticksInOneGameDay;
-    
-    if (Math.random() < mortalityPerTick) {
-        handlePlayerDeath();
-        return true;
-    }
-    
-    return false;
-}
-
-/**
- * Handle player death and start new life
- */
-function handlePlayerDeath() {
-    // Log event
-    if (typeof window.logEvent === 'function') {
-        window.logEvent(`You have died of natural causes at age ${gameState.age}.`, 'life');
-    }
-    
-    // Save multipliers from this life
-    saveMultipliersFromCurrentLife();
-    
-    // Show death message/screen
-    const message = `You have died of natural causes at age ${gameState.age}.`;
-    
-    if (typeof window.showDeathScreen === 'function') {
-        window.showDeathScreen(message);
-    } else {
-        alert(message);
-        startNewLife();
-    }
-}
-
-/**
- * Save multipliers from current life for next life
- */
-function saveMultipliersFromCurrentLife() {
-    // Simple implementation - create skill multipliers based on current skill levels
-    if (!gameState.skillMultipliers) {
-        gameState.skillMultipliers = {};
-    }
-    
-    // For each skill, calculate multiplier (1% per level, max 100%)
-    for (const skillId in gameState.skills) {
-        const skill = gameState.skills[skillId];
-        const skillLevel = typeof skill === 'object' ? skill.level : skill;
-        
-        // Create or update multiplier (taking max value)
-        const newMultiplier = Math.min(1.0, skillLevel / 100);
-        gameState.skillMultipliers[skillId] = Math.max(
-            newMultiplier,
-            gameState.skillMultipliers[skillId] || 0
-        );
-    }
-    
-    // Also save job multipliers if needed
-    if (gameState.jobLevels && !gameState.jobMultipliers) {
-        gameState.jobMultipliers = {};
-    }
-    
-    if (gameState.jobLevels) {
-        for (const jobId in gameState.jobLevels) {
-            const jobLevel = gameState.jobLevels[jobId];
-            
-            // Create or update multiplier (taking max value)
-            const newMultiplier = Math.min(1.0, jobLevel / 100);
-            gameState.jobMultipliers[jobId] = Math.max(
-                newMultiplier,
-                gameState.jobMultipliers[jobId] || 0
-            );
-        }
-    }
-}
-
-/**
- * Start a new life with multipliers from previous lives
- */
-function startNewLife() {
-    // Save some data to keep
-    const keepData = {
-        skillMultipliers: gameState.skillMultipliers || {},
-        jobMultipliers: gameState.jobMultipliers || {},
-        achievements: gameState.achievements || [],
-        unlockedAchievements: gameState.unlockedAchievements || [],
-        statistics: gameState.statistics || {},
-        settings: gameState.settings || {}
-    };
-    
-    // Update life count
-    if (!keepData.statistics.lifetimeCount) {
-        keepData.statistics.lifetimeCount = 0;
-    }
-    keepData.statistics.lifetimeCount++;
-    
-    // Reset game state
-    const defaultState = getDefaultGameState();
-    Object.assign(gameState, defaultState);
-    
-    // Restore saved data
-    gameState.skillMultipliers = keepData.skillMultipliers;
-    gameState.jobMultipliers = keepData.jobMultipliers;
-    gameState.achievements = keepData.achievements;
-    gameState.unlockedAchievements = keepData.unlockedAchievements;
-    gameState.statistics = keepData.statistics;
-    gameState.settings = keepData.settings;
-    
-    // Apply multipliers to new life
-    applyPreviousLifeMultipliers();
-    
-    // Update UI
-    if (typeof window.updateAllDisplays === 'function') {
-        window.updateAllDisplays();
-    }
-    
-    // Log event
-    if (typeof window.logEvent === 'function') {
-        window.logEvent(`Starting life #${gameState.statistics.lifetimeCount}!`, 'life');
-    }
-}
-
-/**
- * Apply multipliers from previous lives
- */
-function applyPreviousLifeMultipliers() {
-    // Apply skill multipliers
-    if (gameState.skillMultipliers) {
-        for (const skillId in gameState.skillMultipliers) {
-            const multiplier = gameState.skillMultipliers[skillId];
-            
-            // Skip if no multiplier
-            if (!multiplier) continue;
-            
-            // Apply to skill growth rate if skill exists
-            if (gameState.skills && gameState.skills[skillId]) {
-                if (typeof gameState.skills[skillId] === 'object') {
-                    gameState.skills[skillId].growthMultiplier = 1 + multiplier;
-                }
-            }
-        }
-    }
-    
-    // Apply job multipliers to global multipliers
-    if (gameState.jobMultipliers) {
-        let totalMultiplier = 0;
-        let jobCount = 0;
-        
-        for (const jobId in gameState.jobMultipliers) {
-            totalMultiplier += gameState.jobMultipliers[jobId];
-            jobCount++;
-        }
-        
-        // Apply average multiplier to gold and skill gains
-        if (jobCount > 0) {
-            const avgMultiplier = totalMultiplier / jobCount;
-            
-            if (!gameState.multipliers) {
-                gameState.multipliers = { gold: 1, skill: 1 };
-            }
-            
-            gameState.multipliers.gold = 1 + avgMultiplier;
-            gameState.multipliers.skill = 1 + (avgMultiplier * 0.5); // Half effect on skills
-        }
-    }
-}
-
-
-
-
-
-
 // -------------------------------------------------------------------------
 // Export and Global Registration
 // -------------------------------------------------------------------------
@@ -1131,6 +1233,14 @@ window.startGameLoop = startGameLoop;
 window.regenerateEnergy = regenerateEnergy;
 window.advanceDay = advanceDay;
 window.updateDaySeasonDisplay = updateDaySeasonDisplay;
+window.calculateMortality = calculateMortality;
+window.getLifestyleKFactorModifier = getLifestyleKFactorModifier;
+window.checkForNaturalDeath = checkForNaturalDeath;
+window.handlePlayerDeath = handlePlayerDeath;
+window.handleRetirement = handleRetirement;
+window.saveMultipliersFromCurrentLife = saveMultipliersFromCurrentLife;
+window.startNewLife = startNewLife;
+window.applyPreviousLifeMultipliers = applyPreviousLifeMultipliers;
 window.updateEnergyDisplay = updateEnergyDisplay;
 window.updateJobProgressBar = updateJobProgressBar;
 window.updateSkillProgressBar = updateSkillProgressBar;
@@ -1155,6 +1265,14 @@ export {
     regenerateEnergy,
     advanceDay,
     updateDaySeasonDisplay,
+    calculateMortality,
+    getLifestyleKFactorModifier,
+    checkForNaturalDeath,
+    handlePlayerDeath,
+    handleRetirement,
+    saveMultipliersFromCurrentLife,
+    startNewLife,
+    applyPreviousLifeMultipliers,
     updateEnergyDisplay,
     updateJobProgressBar,
     updateSkillProgressBar,
