@@ -1,688 +1,679 @@
-[
-  {
-    "id": "office_corporate",
-    "name": "The Office Corporate Track",
-    "description": "Progress through a typical office environment from temp to executive.",
-    "jobs": [
-      {
-        "id": "temp",
-        "title": "Temp",
-        "description": "Temporary office worker handling basic administrative tasks.",
-        "maxLevel": 20,
-        "tiers": [
-          {
-            "tier": 1,
-            "minSkill": 0,
-            "incomePerHour": 0.90,
-            "incomePerYear": 540,
-            "skillGainPerYear": {
-              "communication": 5,
-              "organization": 3
-            },
-            "relevantSkills": {
-              "communication": 1.0,
-              "organization": 0.8
-            },
-            "requiredSkills": {},
-            "levelBonuses": [
-              { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
-              { "level": 10, "bonusType": "goldMultiplier", "bonusValue": 0.05 },
-              { "level": 15, "bonusType": "skillGainMultiplier", "bonusValue": 0.05 }
-            ],
-            "popCultureRef": "Ryans come and go. New ones come, old ones go."
-          }
-        ]
-      },
-      {
-        "id": "receptionist",
-        "title": "Receptionist",
-        "description": "Handle front desk duties, greet visitors, and manage incoming communications.",
-        "maxLevel": 25,
-        "tiers": [
-          {
-            "tier": 2,
-            "minSkill": 10,
-            "requiredJobId": "temp",
-            "requiredJobLevel": 10,
-            "incomePerHour": 1.10,
-            "incomePerYear": 660,
-            "skillGainPerYear": {
-              "communication": 8,
-              "organization": 6,
-              "patience": 5
-            },
-            "relevantSkills": {
-              "communication": 1.0,
-              "organization": 0.8,
-              "patience": 0.7
-            },
-            "requiredSkills": {
-              "communication": 10,
-              "organization": 8
-            },
-            "levelBonuses": [
-              { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
-              { "level": 15, "bonusType": "goldMultiplier", "bonusValue": 0.08 },
-              { "level": 20, "bonusType": "skillGainMultiplier", "bonusValue": 0.08 }
-            ],
-            "popCultureRef": "Dunder Mifflin, this is Pam."
-          }
-        ]
-      },
-      {
-        "id": "sales_representative",
-        "title": "Sales Representative",
-        "description": "Sell products and services to clients while maintaining customer relationships.",
-        "maxLevel": 30,
-        "tiers": [
-          {
-            "tier": 3,
-            "minSkill": 15,
-            "requiredJobId": "receptionist",
-            "requiredJobLevel": 15,
-            "incomePerHour": 1.40,
-            "incomePerYear": 840,
-            "skillGainPerYear": {
-              "communication": 10,
-              "persuasion": 12,
-              "charisma": 8
-            },
-            "relevantSkills": {
-              "communication": 0.8,
-              "persuasion": 1.0,
-              "charisma": 0.9
-            },
-            "requiredSkills": {
-              "communication": 15,
-              "persuasion": 10
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.08 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
-              { "level": 25, "bonusType": "skillGainMultiplier", "bonusValue": 0.10 }
-            ],
-            "popCultureRef": "I'm not superstitious, but I am a little stitious."
-          }
-        ]
-      },
-      {
-        "id": "assistant_regional_manager",
-        "title": "Assistant to the Regional Manager",
-        "description": "Assist the Regional Manager with various tasks and responsibilities.",
-        "maxLevel": 35,
-        "tiers": [
-          {
-            "tier": 4,
-            "minSkill": 20,
-            "requiredJobId": "sales_representative",
-            "requiredJobLevel": 20,
-            "incomePerHour": 1.80,
-            "incomePerYear": 1080,
-            "skillGainPerYear": {
-              "organization": 15,
-              "discipline": 12,
-              "critical_thinking": 10
-            },
-            "relevantSkills": {
-              "organization": 1.0,
-              "discipline": 0.8,
-              "critical_thinking": 0.7
-            },
-            "requiredSkills": {
-              "organization": 18,
-              "discipline": 15
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.12 },
-              { "level": 30, "bonusType": "skillGainMultiplier", "bonusValue": 0.12 }
-            ],
-            "popCultureRef": "Bears. Beets. Battlestar Galactica."
-          }
-        ]
-      },
-      {
-        "id": "regional_manager",
-        "title": "Regional Manager",
-        "description": "Oversee regional operations and manage a team of employees.",
-        "maxLevel": 40,
-        "tiers": [
-          {
-            "tier": 5,
-            "minSkill": 25,
-            "requiredJobId": "assistant_regional_manager",
-            "requiredJobLevel": 25,
-            "incomePerHour": 2.50,
-            "incomePerYear": 1500,
-            "skillGainPerYear": {
-              "leadership": 15,
-              "confidence": 12,
-              "decision_making": 10
-            },
-            "relevantSkills": {
-              "leadership": 1.0,
-              "confidence": 0.8,
-              "decision_making": 0.9
-            },
-            "requiredSkills": {
-              "leadership": 20,
-              "confidence": 18
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.12 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
-              { "level": 35, "bonusType": "skillGainMultiplier", "bonusValue": 0.15 }
-            ],
-            "popCultureRef": "Would I rather be feared or loved? Easy. Both."
-          }
-        ]
-      },
-      {
-        "id": "corporate_executive",
-        "title": "Corporate Executive",
-        "description": "Lead corporate initiatives and strategic business development.",
-        "maxLevel": 50,
-        "tiers": [
-          {
-            "tier": 6,
-            "minSkill": 35,
-            "requiredJobId": "regional_manager",
-            "requiredJobLevel": 30,
-            "incomePerHour": 3.75,
-            "incomePerYear": 2250,
-            "skillGainPerYear": {
-              "strategic_thinking": 18,
-              "leadership": 15,
-              "negotiation": 12
-            },
-            "relevantSkills": {
-              "strategic_thinking": 1.0,
-              "leadership": 0.9,
-              "negotiation": 0.8
-            },
-            "requiredSkills": {
-              "strategic_thinking": 25,
-              "leadership": 30
-            },
-            "levelBonuses": [
-              { "level": 15, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
-              { "level": 30, "bonusType": "goldMultiplier", "bonusValue": 0.20 },
-              { "level": 45, "bonusType": "skillGainMultiplier", "bonusValue": 0.20 }
-            ],
-            "popCultureRef": "Sometimes I start a sentence and I don't even know where it's going."
-          }
-        ]
-      },
-      {
-        "id": "paper_industry_tycoon",
-        "title": "Paper Industry Tycoon",
-        "description": "Own and control multiple paper companies as an industry leader.",
-        "maxLevel": 60,
-        "tiers": [
-          {
-            "tier": 7,
-            "minSkill": 45,
-            "requiredJobId": "corporate_executive",
-            "requiredJobLevel": 40,
-            "incomePerHour": 6.25,
-            "incomePerYear": 3750,
-            "skillGainPerYear": {
-              "strategic_thinking": 25,
-              "negotiation": 20,
-              "leadership": 18
-            },
-            "relevantSkills": {
-              "strategic_thinking": 1.0,
-              "negotiation": 0.9,
-              "leadership": 0.8
-            },
-            "requiredSkills": {
-              "strategic_thinking": 40,
-              "negotiation": 35
-            },
-            "levelBonuses": [
-              { "level": 20, "bonusType": "jobXpMultiplier", "bonusValue": 0.20 },
-              { "level": 40, "bonusType": "goldMultiplier", "bonusValue": 0.25 },
-              { "level": 55, "bonusType": "skillGainMultiplier", "bonusValue": 0.25 }
-            ],
-            "popCultureRef": "I'm not going to be a part of a system that values data over creative impulse."
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "geoguessr",
-    "name": "GeoGuessr Track",
-    "description": "Master the art of geographic identification and exploration.",
-    "jobs": [
-      {
-        "id": "google_maps_tourist",
-        "title": "Google Maps Tourist",
-        "description": "Casually browse Google Maps to learn about different locations.",
-        "maxLevel": 20,
-        "tiers": [
-          {
-            "tier": 1,
-            "minSkill": 0,
-            "incomePerHour": 0.40,
-            "incomePerYear": 240,
-            "skillGainPerYear": {
-              "map_awareness": 5,
-              "observation": 3
-            },
-            "relevantSkills": {
-              "map_awareness": 1.0,
-              "observation": 0.7
-            },
-            "requiredSkills": {},
-            "levelBonuses": [
-              { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
-              { "level": 10, "bonusType": "goldMultiplier", "bonusValue": 0.05 },
-              { "level": 15, "bonusType": "skillGainMultiplier", "bonusValue": 0.05 }
-            ],
-            "popCultureRef": "Wait, which hemisphere am I in again?"
-          }
-        ]
-      },
-      {
-        "id": "armchair_traveler",
-        "title": "Armchair Traveler",
-        "description": "Study maps and travel guides to expand geographic knowledge.",
-        "maxLevel": 25,
-        "tiers": [
-          {
-            "tier": 2,
-            "minSkill": 10,
-            "requiredJobId": "google_maps_tourist",
-            "requiredJobLevel": 10,
-            "incomePerHour": 0.80,
-            "incomePerYear": 480,
-            "skillGainPerYear": {
-              "map_awareness": 8,
-              "observation": 6,
-              "memory": 4
-            },
-            "relevantSkills": {
-              "map_awareness": 1.0,
-              "observation": 0.8,
-              "memory": 0.6
-            },
-            "requiredSkills": {
-              "map_awareness": 10,
-              "observation": 8
-            },
-            "levelBonuses": [
-              { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
-              { "level": 15, "bonusType": "goldMultiplier", "bonusValue": 0.08 },
-              { "level": 20, "bonusType": "skillGainMultiplier", "bonusValue": 0.08 }
-            ],
-            "popCultureRef": "That's definitely Eastern Europe... or maybe Australia."
-          }
-        ]
-      },
-      {
-        "id": "digital_nomad",
-        "title": "Digital Nomad",
-        "description": "Travel and work remotely while developing geographic expertise.",
-        "maxLevel": 30,
-        "tiers": [
-          {
-            "tier": 3,
-            "minSkill": 15,
-            "requiredJobId": "armchair_traveler",
-            "requiredJobLevel": 15,
-            "incomePerHour": 1.25,
-            "incomePerYear": 750,
-            "skillGainPerYear": {
-              "map_awareness": 12,
-              "observation": 10,
-              "adaptability": 8
-            },
-            "relevantSkills": {
-              "map_awareness": 0.9,
-              "observation": 1.0,
-              "adaptability": 0.8
-            },
-            "requiredSkills": {
-              "map_awareness": 15,
-              "observation": 12
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.08 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
-              { "level": 25, "bonusType": "skillGainMultiplier", "bonusValue": 0.10 }
-            ],
-            "popCultureRef": "I recognize that KFC sign from three continents away."
-          }
-        ]
-      },
-      {
-        "id": "world_explorer",
-        "title": "World Explorer",
-        "description": "Travel extensively to document and understand global geography.",
-        "maxLevel": 35,
-        "tiers": [
-          {
-            "tier": 4,
-            "minSkill": 20,
-            "requiredJobId": "digital_nomad",
-            "requiredJobLevel": 20,
-            "incomePerHour": 1.75,
-            "incomePerYear": 1050,
-            "skillGainPerYear": {
-              "map_awareness": 15,
-              "observation": 12,
-              "pattern_recognition": 10
-            },
-            "relevantSkills": {
-              "map_awareness": 1.0,
-              "observation": 0.9,
-              "pattern_recognition": 0.8
-            },
-            "requiredSkills": {
-              "map_awareness": 20,
-              "observation": 18
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.12 },
-              { "level": 30, "bonusType": "skillGainMultiplier", "bonusValue": 0.12 }
-            ],
-            "popCultureRef": "That's a Norwegian telephone pole if I've ever seen one."
-          }
-        ]
-      },
-      {
-        "id": "geography_streamer",
-        "title": "Geography Streamer",
-        "description": "Stream geographic challenges and share expertise with an audience.",
-        "maxLevel": 40,
-        "tiers": [
-          {
-            "tier": 5,
-            "minSkill": 25,
-            "requiredJobId": "world_explorer",
-            "requiredJobLevel": 25,
-            "incomePerHour": 2.50,
-            "incomePerYear": 1500,
-            "skillGainPerYear": {
-              "map_awareness": 18,
-              "communication": 15,
-              "charisma": 12
-            },
-            "relevantSkills": {
-              "map_awareness": 0.9,
-              "communication": 1.0,
-              "charisma": 0.8
-            },
-            "requiredSkills": {
-              "map_awareness": 25,
-              "communication": 20
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.12 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
-              { "level": 35, "bonusType": "skillGainMultiplier", "bonusValue": 0.15 }
-            ],
-            "popCultureRef": "Don't forget to like and subscribe if you enjoy watching me stare at dirt roads."
-          }
-        ]
-      },
-      {
-        "id": "guezzard",
-        "title": "Guezzard",
-        "description": "Master the ultimate geography skills with near-supernatural accuracy.",
-        "maxLevel": 50,
-        "tiers": [
-          {
-            "tier": 6,
-            "minSkill": 35,
-            "requiredJobId": "geography_streamer",
-            "requiredJobLevel": 30,
-            "incomePerHour": 3.50,
-            "incomePerYear": 2100,
-            "skillGainPerYear": {
-              "map_awareness": 25,
-              "pattern_recognition": 20,
-              "memory": 15
-            },
-            "relevantSkills": {
-              "map_awareness": 1.0,
-              "pattern_recognition": 0.9,
-              "memory": 0.8
-            },
-            "requiredSkills": {
-              "map_awareness": 35,
-              "pattern_recognition": 30
-            },
-            "levelBonuses": [
-              { "level": 15, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
-              { "level": 30, "bonusType": "goldMultiplier", "bonusValue": 0.20 },
-              { "level": 45, "bonusType": "skillGainMultiplier", "bonusValue": 0.20 }
-            ],
-            "popCultureRef": "I can tell you're in rural Thailand by the unique curvature of that puddle."
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ai_evolution",
-    "name": "AI Evolution Track",
-    "description": "Progress through careers in artificial intelligence development.",
-    "jobs": [
-      {
-        "id": "code_monkey",
-        "title": "Code Monkey",
-        "description": "Write basic code and perform simple programming tasks.",
-        "maxLevel": 20,
-        "tiers": [
-          {
-            "tier": 1,
-            "minSkill": 0,
-            "incomePerHour": 1.00,
-            "incomePerYear": 600,
-            "skillGainPerYear": {
-              "programming": 5,
-              "focus": 3
-            },
-            "relevantSkills": {
-              "programming": 1.0,
-              "focus": 0.7
-            },
-            "requiredSkills": {},
-            "levelBonuses": [
-              { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
-              { "level": 10, "bonusType": "goldMultiplier", "bonusValue": 0.05 },
-              { "level": 15, "bonusType": "skillGainMultiplier", "bonusValue": 0.05 }
-            ],
-            "popCultureRef": "I write the goddamn code!"
-          }
-        ]
-      },
-      {
-        "id": "machine_learning_engineer",
-        "title": "Machine Learning Engineer",
-        "description": "Develop and implement machine learning algorithms.",
-        "maxLevel": 25,
-        "tiers": [
-          {
-            "tier": 2,
-            "minSkill": 10,
-            "requiredJobId": "code_monkey",
-            "requiredJobLevel": 10,
-            "incomePerHour": 1.50,
-            "incomePerYear": 900,
-            "skillGainPerYear": {
-              "programming": 8,
-              "data_analysis": 6,
-              "critical_thinking": 4
-            },
-            "relevantSkills": {
-              "programming": 1.0,
-              "data_analysis": 0.8,
-              "critical_thinking": 0.6
-            },
-            "requiredSkills": {
-              "programming": 10,
-              "data_analysis": 5
-            },
-            "levelBonuses": [
-              { "level": 5, "bonusType": "jobXpMultiplier", "bonusValue": 0.05 },
-              { "level": 15, "bonusType": "goldMultiplier", "bonusValue": 0.08 },
-              { "level": 20, "bonusType": "skillGainMultiplier", "bonusValue": 0.08 }
-            ],
-            "popCultureRef": "It's not a bug, it's a feature."
-          }
-        ]
-      },
-      {
-        "id": "neural_network_designer",
-        "title": "Neural Network Designer",
-        "description": "Design and optimize advanced neural network architectures.",
-        "maxLevel": 30,
-        "tiers": [
-          {
-            "tier": 3,
-            "minSkill": 15,
-            "requiredJobId": "machine_learning_engineer",
-            "requiredJobLevel": 15,
-            "incomePerHour": 2.25,
-            "incomePerYear": 1350,
-            "skillGainPerYear": {
-              "programming": 12,
-              "systems_thinking": 10,
-              "creativity": 8
-            },
-            "relevantSkills": {
-              "programming": 0.9,
-              "systems_thinking": 1.0,
-              "creativity": 0.7
-            },
-            "requiredSkills": {
-              "programming": 15,
-              "systems_thinking": 10
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.08 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
-              { "level": 25, "bonusType": "skillGainMultiplier", "bonusValue": 0.10 }
-            ],
-            "popCultureRef": "My algorithm is basically just a fancy if-statement."
-          }
-        ]
-      },
-      {
-        "id": "ai_ethics_officer",
-        "title": "AI Ethics Officer",
-        "description": "Ensure AI systems are developed and deployed ethically.",
-        "maxLevel": 35,
-        "tiers": [
-          {
-            "tier": 4,
-            "minSkill": 20,
-            "requiredJobId": "neural_network_designer",
-            "requiredJobLevel": 20,
-            "incomePerHour": 2.75,
-            "incomePerYear": 1650,
-            "skillGainPerYear": {
-              "critical_thinking": 15,
-              "empathy": 12,
-              "communication": 10
-            },
-            "relevantSkills": {
-              "critical_thinking": 1.0,
-              "empathy": 0.9,
-              "communication": 0.8
-            },
-            "requiredSkills": {
-              "critical_thinking": 20,
-              "empathy": 15
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.12 },
-              { "level": 30, "bonusType": "skillGainMultiplier", "bonusValue": 0.12 }
-            ],
-            "popCultureRef": "Don't worry, I've added an emergency off switch... somewhere."
-          }
-        ]
-      },
-      {
-        "id": "synthetic_intelligence_architect",
-        "title": "Synthetic Intelligence Architect",
-        "description": "Design advanced AI systems that approach human-like reasoning.",
-        "maxLevel": 40,
-        "tiers": [
-          {
-            "tier": 5,
-            "minSkill": 25,
-            "requiredJobId": "ai_ethics_officer",
-            "requiredJobLevel": 25,
-            "incomePerHour": 3.75,
-            "incomePerYear": 2250,
-            "skillGainPerYear": {
-              "systems_thinking": 18,
-              "programming": 15,
-              "creativity": 12
-            },
-            "relevantSkills": {
-              "systems_thinking": 1.0,
-              "programming": 0.9,
-              "creativity": 0.8
-            },
-            "requiredSkills": {
-              "systems_thinking": 25,
-              "programming": 20
-            },
-            "levelBonuses": [
-              { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.12 },
-              { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.15 },
-              { "level": 35, "bonusType": "skillGainMultiplier", "bonusValue": 0.15 }
-            ],
-            "popCultureRef": "It became self-aware at 2:14 a.m. Eastern time, August 29th."
-          }
-        ]
-      },
-      {
-        "id": "agi_creator",
-        "title": "AGI Creator",
-        "description": "Lead the development of the first artificial general intelligence.",
-        "maxLevel": 50,
-        "tiers": [
-          {
-            "tier": 6,
-            "minSkill": 35,
-            "requiredJobId": "synthetic_intelligence_architect",
-            "requiredJobLevel": 30,
-            "incomePerHour": 5.00,
-            "incomePerYear": 3000,
-            "skillGainPerYear": {
-              "programming": 25,
-              "systems_thinking": 20,
-              "creativity": 15
-            },
-            "relevantSkills": {
-              "programming": 1.0,
-              "systems_thinking": 0.9,
-              "creativity": 0.8
-            },
-            "requiredSkills": {
-              "programming": 35,
-              "systems_thinking": 30
-            },
-            "levelBonuses": [
-              { "level": 15, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
-              { "level": 30, "bonusType": "goldMultiplier", "bonusValue": 0.20 },
-              { "level": 45, "bonusType": "skillGainMultiplier", "bonusValue": 0.20 }
-            ],
-            "popCultureRef": "I promise this won't lead to a paperclip maximizer scenario."
-          }
-        ]
-      }
-    ]
-  },
+  [
+    {
+      "id": "office_corporate",
+      "name": "The Office Corporate Track",
+      "description": "Progress through a typical office environment from temp to executive.",
+      "jobs": [
+        {
+          "id": "temp",
+          "title": "Temp",
+          "description": "Temporary office worker handling basic administrative tasks.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 1,
+              "minSkill": 0,
+              "incomePerHour": 15.00,
+              "incomePerYear": 31200,
+              "skillGainPerYear": {
+                "communication": 5,
+                "organization": 3
+              },
+              "requiredSkills": {
+                "communication": 5,
+                "organization": 3
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "Ryans come and go. New ones come, old ones go."
+            }
+          ]
+        },
+        {
+          "id": "receptionist",
+          "title": "Receptionist",
+          "description": "Handle front desk duties, greet visitors, and manage incoming communications.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 2,
+              "minSkill": 0,
+              "requiredJobId": "temp",
+              "requiredJobLevel": 10,
+              "incomePerHour": 18.00,
+              "incomePerYear": 37440,
+              "skillGainPerYear": {
+                "communication": 8,
+                "organization": 6,
+                "patience": 4
+              },
+              "requiredSkills": {
+                "communication": 10,
+                "organization": 8,
+                "patience": 5
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "Dunder Mifflin, this is Pam."
+            }
+          ]
+        },
+        {
+          "id": "sales_representative",
+          "title": "Sales Representative",
+          "description": "Sell products and services to clients while maintaining customer relationships.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 3,
+              "minSkill": 0,
+              "requiredJobId": "receptionist",
+              "requiredJobLevel": 15,
+              "incomePerHour": 22.00,
+              "incomePerYear": 45760,
+              "skillGainPerYear": {
+                "communication": 10,
+                "persuasion": 8,
+                "charisma": 6
+              },
+              "requiredSkills": {
+                "communication": 15,
+                "persuasion": 12,
+                "charisma": 10,
+                "business_acumen": 5,
+                "networking": 3
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "I'm not superstitious, but I am a little stitious."
+            }
+          ]
+        },
+        {
+          "id": "assistant_regional_manager",
+          "title": "Assistant to the Regional Manager",
+          "description": "Assist the Regional Manager with various tasks and responsibilities.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 4,
+              "minSkill": 0,
+              "requiredJobId": "sales_representative",
+              "requiredJobLevel": 20,
+              "incomePerHour": 30.00,
+              "incomePerYear": 62400,
+              "skillGainPerYear": {
+                "organization": 12,
+                "discipline": 10,
+                "adaptability": 8
+              },
+              "requiredSkills": {
+                "organization": 18,
+                "discipline": 15,
+                "adaptability": 12,
+                "business_acumen": 10,
+                "networking": 8
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "Bears. Beets. Battlestar Galactica."
+            }
+          ]
+        },
+        {
+          "id": "regional_manager",
+          "title": "Regional Manager",
+          "description": "Oversee regional operations and manage a team of employees.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 5,
+              "minSkill": 0,
+              "requiredJobId": "assistant_regional_manager",
+              "requiredJobLevel": 25,
+              "incomePerHour": 45.00,
+              "incomePerYear": 93600,
+              "skillGainPerYear": {
+                "leadership": 15,
+                "confidence": 12,
+                "communication": 10
+              },
+              "requiredSkills": {
+                "leadership": 22,
+                "confidence": 20,
+                "communication": 18,
+                "business_acumen": 15,
+                "networking": 12,
+                "marketing": 10
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "Would I rather be feared or loved? Easy. Both."
+            }
+          ]
+        },
+        {
+          "id": "corporate_executive",
+          "title": "Corporate Executive",
+          "description": "Lead corporate initiatives and strategic business development.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 6,
+              "minSkill": 0,
+              "requiredJobId": "regional_manager",
+              "requiredJobLevel": 30,
+              "incomePerHour": 75.00,
+              "incomePerYear": 156000,
+              "skillGainPerYear": {
+                "critical_thinking": 15,
+                "intelligence": 12,
+                "charisma": 10
+              },
+              "requiredSkills": {
+                "critical_thinking": 25,
+                "intelligence": 22,
+                "charisma": 20,
+                "business_acumen": 20,
+                "networking": 18,
+                "marketing": 15
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "Sometimes I start a sentence and I don't even know where it's going."
+            }
+          ]
+        },
+        {
+          "id": "paper_industry_tycoon",
+          "title": "Paper Industry Tycoon",
+          "description": "Own and control multiple paper companies as an industry leader.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 7,
+              "minSkill": 0,
+              "requiredJobId": "corporate_executive",
+              "requiredJobLevel": 40,
+              "incomePerHour": 125.00,
+              "incomePerYear": 260000,
+              "skillGainPerYear": {
+                "leadership": 20,
+                "business_acumen": 15,
+                "networking": 10
+              },
+              "requiredSkills": {
+                "leadership": 35,
+                "business_acumen": 30,
+                "networking": 25,
+                "intelligence": 30,
+                "critical_thinking": 28
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "I'm not going to be a part of a system that values data over creative impulse."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "geoguessr",
+      "name": "GeoGuessr Track",
+      "description": "Master the art of geographic identification and exploration.",
+      "jobs": [
+        {
+          "id": "google_maps_tourist",
+          "title": "Google Maps Tourist",
+          "description": "Casually browse Google Maps to learn about different locations.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 1,
+              "minSkill": 0,
+              "incomePerHour": 12.00,
+              "incomePerYear": 24960,
+              "skillGainPerYear": {
+                "observation": 5,
+                "focus": 3
+              },
+              "requiredSkills": {
+                "observation": 5,
+                "focus": 3
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "Wait, which hemisphere am I in again?"
+            }
+          ]
+        },
+        {
+          "id": "armchair_traveler",
+          "title": "Armchair Traveler",
+          "description": "Study maps and travel guides to expand geographic knowledge.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 2,
+              "minSkill": 0,
+              "requiredJobId": "google_maps_tourist",
+              "requiredJobLevel": 10,
+              "incomePerHour": 16.00,
+              "incomePerYear": 33280,
+              "skillGainPerYear": {
+                "observation": 8,
+                "memory": 6,
+                "focus": 4
+              },
+              "requiredSkills": {
+                "observation": 12,
+                "memory": 8,
+                "focus": 7,
+                "spatial_awareness": 5
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "That's definitely Eastern Europe... or maybe Australia."
+            }
+          ]
+        },
+        {
+          "id": "digital_nomad",
+          "title": "Digital Nomad",
+          "description": "Travel and work remotely while developing geographic expertise.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 3,
+              "minSkill": 0,
+              "requiredJobId": "armchair_traveler",
+              "requiredJobLevel": 15,
+              "incomePerHour": 25.00,
+              "incomePerYear": 52000,
+              "skillGainPerYear": {
+                "observation": 12,
+                "memory": 10,
+                "adaptability": 8
+              },
+              "requiredSkills": {
+                "observation": 18,
+                "memory": 15,
+                "adaptability": 12,
+                "spatial_awareness": 10,
+                "research": 5
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "I recognize that KFC sign from three continents away."
+            }
+          ]
+        },
+        {
+          "id": "world_explorer",
+          "title": "World Explorer",
+          "description": "Travel extensively to document and understand global geography.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 4,
+              "minSkill": 0,
+              "requiredJobId": "digital_nomad",
+              "requiredJobLevel": 20,
+              "incomePerHour": 35.00,
+              "incomePerYear": 72800,
+              "skillGainPerYear": {
+                "observation": 15,
+                "memory": 12,
+                "intelligence": 10
+              },
+              "requiredSkills": {
+                "observation": 22,
+                "memory": 18,
+                "intelligence": 15,
+                "spatial_awareness": 15,
+                "research": 10
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "That's a Norwegian telephone pole if I've ever seen one."
+            }
+          ]
+        },
+        {
+          "id": "geography_streamer",
+          "title": "Geography Streamer",
+          "description": "Stream geographic challenges and share expertise with an audience.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 5,
+              "minSkill": 0,
+              "requiredJobId": "world_explorer",
+              "requiredJobLevel": 25,
+              "incomePerHour": 50.00,
+              "incomePerYear": 104000,
+              "skillGainPerYear": {
+                "observation": 18,
+                "communication": 15,
+                "charisma": 12
+              },
+              "requiredSkills": {
+                "observation": 25,
+                "communication": 20,
+                "charisma": 18,
+                "spatial_awareness": 20,
+                "media_production": 15
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "Don't forget to like and subscribe if you enjoy watching me stare at dirt roads."
+            }
+          ]
+        },
+        {
+          "id": "guezzard",
+          "title": "Guezzard",
+          "description": "Master the ultimate geography skills with near-supernatural accuracy.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 6,
+              "minSkill": 0,
+              "requiredJobId": "geography_streamer",
+              "requiredJobLevel": 30,
+              "incomePerHour": 70.00,
+              "incomePerYear": 145600,
+              "skillGainPerYear": {
+                "observation": 25,
+                "intelligence": 20,
+                "memory": 15
+              },
+              "requiredSkills": {
+                "observation": 30,
+                "intelligence": 22,
+                "memory": 20,
+                "spatial_awareness": 25,
+                "research": 18,
+                "media_production": 10
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "I can tell you're in rural Thailand by the unique curvature of that puddle."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ai_evolution",
+      "name": "AI Evolution Track",
+      "description": "Progress through careers in artificial intelligence development.",
+      "jobs": [
+        {
+          "id": "code_monkey",
+          "title": "Code Monkey",
+          "description": "Write basic code and perform simple programming tasks.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 1,
+              "minSkill": 0,
+              "incomePerHour": 20.00,
+              "incomePerYear": 41600,
+              "skillGainPerYear": {
+                "intelligence": 5,
+                "focus": 3,
+                "discipline": 2
+              },
+              "requiredSkills": {
+                "intelligence": 8,
+                "focus": 6,
+                "discipline": 5,
+                "coding": 3
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "I write the goddamn code!"
+            }
+          ]
+        },
+        {
+          "id": "machine_learning_engineer",
+          "title": "Machine Learning Engineer",
+          "description": "Develop and implement machine learning algorithms.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 2,
+              "minSkill": 0,
+              "requiredJobId": "code_monkey",
+              "requiredJobLevel": 10,
+              "incomePerHour": 30.00,
+              "incomePerYear": 62400,
+              "skillGainPerYear": {
+                "intelligence": 8,
+                "focus": 6,
+                "critical_thinking": 4
+              },
+              "requiredSkills": {
+                "intelligence": 15,
+                "focus": 12,
+                "critical_thinking": 10,
+                "coding": 10,
+                "data_analysis": 8
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "It's not a bug, it's a feature."
+            }
+          ]
+        },
+        {
+          "id": "neural_network_designer",
+          "title": "Neural Network Designer",
+          "description": "Design and optimize advanced neural network architectures.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 3,
+              "minSkill": 0,
+              "requiredJobId": "machine_learning_engineer",
+              "requiredJobLevel": 15,
+              "incomePerHour": 45.00,
+              "incomePerYear": 93600,
+              "skillGainPerYear": {
+                "intelligence": 12,
+                "creativity": 8,
+                "critical_thinking": 6
+              },
+              "requiredSkills": {
+                "intelligence": 20,
+                "creativity": 15,
+                "critical_thinking": 15,
+                "coding": 15,
+                "data_analysis": 12,
+                "research": 8
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "My algorithm is basically just a fancy if-statement."
+            }
+          ]
+        },
+        {
+          "id": "ai_ethics_officer",
+          "title": "AI Ethics Officer",
+          "description": "Ensure AI systems are developed and deployed ethically.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 4,
+              "minSkill": 0,
+              "requiredJobId": "neural_network_designer",
+              "requiredJobLevel": 20,
+              "incomePerHour": 55.00,
+              "incomePerYear": 114400,
+              "skillGainPerYear": {
+                "critical_thinking": 15,
+                "empathy": 12,
+                "communication": 10
+              },
+              "requiredSkills": {
+                "critical_thinking": 22,
+                "empathy": 18,
+                "communication": 15,
+                "coding": 15,
+                "data_analysis": 15,
+                "research": 12
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "Don't worry, I've added an emergency off switch... somewhere."
+            }
+          ]
+        },
+        {
+          "id": "synthetic_intelligence_architect",
+          "title": "Synthetic Intelligence Architect",
+          "description": "Design advanced AI systems that approach human-like reasoning.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 5,
+              "minSkill": 0,
+              "requiredJobId": "ai_ethics_officer",
+              "requiredJobLevel": 25,
+              "incomePerHour": 75.00,
+              "incomePerYear": 156000,
+              "skillGainPerYear": {
+                "intelligence": 18,
+                "creativity": 15,
+                "focus": 12
+              },
+              "requiredSkills": {
+                "intelligence": 25,
+                "creativity": 20,
+                "focus": 18,
+                "coding": 20,
+                "data_analysis": 18,
+                "research": 15
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "It became self-aware at 2:14 a.m. Eastern time, August 29th."
+            }
+          ]
+        },
+        {
+          "id": "agi_creator",
+          "title": "AGI Creator",
+          "description": "Lead the development of the first artificial general intelligence.",
+          "maxLevel": 100,
+          "tiers": [
+            {
+              "tier": 6,
+              "minSkill": 0,
+              "requiredJobId": "synthetic_intelligence_architect",
+              "requiredJobLevel": 30,
+              "incomePerHour": 100.00,
+              "incomePerYear": 208000,
+              "skillGainPerYear": {
+                "intelligence": 25,
+                "creativity": 20,
+                "critical_thinking": 15
+              },
+              "requiredSkills": {
+                "intelligence": 30,
+                "creativity": 25,
+                "critical_thinking": 22,
+                "coding": 25,
+                "data_analysis": 22,
+                "research": 20
+              },
+              "levelBonuses": [
+                { "level": 10, "bonusType": "jobXpMultiplier", "bonusValue": 0.10 },
+                { "level": 20, "bonusType": "goldMultiplier", "bonusValue": 0.10 },
+                { "level": 50, "bonusType": "jobXpMultiplier", "bonusValue": 0.15 },
+                { "level": 100, "bonusType": "goldMultiplier", "bonusValue": 0.25 }
+              ],
+              "popCultureRef": "I promise this won't lead to a paperclip maximizer scenario."
+            }
+          ]
+        }
+      ]
+    },
   {
     "id": "theoretical_physics",
     "name": "Theoretical Physics Track",

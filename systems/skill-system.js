@@ -1,26 +1,20 @@
-// skill-system.js - Consolidated Skill System
-// This file combines functionality from:
-// - systems/skill-system.js
-// - skill-system-integration.js
+// skill-system.js - Simplified Skill System
+// Aligned with game mechanics documentation (15 general skills + 10 professional skills)
+// Removed: decay, synergies, energy costs, attributes influence
 
-console.log("skill-system.js - Loading consolidated skill system");
+console.log("skill-system.js - Loading simplified skill system");
 
 // Constants for skill system
 const SKILL_CONSTANTS = {
     BASE_XP_REQUIRED: 100,      // Base XP needed for level up
     XP_SCALING_FACTOR: 1.1,     // How much XP requirements increase per level
-    SYNERGY_BONUS_CAP: 0.5,     // Maximum bonus from skill synergies (50%)
-    ATTRIBUTE_SCALING: 0.05,    // How much each attribute point affects growth (5%)
-    MAX_ATTRIBUTE_VALUE: 20,    // Maximum value for attributes
-    MIN_ATTRIBUTE_VALUE: 1,     // Minimum value for attributes
-    DECAY_INTERVAL: 86400,      // Skill decay interval in milliseconds (1 day)
-    DECAY_CHECK_INTERVAL: 3600  // How often to check for decay (1 hour)
+    MAX_SKILL_LEVEL: 100,       // Maximum skill level
+    MIN_SKILL_LEVEL: 1,         // Minimum skill level
+    TRAINING_BASE_XP: 10        // Base XP gained per hour of training
 };
 
 // Cache for optimizing skill calculations
 const skillCache = {
-    calculatedSynergies: {},
-    effectiveGrowthRates: {},
     lastUpdateTime: 0
 };
 
@@ -28,13 +22,10 @@ const skillCache = {
  * Initialize the skill system
  */
 export function initializeSkillSystem() {
-    console.log("initializeSkillSystem() - Setting up enhanced skill system");
+    console.log("initializeSkillSystem() - Setting up simplified skill system");
     
     // Ensure game state has the necessary structures
     ensureSkillStructures();
-    
-    // Set up skill decay timer
-    setupSkillDecay();
     
     // Set up skill UI if function is available
     if (typeof window.setupSkillUI === 'function') {
@@ -54,11 +45,6 @@ function ensureSkillStructures() {
         gameState.skills = {};
     }
     
-    // Ensure attributes object exists
-    if (!gameState.attributes) {
-        gameState.attributes = {};
-    }
-    
     // Ensure skill categories object exists
     if (!gameState.skillCategories) {
         gameState.skillCategories = {};
@@ -68,202 +54,134 @@ function ensureSkillStructures() {
     if (!gameState.skillProgress) {
         gameState.skillProgress = {};
     }
-}
-
-/**
- * Set up skill decay timer
- */
-function setupSkillDecay() {
-    console.log("setupSkillDecay() - Setting up skill decay timer");
     
-    // Clear any existing timer
-    if (window.skillDecayTimer) {
-        clearInterval(window.skillDecayTimer);
+    // Ensure skill multipliers object exists (for lasting multipliers)
+    if (!gameState.skillMultipliers) {
+        gameState.skillMultipliers = {};
     }
     
-    // Set up new timer
-    window.skillDecayTimer = setInterval(() => {
-        if (!gameState.gamePaused) {
-            processSkillDecay();
-        }
-    }, SKILL_CONSTANTS.DECAY_CHECK_INTERVAL);
-    
-    console.log(`setupSkillDecay() - Decay timer set to check every ${SKILL_CONSTANTS.DECAY_CHECK_INTERVAL}ms`);
-}
-
-/**
- * Process skill decay for all skills
- */
-export function processSkillDecay() {
-    console.log("processSkillDecay() - Processing skill decay");
-    
-    const now = Date.now();
-    
-    // Process each skill
-    for (const skillId in gameState.skills) {
-        const skill = gameState.skills[skillId];
-        
-        // Skip if skill doesn't have decay properties
-        if (!skill.decayRate) continue;
-        
-        // Calculate time since last update
-        const lastUpdated = skill.lastUpdated || now;
-        const timeSinceUpdate = now - lastUpdated;
-        
-        // Only decay if enough time has passed
-        if (timeSinceUpdate >= SKILL_CONSTANTS.DECAY_INTERVAL) {
-            // Calculate decay amount
-            const decayIntervals = Math.floor(timeSinceUpdate / SKILL_CONSTANTS.DECAY_INTERVAL);
-            let decayAmount = skill.level * skill.decayRate * decayIntervals;
-            
-            // Apply discipline attribute to reduce decay
-            const disciplineValue = getAttributeValue("discipline");
-            const disciplineBonus = 1 - (disciplineValue / SKILL_CONSTANTS.MAX_ATTRIBUTE_VALUE * 0.5);
-            decayAmount *= disciplineBonus;
-            
-            // Apply the decay
-            if (skill.xp > 0) {
-                // First decay XP
-                skill.xp = Math.max(0, skill.xp - decayAmount * 10);
-            } else if (skill.level > skill.baseValue) {
-                // Then decay levels if XP is gone
-                skill.level = Math.max(skill.baseValue, skill.level - decayAmount);
-            }
-            
-            // Update last updated timestamp
-            skill.lastUpdated = now;
-        }
-    }
-    
-    // Update skill display if needed
-    if (typeof window.updateSkillDisplay === 'function') {
-        window.updateSkillDisplay();
+    // Ensure previous lives skill levels object exists
+    if (!gameState.previousLivesSkillLevels) {
+        gameState.previousLivesSkillLevels = {};
     }
 }
 
 /**
- * Get attribute value with modifiers applied
- * @param {string} attributeId - Attribute identifier
- * @returns {number} - Attribute value
+ * Process skills data from loaded JSON
+ * @param {Array} skillsData - Array of skill categories with their skills
  */
-export function getAttributeValue(attributeId) {
-    if (!gameState.attributes || !gameState.attributes[attributeId]) {
-        console.warn(`getAttributeValue() - Attribute ${attributeId} not found`);
-        return SKILL_CONSTANTS.MIN_ATTRIBUTE_VALUE;
+export function processSkillsData(skillsData) {
+    console.log("processSkillsData() - Processing skills data");
+    
+    // Check if we have the expected format
+    if (!Array.isArray(skillsData)) {
+        console.error("processSkillsData() - Invalid skills data format");
+        return;
     }
     
-    const attribute = gameState.attributes[attributeId];
-    let value = attribute.value;
+    // Initialize structures
+    if (!gameState.skillCategories) {
+        gameState.skillCategories = {};
+    }
     
-    // Apply modifiers if any
-    if (attribute.modifiers && Array.isArray(attribute.modifiers)) {
-        attribute.modifiers.forEach(modifier => {
-            if (modifier.active) {
-                value += modifier.value;
-            }
+    if (!gameState.skills) {
+        gameState.skills = {};
+    }
+    
+    // Process general skills category (15 skills)
+    const generalSkills = skillsData.find(cat => cat.id === "general");
+    if (generalSkills && Array.isArray(generalSkills.items)) {
+        // Store category
+        gameState.skillCategories["general"] = {
+            id: "general",
+            name: generalSkills.name || "General Skills",
+            description: generalSkills.description || "Basic human skills applicable to many situations"
+        };
+        
+        // Process each general skill
+        generalSkills.items.forEach(skill => {
+            processSkill(skill, "general");
         });
+    } else {
+        console.warn("processSkillsData() - General skills category not found");
     }
     
-    // Ensure value is within range
-    return Math.max(
-        SKILL_CONSTANTS.MIN_ATTRIBUTE_VALUE,
-        Math.min(SKILL_CONSTANTS.MAX_ATTRIBUTE_VALUE, value)
-    );
+    // Process professional skills category (10 skills)
+    const professionalSkills = skillsData.find(cat => cat.id === "professional");
+    if (professionalSkills && Array.isArray(professionalSkills.items)) {
+        // Store category
+        gameState.skillCategories["professional"] = {
+            id: "professional",
+            name: professionalSkills.name || "Professional Skills",
+            description: professionalSkills.description || "Specialized skills for specific career tracks"
+        };
+        
+        // Process each professional skill
+        professionalSkills.items.forEach(skill => {
+            processSkill(skill, "professional");
+        });
+    } else {
+        console.warn("processSkillsData() - Professional skills category not found");
+    }
+    
+    // Initialize default skill multipliers based on previous life skill levels
+    updateSkillMultipliers();
+    
+    console.log("processSkillsData() - Skills processing complete");
 }
 
 /**
- * Calculate synergy bonus for a skill
- * @param {string} skillId - Skill identifier
- * @returns {number} - Synergy bonus (0-0.5)
+ * Process a single skill definition
+ * @param {Object} skill - Skill definition object
+ * @param {string} categoryId - Category ID
  */
-export function calculateSkillSynergy(skillId) {
-    // Check cache first
-    if (skillCache.calculatedSynergies[skillId]) {
-        return skillCache.calculatedSynergies[skillId];
+function processSkill(skill, categoryId) {
+    if (!skill || !skill.id) {
+        console.warn("processSkill() - Invalid skill definition");
+        return;
     }
     
-    const skill = gameState.skills[skillId];
-    if (!skill || !skill.synergies || skill.synergies.length === 0) {
-        return 0;
-    }
+    // Preserve existing skill level and XP if skill already exists
+    const existingSkill = gameState.skills[skill.id];
+    const level = existingSkill ? (existingSkill.level || existingSkill.baseValue || 1) : 1;
+    const xp = existingSkill ? (existingSkill.xp || 0) : 0;
     
-    let synergyBonus = 0;
-    
-    // Calculate bonus from each synergy skill
-    skill.synergies.forEach(synergySkillId => {
-        if (gameState.skills[synergySkillId]) {
-            const synergySkill = gameState.skills[synergySkillId];
-            // Each level of the synergy skill contributes a small bonus
-            synergyBonus += (synergySkill.level / 100) * 0.1;
-        }
-    });
-    
-    // Cap the synergy bonus
-    synergyBonus = Math.min(SKILL_CONSTANTS.SYNERGY_BONUS_CAP, synergyBonus);
-    
-    // Store in cache
-    skillCache.calculatedSynergies[skillId] = synergyBonus;
-    
-    return synergyBonus;
+    // Create or update skill
+    gameState.skills[skill.id] = {
+        id: skill.id,
+        name: skill.name || skill.id,
+        description: skill.description || "",
+        categoryId: categoryId,
+        level: level,
+        xp: xp,
+        maxLevel: SKILL_CONSTANTS.MAX_SKILL_LEVEL,
+        baseValue: skill.baseValue || 1
+    };
 }
 
 /**
- * Calculate all skill synergies (for cache)
+ * Update skill multipliers based on previous lives
  */
-function calculateAllSynergies() {
-    for (const skillId in gameState.skills) {
-        calculateSkillSynergy(skillId);
-    }
-}
-
-/**
- * Calculate effective growth rate for a skill
- * @param {string} skillId - Skill identifier
- * @returns {number} - Effective growth rate
- */
-export function calculateEffectiveGrowthRate(skillId) {
-    // Check cache first
-    if (skillCache.effectiveGrowthRates[skillId]) {
-        return skillCache.effectiveGrowthRates[skillId];
+function updateSkillMultipliers() {
+    // Skip if no previous lives data
+    if (!gameState.previousLivesSkillLevels) {
+        return;
     }
     
-    const skill = gameState.skills[skillId];
-    if (!skill) {
-        return 1.0;
+    // Initialize multipliers object if needed
+    if (!gameState.skillMultipliers) {
+        gameState.skillMultipliers = {};
     }
     
-    // Get the skill's category
-    const category = gameState.skillCategories[skill.categoryId];
-    if (!category) {
-        return skill.growthRate || 1.0;
-    }
-    
-    // Get attribute values
-    const primaryAttrValue = getAttributeValue(category.primaryAttribute);
-    const secondaryAttrValue = getAttributeValue(category.secondaryAttribute);
-    
-    // Calculate attribute bonus
-    const primaryBonus = (primaryAttrValue - 5) * SKILL_CONSTANTS.ATTRIBUTE_SCALING;
-    const secondaryBonus = (secondaryAttrValue - 5) * SKILL_CONSTANTS.ATTRIBUTE_SCALING * 0.5;
-    
-    // Calculate synergy bonus
-    const synergyBonus = calculateSkillSynergy(skillId);
-    
-    // Calculate effective growth rate
-    const effectiveRate = (skill.growthRate || 1.0) * (1 + primaryBonus + secondaryBonus + synergyBonus);
-    
-    // Store in cache
-    skillCache.effectiveGrowthRates[skillId] = effectiveRate;
-    
-    return effectiveRate;
-}
-
-/**
- * Calculate all effective growth rates (for cache)
- */
-function calculateEffectiveGrowthRates() {
-    for (const skillId in gameState.skills) {
-        calculateEffectiveGrowthRate(skillId);
+    // Update multipliers for each skill from previous lives
+    for (const skillId in gameState.previousLivesSkillLevels) {
+        const prevLevel = gameState.previousLivesSkillLevels[skillId];
+        
+        // Calculate multiplier (1% per level, max 100% at level 100)
+        const multiplier = Math.min(1.0, prevLevel / 100);
+        
+        // Store multiplier
+        gameState.skillMultipliers[skillId] = multiplier;
     }
 }
 
@@ -282,21 +200,20 @@ export function addSkillXP(skillId, amount) {
         return false;
     }
     
-    // Adjust amount by effective growth rate
-    const effectiveRate = calculateEffectiveGrowthRate(skillId);
-    const adjustedAmount = amount * effectiveRate;
+    // Apply multiplier if exists
+    let multiplier = 1.0;
+    if (gameState.skillMultipliers && gameState.skillMultipliers[skillId]) {
+        multiplier = 1.0 + gameState.skillMultipliers[skillId];
+    }
+    
+    // Apply the multiplier
+    const adjustedAmount = amount * multiplier;
     
     // Add XP
     skill.xp = (skill.xp || 0) + adjustedAmount;
     
-    // Update last updated timestamp
-    skill.lastUpdated = Date.now();
-    
     // Check for level up
     checkSkillLevelUp(skillId);
-    
-    // Invalidate cache
-    invalidateSkillCache();
     
     return true;
 }
@@ -314,14 +231,19 @@ function checkSkillLevelUp(skillId) {
     
     // Ensure level property exists
     if (typeof skill.level === 'undefined') {
-        skill.level = skill.baseValue || 0;
+        skill.level = skill.baseValue || 1;
+    }
+    
+    // Skip if already at max level
+    if (skill.level >= SKILL_CONSTANTS.MAX_SKILL_LEVEL) {
+        return false;
     }
     
     // Calculate XP needed for next level
     const xpNeeded = calculateXPForLevel(skill.level);
     
     // Check if we have enough XP to level up
-    if (skill.xp >= xpNeeded && skill.level < (skill.maxLevel || 100)) {
+    if (skill.xp >= xpNeeded) {
         // Level up the skill
         skill.level++;
         skill.xp -= xpNeeded;
@@ -355,19 +277,10 @@ export function calculateXPForLevel(level) {
 }
 
 /**
- * Invalidate skill cache
- */
-function invalidateSkillCache() {
-    skillCache.calculatedSynergies = {};
-    skillCache.effectiveGrowthRates = {};
-    skillCache.lastUpdateTime = Date.now();
-}
-
-/**
  * Train a specific skill
  * @param {string} skillId - Skill identifier
  * @param {number} hoursSpent - Hours spent training
- * @param {number} focusLevel - Focus level (0-2)
+ * @param {number} focusLevel - Focus level (0-2) affects XP gain
  * @returns {boolean} - Success/failure
  */
 export function trainSkill(skillId, hoursSpent = 1, focusLevel = 1) {
@@ -380,34 +293,13 @@ export function trainSkill(skillId, hoursSpent = 1, focusLevel = 1) {
     }
     
     // Base XP gain from training
-    const baseXPGain = 10 * hoursSpent;
+    const baseXPGain = SKILL_CONSTANTS.TRAINING_BASE_XP * hoursSpent;
     
     // Apply focus modifier
     const focusModifier = 0.5 + (focusLevel * 0.5); // 0.5 to 1.5 based on focus level 0-2
     
-    // Apply focus attribute
-    const focusAttribute = getAttributeValue("focus");
-    const focusBonus = 1 + ((focusAttribute - 5) / 15); // -0.27 to +1 based on focus attribute 1-20
-    
     // Calculate total XP gain
-    const totalXPGain = baseXPGain * focusModifier * focusBonus;
-    
-    // Energy cost for training
-    const energyCost = 5 * hoursSpent * (focusLevel + 1);
-    
-    // Check if player has enough energy
-    if (gameState.energy < energyCost) {
-        console.log(`trainSkill() - Not enough energy. Needed: ${energyCost}, Current: ${gameState.energy}`);
-        
-        if (typeof window.showNotification === 'function') {
-            window.showNotification("Training Failed", "Not enough energy to train this skill", "error");
-        }
-        
-        return false;
-    }
-    
-    // Deduct energy
-    gameState.energy -= energyCost;
+    const totalXPGain = baseXPGain * focusModifier;
     
     // Add the XP
     addSkillXP(skillId, totalXPGain);
@@ -426,91 +318,6 @@ export function trainSkill(skillId, hoursSpent = 1, focusLevel = 1) {
 }
 
 /**
- * Increase an attribute
- * @param {string} attributeId - Attribute identifier
- * @param {number} amount - Amount to increase
- * @returns {boolean} - Success/failure
- */
-export function increaseAttribute(attributeId, amount = 1) {
-    console.log(`increaseAttribute() - Increasing ${attributeId} by ${amount}`);
-    
-    if (!gameState.attributes || !gameState.attributes[attributeId]) {
-        console.error(`increaseAttribute() - Attribute ${attributeId} not found`);
-        return false;
-    }
-    
-    const attribute = gameState.attributes[attributeId];
-    
-    // Check if at max value
-    if (attribute.value >= SKILL_CONSTANTS.MAX_ATTRIBUTE_VALUE) {
-        console.log(`increaseAttribute() - Attribute ${attributeId} already at max value`);
-        
-        if (typeof window.showNotification === 'function') {
-            window.showNotification("Max Value", `${attribute.name} is already at maximum value`, "info");
-        }
-        
-        return false;
-    }
-    
-    // Increase attribute value
-    attribute.value = Math.min(SKILL_CONSTANTS.MAX_ATTRIBUTE_VALUE, attribute.value + amount);
-    
-    // Log attribute increase
-    if (typeof window.logEvent === 'function') {
-        window.logEvent(`${attribute.name} increased to ${attribute.value}.`, 'attribute');
-    }
-    
-    // Invalidate cache since attributes affect growth rates
-    invalidateSkillCache();
-    
-    // Update display
-    if (typeof window.updateSkillDisplay === 'function') {
-        window.updateSkillDisplay();
-    }
-    
-    return true;
-}
-
-/**
- * Calculate specialization bonus for a category
- * @param {string} categoryId - Category identifier
- * @returns {number} - Specialization bonus
- */
-export function calculateSpecializationBonus(categoryId) {
-    if (!gameState.skillCategories || !gameState.skillCategories[categoryId]) {
-        return 0;
-    }
-    
-    // Count skills in this category
-    let skillCount = 0;
-    let totalLevel = 0;
-    let highestLevel = 0;
-    
-    // Calculate total levels and highest level
-    for (const skillId in gameState.skills) {
-        const skill = gameState.skills[skillId];
-        if (skill.categoryId === categoryId) {
-            skillCount++;
-            totalLevel += skill.level;
-            highestLevel = Math.max(highestLevel, skill.level);
-        }
-    }
-    
-    if (skillCount === 0) {
-        return 0;
-    }
-    
-    // Calculate average level in category
-    const averageLevel = totalLevel / skillCount;
-    
-    // Calculate specialization bonus (higher if skills are more balanced)
-    const balanceFactor = averageLevel / (highestLevel || 1);
-    const specializationBonus = (averageLevel / 100) * balanceFactor;
-    
-    return specializationBonus;
-}
-
-/**
  * Get skill info by ID
  * @param {string} skillId - Skill identifier
  * @returns {object|null} - Skill info or null if not found
@@ -523,17 +330,15 @@ export function getSkillInfo(skillId) {
     const skill = gameState.skills[skillId];
     const category = gameState.skillCategories[skill.categoryId];
     
-    // Calculate effective growth rate
-    const effectiveGrowthRate = calculateEffectiveGrowthRate(skillId);
-    
-    // Calculate synergy bonus
-    const synergyBonus = calculateSkillSynergy(skillId);
-    
     // Calculate XP needed for next level
     const xpForNextLevel = calculateXPForLevel(skill.level);
     
     // Calculate percentage to next level
     const percentToNextLevel = (skill.xp / xpForNextLevel) * 100;
+    
+    // Get multiplier if any
+    const multiplier = gameState.skillMultipliers && gameState.skillMultipliers[skillId] ?
+        gameState.skillMultipliers[skillId] : 0;
     
     return {
         id: skill.id || skillId,
@@ -545,10 +350,7 @@ export function getSkillInfo(skillId) {
         xpForNextLevel,
         percentToNextLevel,
         category: category,
-        growthRate: skill.growthRate || 1.0,
-        effectiveGrowthRate,
-        synergyBonus,
-        synergies: skill.synergies || []
+        multiplier: multiplier
     };
 }
 
@@ -591,8 +393,6 @@ export function getAllCategories() {
             id: category.id || categoryId,
             name: category.name || categoryId,
             description: category.description || '',
-            primaryAttribute: category.primaryAttribute || 'intelligence',
-            secondaryAttribute: category.secondaryAttribute || 'focus',
             skillCount: getSkillsByCategory(categoryId).length
         });
     }
@@ -601,63 +401,51 @@ export function getAllCategories() {
 }
 
 /**
- * Get all attributes
- * @returns {Array} - Array of attribute objects
+ * Save current skill levels as previous life values when starting a new life
+ * Called when a player retires or dies
  */
-export function getAllAttributes() {
-    if (!gameState.attributes) {
-        return [];
+export function saveSkillLevelsForNextLife() {
+    console.log("saveSkillLevelsForNextLife() - Saving skill levels for multipliers in next life");
+    
+    // Initialize previous lives skill levels if needed
+    if (!gameState.previousLivesSkillLevels) {
+        gameState.previousLivesSkillLevels = {};
     }
     
-    const attributes = [];
-    
-    for (const attributeId in gameState.attributes) {
-        const attribute = gameState.attributes[attributeId];
-        attributes.push({
-            id: attribute.id || attributeId,
-            name: attribute.name || attributeId,
-            description: attribute.description || '',
-            icon: attribute.icon || '',
-            value: attribute.value || 5,
-            modifiers: attribute.modifiers || []
-        });
+    // For each skill, store the highest level achieved (current or previous)
+    for (const skillId in gameState.skills) {
+        const currentLevel = gameState.skills[skillId].level || 1;
+        const previousBestLevel = gameState.previousLivesSkillLevels[skillId] || 0;
+        
+        // Store the highest level
+        gameState.previousLivesSkillLevels[skillId] = Math.max(currentLevel, previousBestLevel);
     }
     
-    return attributes;
+    console.log("saveSkillLevelsForNextLife() - Skill levels saved successfully");
 }
 
 // Make functions available globally
 window.initializeSkillSystem = initializeSkillSystem;
-window.getAttributeValue = getAttributeValue;
-window.calculateSkillSynergy = calculateSkillSynergy;
-window.calculateEffectiveGrowthRate = calculateEffectiveGrowthRate;
 window.addSkillXP = addSkillXP;
 window.trainSkill = trainSkill;
-window.increaseAttribute = increaseAttribute;
-window.calculateSpecializationBonus = calculateSpecializationBonus;
 window.getSkillInfo = getSkillInfo;
 window.getSkillsByCategory = getSkillsByCategory;
 window.getAllCategories = getAllCategories;
-window.getAllAttributes = getAllAttributes;
 window.calculateXPForLevel = calculateXPForLevel;
-window.processSkillDecay = processSkillDecay;
+window.processSkillsData = processSkillsData;
+window.saveSkillLevelsForNextLife = saveSkillLevelsForNextLife;
 
-console.log("skill-system.js - Consolidated skill system loaded successfully");
+console.log("skill-system.js - Simplified skill system loaded successfully");
 
 // Export functions for ES module usage
 export {
     initializeSkillSystem,
-    getAttributeValue,
-    calculateSkillSynergy,
-    calculateEffectiveGrowthRate,
     addSkillXP,
     trainSkill,
-    increaseAttribute,
-    calculateSpecializationBonus,
     getSkillInfo,
     getSkillsByCategory,
     getAllCategories,
-    getAllAttributes,
     calculateXPForLevel,
-    processSkillDecay
+    processSkillsData,
+    saveSkillLevelsForNextLife
 };
