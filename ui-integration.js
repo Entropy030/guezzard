@@ -1,5 +1,5 @@
 // ui-integration.js - Connect existing game state to new UI
-// Add this file to your project to help with the transition to the new UI
+// Updated to support the new lifestyle system
 
 // Make sure gameState exists
 window.gameState = window.gameState || {};
@@ -81,16 +81,27 @@ function updateLifestyleStats() {
   const mortalityValue = document.querySelector('.lifestyle-metric:nth-child(3)');
   const yearsLeftValue = document.querySelector('.lifestyle-metric:nth-child(4)');
   
-  // Example lifestyle metrics (replace with your actual game calculations)
-  const experienceMultiplier = 0.78;
-  const mortalityRate = 0.23;
+  // Get lifestyle effects
+  let lifestyleModifier = 1.0;
+  if (typeof window.getLifestyleMortalityModifier === 'function') {
+    lifestyleModifier = window.getLifestyleMortalityModifier();
+  } else if (typeof window.getLifestyleKFactorModifier === 'function') {
+    lifestyleModifier = window.getLifestyleKFactorModifier();
+  }
+
+  // Experience multiplier (inverse of mortality modifier - better lifestyle = higher multiplier)
+  const experienceMultiplier = 1 + (1 - lifestyleModifier);
   
-  // Add null check before accessing CONFIG.settings
-  const maxAge = (window.CONFIG && window.CONFIG.settings && window.CONFIG.settings.maxAge) || 65;
-  const avgYearsLeft = Math.max(0, maxAge - (window.gameState.age || 18));
+  // Get current mortality rate and years left
+  const mortalityRate = window.gameState.mortalityRate || 0.001;
+  const avgYearsLeft = window.gameState.avgYearsLeft || (
+    window.CONFIG && window.CONFIG.settings && window.CONFIG.settings.maxAge ? 
+    Math.max(0, window.CONFIG.settings.maxAge - (window.gameState.age || 18)) : 
+    47
+  );
   
   if(lifestyleBar) {
-    lifestyleBar.style.width = `${experienceMultiplier * 100}%`;
+    lifestyleBar.style.width = `${Math.min(100, experienceMultiplier * 50)}%`;
   }
   
   if(experienceValue) {
@@ -98,11 +109,691 @@ function updateLifestyleStats() {
   }
   
   if(mortalityValue) {
-    mortalityValue.textContent = `Mortality: ${mortalityRate.toFixed(2)}%`;
+    mortalityValue.textContent = `Mortality: ${(mortalityRate * 100).toFixed(2)}%`;
   }
   
   if(yearsLeftValue) {
     yearsLeftValue.textContent = `Avg. years left: ${avgYearsLeft}`;
+  }
+}
+
+/**
+ * Update lifestyle panel
+ */
+function updateLifestylePanel() {
+  const lifestylePanel = document.getElementById('lifestyle-panel');
+  if(!lifestylePanel) return;
+  
+  // Clear existing content
+  lifestylePanel.innerHTML = '<h2 class="section-header">Lifestyle</h2>';
+  
+  // Get lifestyle options if the function exists
+  let housingOptions = [];
+  let transportationOptions = [];
+  let dietOptions = [];
+  
+  if (typeof window.getAvailableLifestyleOptions === 'function') {
+    housingOptions = window.getAvailableLifestyleOptions('housing');
+    transportationOptions = window.getAvailableLifestyleOptions('transportation');
+    dietOptions = window.getAvailableLifestyleOptions('diet');
+  } else {
+    // Fallback to predefined options
+    const currentHousing = window.gameState.lifestyle && window.gameState.lifestyle.housing;
+    housingOptions = [
+      { id: "homeless", name: "Homeless", cost: 0, available: true, current: currentHousing === "Homeless" },
+      { id: "shared_room", name: "Shared Room", cost: 4, available: true, current: currentHousing === "Shared Room" },
+      { id: "tiny_apartment", name: "Tiny Apartment", cost: 12, available: window.gameState.gold >= 200, current: currentHousing === "Tiny Apartment" },
+      { id: "apartment", name: "Apartment", cost: 32, available: window.gameState.gold >= 1000, current: currentHousing === "Apartment" }
+    ];
+    
+    const currentTransportation = window.gameState.lifestyle && window.gameState.lifestyle.transportation;
+    transportationOptions = [
+      { id: "walking", name: "Walking", cost: 0, available: true, current: currentTransportation === "Walking" },
+      { id: "bicycle", name: "Bicycle", cost: 6, available: window.gameState.gold >= 100, current: currentTransportation === "Bicycle" }
+    ];
+    
+    const currentDiet = window.gameState.lifestyle && window.gameState.lifestyle.diet;
+    dietOptions = [
+      { id: "basic_food", name: "Basic Food", cost: 3, available: true, current: currentDiet === "Basic Food" },
+      { id: "grocery_store", name: "Grocery Store", cost: 8, available: window.gameState.gold >= 300, current: currentDiet === "Grocery Store" },
+      { id: "organic_market", name: "Organic Market", cost: 24, available: window.gameState.gold >= 2000, current: currentDiet === "Organic Market" }
+    ];
+  }
+  
+  // Add housing category
+  createLifestyleCategory(lifestylePanel, 'Housing', housingOptions);
+  
+  // Add transportation category
+  createLifestyleCategory(lifestylePanel, 'Transportation', transportationOptions);
+  
+  // Add diet category
+  createLifestyleCategory(lifestylePanel, 'Diet', dietOptions);
+
+  // Add daily cost display
+  const dailyCost = window.gameState.lifestyleEffects && window.gameState.lifestyleEffects.costPerDay;
+  if (dailyCost !== undefined) {
+    const costDisplay = document.createElement('div');
+    costDisplay.className = 'daily-cost-display';
+    costDisplay.innerHTML = `<div class="cost-label">Daily lifestyle cost:</div><div class="cost-value">${dailyCost.toFixed(2)}/day</div>`;
+    lifestylePanel.appendChild(costDisplay);
+  }
+}
+
+/**
+ * Create a lifestyle category UI element
+ * @param {HTMLElement} parentElement - Parent element to append to
+ * @param {string} categoryName - Name of the category
+ * @param {Array} options - Array of options for this category
+ */
+function createLifestyleCategory(parentElement, categoryName, options) {
+  const categoryElement = document.createElement('div');
+  categoryElement.className = 'lifestyle-category';
+  
+  // Create category header
+  categoryElement.innerHTML = `
+    <div class="lifestyle-category-header">
+      <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      <span>${categoryName}</span>
+    </div>
+  `;
+  
+  // Add options to category
+  options.forEach(option => {
+    const optionElement = document.createElement('div');
+    optionElement.className = `lifestyle-option ${option.current ? 'selected' : ''} ${!option.available ? 'unavailable' : ''}`;
+    
+    optionElement.innerHTML = `
+      <span>${option.name}</span>
+      <div class="option-cost">
+        <span>${option.cost.toFixed(2)}/day</span>
+        <button class="info-button">i</button>
+      </div>
+    `;
+    
+    // Add tooltip with description
+    if (option.description) {
+      optionElement.title = option.description;
+    }
+    
+    // Add click handler for option selection
+    if (option.available) {
+      optionElement.addEventListener('click', () => {
+        const category = categoryName.toLowerCase();
+        
+        if (typeof window.selectLifestyleOption === 'function') {
+          window.selectLifestyleOption(category, option.id);
+        } else {
+          // Fallback for simple lifestyle selection
+          if (!window.gameState.lifestyle) {
+            window.gameState.lifestyle = {};
+          }
+          window.gameState.lifestyle[category] = option.name;
+          
+          // Update UI
+          updateLifestylePanel();
+          updateLifestyleStats();
+        }
+      });
+    }
+    
+    categoryElement.appendChild(optionElement);
+  });
+  
+  // Add requirement if any option is unavailable
+  const hasUnavailableOptions = options.some(option => !option.available);
+  if (hasUnavailableOptions) {
+    const requirementElement = document.createElement('div');
+    requirementElement.className = 'lifestyle-requirement';
+    requirementElement.textContent = "Some options require more gold or career achievements";
+    categoryElement.appendChild(requirementElement);
+  }
+  
+  parentElement.appendChild(categoryElement);
+}
+
+/**
+ * Format number with commas
+ * @param {number} num - Number to format
+ * @returns {string} - Formatted number string
+ */
+function formatNumber(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// Initialize when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("Initializing modern UI integration");
+  initializeNewUI();
+});
+
+/**
+ * Set up tab navigation
+ */
+function setupTabNavigation() {
+  // Get tab elements
+  const lifestyleTab = document.getElementById('lifestyle-tab');
+  const jobTab = document.getElementById('job-tab');
+  const skillsTab = document.getElementById('skills-tab');
+  
+  // Get panel elements
+  const lifestylePanel = document.getElementById('lifestyle-panel');
+  const jobsPanel = document.getElementById('jobs-panel');
+  const skillsPanel = document.getElementById('skills-panel');
+  
+  // Function to set active tab and show corresponding panel
+  function setActiveTab(tab, panel) {
+    // Remove active class from all tabs
+    lifestyleTab.classList.remove('active');
+    jobTab.classList.remove('active');
+    skillsTab.classList.remove('active');
+    
+    // Hide all panels
+    if(lifestylePanel) lifestylePanel.style.display = 'none';
+    if(jobsPanel) jobsPanel.style.display = 'none';
+    if(skillsPanel) skillsPanel.style.display = 'none';
+    
+    // Set active tab and show corresponding panel
+    tab.classList.add('active');
+    if(panel) panel.style.display = 'block';
+  }
+  
+  // Add click event listeners to tabs
+  if(lifestyleTab) {
+    lifestyleTab.addEventListener('click', function() {
+      setActiveTab(lifestyleTab, lifestylePanel);
+    });
+  }
+  
+  if(jobTab) {
+    jobTab.addEventListener('click', function() {
+      setActiveTab(jobTab, jobsPanel);
+    });
+  }
+  
+  if(skillsTab) {
+    skillsTab.addEventListener('click', function() {
+      setActiveTab(skillsTab, skillsPanel);
+    });
+  }
+  
+  // Default to job tab
+  if(jobTab) {
+    setActiveTab(jobTab, jobsPanel);
+  }
+}
+
+/**
+ * Set up game controls
+ */
+function setupGameControls() {
+  // Pause button
+  const pauseButton = document.getElementById('pause-button');
+  if(pauseButton) {
+    pauseButton.addEventListener('click', function() {
+      togglePause();
+      updatePauseButton();
+    });
+    
+    // Initial state
+    updatePauseButton();
+  }
+  
+  // Speed button
+  const speedButton = document.getElementById('speed-button');
+  if(speedButton) {
+    speedButton.addEventListener('click', function() {
+      cycleGameSpeed();
+      updateSpeedButton();
+    });
+    
+    // Initial state
+    updateSpeedButton();
+  }
+}
+
+/**
+ * Update pause button appearance based on game state
+ */
+function updatePauseButton() {
+  const pauseButton = document.getElementById('pause-button');
+  if(!pauseButton) return;
+  
+  const isPaused = window.gameState.gamePaused;
+  
+  if(isPaused) {
+    pauseButton.classList.add('paused');
+    pauseButton.innerHTML = `
+      <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg>
+    `;
+  } else {
+    pauseButton.classList.remove('paused');
+    pauseButton.innerHTML = `
+      <svg class="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6" y="4" width="4" height="16"></rect>
+        <rect x="14" y="4" width="4" height="16"></rect>
+      </svg>
+    `;
+  }
+}
+
+/**
+ * Update speed button appearance based on game state
+ */
+function updateSpeedButton() {
+  const speedButton = document.getElementById('speed-button');
+  if(!speedButton) return;
+  
+  speedButton.textContent = `${window.gameState.gameSpeed || 1}x`;
+}
+
+/**
+ * Set up time controls
+ */
+function setupTimeControls() {
+  // Working time controls
+  setupTimeControl('working');
+  
+  // Training time controls
+  setupTimeControl('training');
+}
+
+/**
+ * Set up time control for a specific activity
+ * @param {string} activity - Activity name
+ */
+function setupTimeControl(activity) {
+  const increaseButton = document.querySelector(`.${activity} .time-controls button:nth-child(3)`);
+  const decreaseButton = document.querySelector(`.${activity} .time-controls button:nth-child(1)`);
+  const timeDisplay = document.querySelector(`.${activity} .time-display`);
+  
+  if(increaseButton && decreaseButton && timeDisplay) {
+    increaseButton.addEventListener('click', function() {
+      // Increase time for activity
+      increaseActivityTime(activity, 1);
+      updateTimeAllocation();
+    });
+    
+    decreaseButton.addEventListener('click', function() {
+      // Decrease time for activity
+      decreaseActivityTime(activity, 1);
+      updateTimeAllocation();
+    });
+  }
+}
+
+/**
+ * Increase activity time
+ * @param {string} activity - Activity name
+ * @param {number} hours - Hours to increase
+ */
+function increaseActivityTime(activity, hours) {
+  // Initialize time allocation if it doesn't exist
+  if(!window.gameState.timeAllocation) {
+    window.gameState.timeAllocation = {
+      working: 5,
+      training: 3,
+      sleeping: 8,
+      traveling: 4,
+      cooking: 0.5,
+      cleaning: 0.5,
+      freeTime: 3
+    };
+  }
+  
+  // Increase time spent on activity
+  window.gameState.timeAllocation[activity] += hours;
+  
+  // Decrease free time
+  window.gameState.timeAllocation.freeTime -= hours;
+  
+  // Ensure free time doesn't go below 0
+  if(window.gameState.timeAllocation.freeTime < 0) {
+    window.gameState.timeAllocation.freeTime = 0;
+    window.gameState.timeAllocation[activity] -= hours; // Revert if not enough free time
+  }
+}
+
+/**
+ * Decrease activity time
+ * @param {string} activity - Activity name
+ * @param {number} hours - Hours to decrease
+ */
+function decreaseActivityTime(activity, hours) {
+  // Initialize time allocation if it doesn't exist
+  if(!window.gameState.timeAllocation) {
+    window.gameState.timeAllocation = {
+      working: 5,
+      training: 3,
+      sleeping: 8,
+      traveling: 4,
+      cleaning: 0.5,
+      cooking: 0.5,
+      freeTime: 3
+    };
+  }
+  
+  // Don't decrease below 0
+  if(window.gameState.timeAllocation[activity] <= hours) {
+    return;
+  }
+  
+  // Decrease time spent on activity
+  window.gameState.timeAllocation[activity] -= hours;
+  
+  // Increase free time
+  window.gameState.timeAllocation.freeTime += hours;
+}
+
+/**
+ * Update all displays
+ */
+function updateAllDisplays() {
+  try {
+    updateDateDisplay();
+    updatePlayerStats();
+    updateFinancialStats();
+    updateTimeAllocation();
+    updateLifestyleStats();
+    updateEnergyDisplay();
+    updateJobsPanel();
+    updateSkillsPanel();
+    updateLifestylePanel();
+  } catch (error) {
+    console.error("Error updating displays:", error);
+  }
+}
+
+/**
+ * Update date and age display
+ */
+function updateDateDisplay() {
+  const dateDisplay = document.querySelector('.date-display');
+  const ageDisplay = document.querySelector('.age-display');
+  
+  if(dateDisplay) {
+    // Use season-display format: "Day X, Season, Year Y"
+    const day = window.gameState.day || 1;
+    const season = window.gameState.currentSeason || 'Spring';
+    const year = window.gameState.year || 1;
+    
+    dateDisplay.textContent = `Day ${day}, ${season}, Year ${year}`;
+  }
+  
+  if(ageDisplay) {
+    ageDisplay.textContent = `Age: ${window.gameState.age || 18}`;
+  }
+}
+
+/**
+ * Update player stats (job title and level)
+ */
+function updatePlayerStats() {
+  const jobTitle = document.querySelector('.job-title');
+  const jobProgressFill = document.querySelector('.job-level-bar .progress-fill');
+  const jobLevel = document.querySelector('.level-indicator');
+  
+  if(jobTitle && jobProgressFill && jobLevel) {
+    if(window.gameState.activeJob) {
+      jobTitle.textContent = window.gameState.activeJob.title;
+      
+      // Get current job level
+      const currentLevel = window.gameState.jobLevels && window.gameState.activeJob.id && 
+        window.gameState.jobLevels[window.gameState.activeJob.id] ? 
+        window.gameState.jobLevels[window.gameState.activeJob.id] : 1;
+      
+      jobLevel.textContent = `L. ${currentLevel}`;
+      
+      // Calculate job progress percentage
+      let progressPercent = 0;
+      if(typeof window.getJobProgressPercentage === 'function') {
+        progressPercent = window.getJobProgressPercentage();
+      } else {
+        // Fallback calculation
+        const progressNeeded = 100 * Math.pow(1.1, currentLevel - 1);
+        progressPercent = Math.min(100, (window.gameState.jobProgress / progressNeeded) * 100);
+      }
+      
+      jobProgressFill.style.width = `${progressPercent}%`;
+    } else {
+      jobTitle.textContent = 'Unemployed';
+      jobLevel.textContent = '';
+      jobProgressFill.style.width = '0%';
+    }
+  }
+}
+
+/**
+ * Update financial stats
+ */
+function updateFinancialStats() {
+  const bankValue = document.querySelector('.financial-stats .stat-row:nth-child(1) .stat-value');
+  const incomeValue = document.querySelector('.financial-stats .stat-row:nth-child(2) .stat-value');
+  const salaryValue = document.querySelector('.financial-stats .stat-row:nth-child(3) .stat-value');
+  const expensesValue = document.querySelector('.financial-stats .stat-row:nth-child(4) .stat-value');
+  
+  if(bankValue) {
+    bankValue.textContent = `${formatNumber(Math.floor(window.gameState.gold || 0))}`;
+  }
+  
+  if(incomeValue) {
+    // Calculate income
+    const income = calculateIncome();
+    incomeValue.textContent = income.toFixed(2);
+    
+    // Add positive class if income is positive
+    if(income > 0) {
+      incomeValue.classList.add('positive-value');
+    } else {
+      incomeValue.classList.remove('positive-value');
+    }
+  }
+  
+  if(salaryValue && window.gameState.activeJob) {
+    // Calculate salary per hour
+    const salaryPerHour = calculateJobHourlyRate(window.gameState.activeJob);
+    const workingHours = (window.gameState.timeAllocation && window.gameState.timeAllocation.working) || 5;
+    
+    salaryValue.textContent = (salaryPerHour * workingHours).toFixed(2);
+  } else if(salaryValue) {
+    salaryValue.textContent = '0.00';
+  }
+  
+  if(expensesValue) {
+    // Calculate lifestyle expenses from lifestyleEffects
+    let expenses = 0;
+    if (window.gameState.lifestyleEffects && window.gameState.lifestyleEffects.costPerDay) {
+      expenses = -window.gameState.lifestyleEffects.costPerDay;
+    } else {
+      // Fallback to a default value
+      expenses = -7; // Default shared room + basic food
+    }
+    
+    expensesValue.textContent = expenses.toFixed(2);
+    
+    // Add negative class if expenses are negative
+    if(expenses < 0) {
+      expensesValue.classList.add('negative-value');
+    } else {
+      expensesValue.classList.remove('negative-value');
+    }
+  }
+}
+
+/**
+ * Update time allocation display
+ */
+function updateTimeAllocation() {
+  const divisionValue = document.querySelector('.time-division .division-value');
+  const workingTimeDisplay = document.querySelector('.working .time-display');
+  const workingProgressFill = document.querySelector('.working .progress-fill');
+  const trainingTimeDisplay = document.querySelector('.training .time-display');
+  const trainingProgressFill = document.querySelector('.training .progress-fill');
+  
+  // Other activities
+  const sleepingTime = document.querySelector('.other-activities .other-activity:nth-child(1) span:nth-child(2)');
+  const travelingTime = document.querySelector('.other-activities .other-activity:nth-child(2) span:nth-child(2)');
+  const cleaningTime = document.querySelector('.other-activities .other-activity:nth-child(3) span:nth-child(2)');
+  const cookingTime = document.querySelector('.other-activities .other-activity:nth-child(4) span:nth-child(2)');
+  
+  // Free time
+  const freeTimeValue = document.querySelector('.free-time .free-time-value');
+  
+  // Get time allocation from game state
+  if(!window.gameState.timeAllocation) {
+    window.gameState.timeAllocation = {
+      working: 5,
+      training: 3,
+      sleeping: 8,
+      traveling: 2,
+      cleaning: 0.5,
+      cooking: 3,
+      freeTime: 2.5
+    };
+  }
+  
+  // Update displayed values
+  if(divisionValue) {
+    divisionValue.textContent = "1 hour"; // This could be dynamic if your game has different time divisions
+  }
+  
+  if(workingTimeDisplay) {
+    const hours = Math.floor(window.gameState.timeAllocation.working);
+    const minutes = Math.round((window.gameState.timeAllocation.working - hours) * 60);
+    workingTimeDisplay.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+  
+  if(workingProgressFill) {
+    // Calculate what percentage of the day is spent working
+    const percentWorking = (window.gameState.timeAllocation.working / 24) * 100;
+    workingProgressFill.style.width = `${percentWorking}%`;
+  }
+  
+  if(trainingTimeDisplay) {
+    const hours = Math.floor(window.gameState.timeAllocation.training);
+    const minutes = Math.round((window.gameState.timeAllocation.training - hours) * 60);
+    trainingTimeDisplay.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+  
+  if(trainingProgressFill) {
+    // Calculate what percentage of the day is spent training
+    const percentTraining = (window.gameState.timeAllocation.training / 24) * 100;
+    trainingProgressFill.style.width = `${percentTraining}%`;
+  }
+  
+  // Update other activities
+  if(sleepingTime) {
+    // Get sleep hours from lifestyle effects if available
+    const sleepHours = window.gameState.lifestyleEffects && 
+                       window.gameState.lifestyleEffects.timeAllocation ? 
+                       window.gameState.lifestyleEffects.timeAllocation.sleep : 
+                       window.gameState.timeAllocation.sleeping;
+    
+    const hours = Math.floor(sleepHours);
+    const minutes = Math.round((sleepHours - hours) * 60);
+    sleepingTime.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+  
+  if(travelingTime) {
+    // Get commute hours from lifestyle effects if available
+    const commuteHours = window.gameState.lifestyleEffects && 
+                         window.gameState.lifestyleEffects.timeAllocation ? 
+                         window.gameState.lifestyleEffects.timeAllocation.commute : 
+                         window.gameState.timeAllocation.traveling;
+    
+    const hours = Math.floor(commuteHours);
+    const minutes = Math.round((commuteHours - hours) * 60);
+    travelingTime.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+  
+  if(cleaningTime) {
+    const hours = Math.floor(window.gameState.timeAllocation.cleaning);
+    const minutes = Math.round((window.gameState.timeAllocation.cleaning - hours) * 60);
+    cleaningTime.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+  
+  if(cookingTime) {
+    // Get meal hours from lifestyle effects if available
+    const mealHours = window.gameState.lifestyleEffects && 
+                      window.gameState.lifestyleEffects.timeAllocation ? 
+                      window.gameState.lifestyleEffects.timeAllocation.meals : 
+                      window.gameState.timeAllocation.cooking;
+    
+    const hours = Math.floor(mealHours);
+    const minutes = Math.round((mealHours - hours) * 60);
+    cookingTime.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+  
+  // Update free time - calculate based on all time allocations
+  if(freeTimeValue) {
+    // Calculate total allocated time
+    const totalAllocated = (
+      window.gameState.timeAllocation.working +
+      window.gameState.timeAllocation.training +
+      (window.gameState.lifestyleEffects && window.gameState.lifestyleEffects.timeAllocation ? 
+        window.gameState.lifestyleEffects.timeAllocation.sleep : window.gameState.timeAllocation.sleeping) +
+      (window.gameState.lifestyleEffects && window.gameState.lifestyleEffects.timeAllocation ? 
+        window.gameState.lifestyleEffects.timeAllocation.commute : window.gameState.timeAllocation.traveling) +
+      (window.gameState.lifestyleEffects && window.gameState.lifestyleEffects.timeAllocation ? 
+        window.gameState.lifestyleEffects.timeAllocation.meals : window.gameState.timeAllocation.cooking) +
+      window.gameState.timeAllocation.cleaning
+    );
+    
+    // Free time is 24 hours minus allocated time
+    const freeTime = Math.max(0, 24 - totalAllocated);
+    window.gameState.timeAllocation.freeTime = freeTime;
+    
+    const hours = Math.floor(freeTime);
+    const minutes = Math.round((freeTime - hours) * 60);
+    freeTimeValue.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+}
+
+/**
+ * Toggle game pause state
+ */
+function togglePause() {
+  // This should integrate with your game's pause system
+  if(typeof window.gameState !== 'undefined') {
+    window.gameState.gamePaused = !window.gameState.gamePaused;
+    console.log(`Game ${window.gameState.gamePaused ? 'paused' : 'resumed'}`);
+  }
+}
+
+/**
+ * Cycle game speed through available multipliers
+ */
+function cycleGameSpeed() {
+  // This should integrate with your game's speed system
+  if(typeof window.gameState !== 'undefined' && window.CONFIG && window.CONFIG.settings && window.CONFIG.settings.speedMultipliers) {
+    const speedMultipliers = window.CONFIG.settings.speedMultipliers;
+    const currentIndex = speedMultipliers.indexOf(window.gameState.gameSpeed);
+    
+    // Move to next speed or cycle back to beginning
+    const nextIndex = (currentIndex + 1) % speedMultipliers.length;
+    window.gameState.gameSpeed = speedMultipliers[nextIndex];
+    
+    console.log(`Game speed set to ${window.gameState.gameSpeed}x`);
+  }
+}
+
+/**
+ * Update energy display
+ */
+function updateEnergyDisplay() {
+  const energyDisplay = document.getElementById('energy-display');
+  const energyBarFill = document.getElementById('energy-bar-fill');
+  
+  if(energyDisplay && typeof window.gameState !== 'undefined') {
+    energyDisplay.textContent = `${Math.floor(window.gameState.energy)}/${window.gameState.maxEnergy}`;
+  }
+  
+  if(energyBarFill && typeof window.gameState !== 'undefined') {
+    const energyPercentage = (window.gameState.energy / window.gameState.maxEnergy) * 100;
+    energyBarFill.style.width = `${energyPercentage}%`;
   }
 }
 
@@ -189,6 +880,7 @@ function updateJobsPanel() {
             <div class="job-item-requirements">
               ${formatRequirements(job, tier)}
             </div>
+            ${tier.popCultureRef ? `<div class="job-item-quote">"${tier.popCultureRef}"</div>` : ''}
           `;
           
           // Add click handler to apply for job
@@ -262,9 +954,6 @@ function updateJobsPanel() {
       tempContainer.appendChild(jobItem);
     });
   }
-  
-  // Add career organizations section (if needed)
-  // ...
   
   // Add the event log back
   if (eventLog) {
@@ -664,627 +1353,6 @@ function saveAutoLearnConfig() {
 }
 
 /**
- * Update lifestyle panel
- */
-function updateLifestylePanel() {
-  const lifestylePanel = document.getElementById('lifestyle-panel');
-  if(!lifestylePanel) return;
-  
-  // Clear existing content
-  lifestylePanel.innerHTML = '<h2 class="section-header">Lifestyle</h2>';
-  
-  // Define lifestyle categories
-  const lifestyleCategories = [
-    {
-      name: "House",
-      options: [
-        { name: "Shared Room", cost: "$4/day", selected: true },
-        { name: "Tiny Apartment", cost: "$12/day", selected: false },
-        { name: "Apartment", cost: "$32/day", selected: false }
-      ],
-      requirement: "Req: $200k"
-    },
-    {
-      name: "Transportation",
-      options: [
-        { name: "Walking", cost: "$0/day", selected: true },
-        { name: "Bicycle", cost: "$6/day", selected: false },
-        { name: "Public Transit", cost: "$16/day", selected: false }
-      ],
-      requirement: "Req: $200k"
-    },
-    {
-      name: "Diet",
-      options: [
-        { name: "Basic Food", cost: "$3/day", selected: true },
-        { name: "Grocery Store", cost: "$8/day", selected: false },
-        { name: "Organic Market", cost: "$24/day", selected: false }
-      ],
-      requirement: "Req: $160k"
-    }
-  ];
-  
-  // Apply gameState lifestyle selections if available
-  if (window.gameState.lifestyle) {
-    const lifestyle = window.gameState.lifestyle;
-    
-    lifestyleCategories.forEach(category => {
-      const categoryKey = category.name.toLowerCase();
-      if (lifestyle[categoryKey]) {
-        category.options.forEach(option => {
-          option.selected = (option.name === lifestyle[categoryKey]);
-        });
-      }
-    });
-  }
-  
-  // Add lifestyle categories to the panel
-  lifestyleCategories.forEach(category => {
-    const categoryElement = document.createElement('div');
-    categoryElement.className = 'lifestyle-category';
-    
-    // Create category header
-    categoryElement.innerHTML = `
-      <div class="lifestyle-category-header">
-        <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-        <span>${category.name}</span>
-      </div>
-    `;
-    
-    // Add options to category
-    category.options.forEach(option => {
-      const optionElement = document.createElement('div');
-      optionElement.className = `lifestyle-option ${option.selected ? 'selected' : ''}`;
-      
-      optionElement.innerHTML = `
-        <span>${option.name}</span>
-        <div class="option-cost">
-          <span>${option.cost}</span>
-          <button class="info-button">i</button>
-        </div>
-      `;
-      
-      // Add click handler for option selection
-      optionElement.addEventListener('click', () => {
-        // Remove selected class from all options in this category
-        categoryElement.querySelectorAll('.lifestyle-option').forEach(el => {
-          el.classList.remove('selected');
-        });
-        
-        // Add selected class to this option
-        optionElement.classList.add('selected');
-        
-        // Update game state (example)
-        if(!window.gameState.lifestyle) {
-          window.gameState.lifestyle = {};
-        }
-        
-        window.gameState.lifestyle[category.name.toLowerCase()] = option.name;
-        
-        // Update lifestyle stats
-        updateLifestyleStats();
-      });
-      
-      categoryElement.appendChild(optionElement);
-    });
-    
-    // Add requirement
-    if(category.requirement) {
-      const requirementElement = document.createElement('div');
-      requirementElement.className = 'lifestyle-requirement';
-      requirementElement.textContent = category.requirement;
-      categoryElement.appendChild(requirementElement);
-    }
-    
-    lifestylePanel.appendChild(categoryElement);
-  });
-}
-
-/**
- * Format number with commas
- * @param {number} num - Number to format
- * @returns {string} - Formatted number string
- */
-function formatNumber(num) {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-// Initialize when document is ready
-document.addEventListener('DOMContentLoaded', function() {
-  console.log("Initializing modern UI integration");
-  initializeNewUI();
-});
-
-/**
- * Set up tab navigation
- */
-function setupTabNavigation() {
-  // Get tab elements
-  const lifestyleTab = document.getElementById('lifestyle-tab');
-  const jobTab = document.getElementById('job-tab');
-  const skillsTab = document.getElementById('skills-tab');
-  
-  // Get panel elements
-  const lifestylePanel = document.getElementById('lifestyle-panel');
-  const jobsPanel = document.getElementById('jobs-panel');
-  const skillsPanel = document.getElementById('skills-panel');
-  
-  // Function to set active tab and show corresponding panel
-  function setActiveTab(tab, panel) {
-    // Remove active class from all tabs
-    lifestyleTab.classList.remove('active');
-    jobTab.classList.remove('active');
-    skillsTab.classList.remove('active');
-    
-    // Hide all panels
-    if(lifestylePanel) lifestylePanel.style.display = 'none';
-    if(jobsPanel) jobsPanel.style.display = 'none';
-    if(skillsPanel) skillsPanel.style.display = 'none';
-    
-    // Set active tab and show corresponding panel
-    tab.classList.add('active');
-    if(panel) panel.style.display = 'block';
-  }
-  
-  // Add click event listeners to tabs
-  if(lifestyleTab) {
-    lifestyleTab.addEventListener('click', function() {
-      setActiveTab(lifestyleTab, lifestylePanel);
-    });
-  }
-  
-  if(jobTab) {
-    jobTab.addEventListener('click', function() {
-      setActiveTab(jobTab, jobsPanel);
-    });
-  }
-  
-  if(skillsTab) {
-    skillsTab.addEventListener('click', function() {
-      setActiveTab(skillsTab, skillsPanel);
-    });
-  }
-  
-  // Default to job tab
-  if(jobTab) {
-    setActiveTab(jobTab, jobsPanel);
-  }
-}
-
-/**
- * Set up game controls
- */
-function setupGameControls() {
-  // Pause button
-  const pauseButton = document.getElementById('pause-button');
-  if(pauseButton) {
-    pauseButton.addEventListener('click', function() {
-      togglePause();
-      updatePauseButton();
-    });
-    
-    // Initial state
-    updatePauseButton();
-  }
-  
-  // Speed button
-  const speedButton = document.getElementById('speed-button');
-  if(speedButton) {
-    speedButton.addEventListener('click', function() {
-      cycleGameSpeed();
-      updateSpeedButton();
-    });
-    
-    // Initial state
-    updateSpeedButton();
-  }
-}
-
-/**
- * Update pause button appearance based on game state
- */
-function updatePauseButton() {
-  const pauseButton = document.getElementById('pause-button');
-  if(!pauseButton) return;
-  
-  const isPaused = window.gameState.gamePaused;
-  
-  if(isPaused) {
-    pauseButton.classList.add('paused');
-    pauseButton.innerHTML = `
-      <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-      </svg>
-    `;
-  } else {
-    pauseButton.classList.remove('paused');
-    pauseButton.innerHTML = `
-      <svg class="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="6" y="4" width="4" height="16"></rect>
-        <rect x="14" y="4" width="4" height="16"></rect>
-      </svg>
-    `;
-  }
-}
-
-/**
- * Update speed button appearance based on game state
- */
-function updateSpeedButton() {
-  const speedButton = document.getElementById('speed-button');
-  if(!speedButton) return;
-  
-  speedButton.textContent = `${window.gameState.gameSpeed || 1}x`;
-}
-
-/**
- * Set up time controls
- */
-function setupTimeControls() {
-  // Working time controls
-  setupTimeControl('working');
-  
-  // Training time controls
-  setupTimeControl('training');
-}
-
-/**
- * Set up time control for a specific activity
- * @param {string} activity - Activity name
- */
-function setupTimeControl(activity) {
-  const increaseButton = document.querySelector(`.${activity} .time-controls button:nth-child(3)`);
-  const decreaseButton = document.querySelector(`.${activity} .time-controls button:nth-child(1)`);
-  const timeDisplay = document.querySelector(`.${activity} .time-display`);
-  
-  if(increaseButton && decreaseButton && timeDisplay) {
-    increaseButton.addEventListener('click', function() {
-      // Increase time for activity
-      increaseActivityTime(activity, 1);
-      updateTimeAllocation();
-    });
-    
-    decreaseButton.addEventListener('click', function() {
-      // Decrease time for activity
-      decreaseActivityTime(activity, 1);
-      updateTimeAllocation();
-    });
-  }
-}
-
-/**
- * Increase activity time
- * @param {string} activity - Activity name
- * @param {number} hours - Hours to increase
- */
-function increaseActivityTime(activity, hours) {
-  // Initialize time allocation if it doesn't exist
-  if(!window.gameState.timeAllocation) {
-    window.gameState.timeAllocation = {
-      working: 5,
-      training: 3,
-      sleeping: 8,
-      traveling: 4,
-      cleaning: 0.5,
-      cooking: 0.5,
-      freeTime: 3
-    };
-  }
-  
-  // Increase time spent on activity
-  window.gameState.timeAllocation[activity] += hours;
-  
-  // Decrease free time
-  window.gameState.timeAllocation.freeTime -= hours;
-  
-  // Ensure free time doesn't go below 0
-  if(window.gameState.timeAllocation.freeTime < 0) {
-    window.gameState.timeAllocation.freeTime = 0;
-    window.gameState.timeAllocation[activity] -= hours; // Revert if not enough free time
-  }
-}
-
-/**
- * Decrease activity time
- * @param {string} activity - Activity name
- * @param {number} hours - Hours to decrease
- */
-function decreaseActivityTime(activity, hours) {
-  // Initialize time allocation if it doesn't exist
-  if(!window.gameState.timeAllocation) {
-    window.gameState.timeAllocation = {
-      working: 5,
-      training: 3,
-      sleeping: 8,
-      traveling: 4,
-      cleaning: 0.5,
-      cooking: 0.5,
-      freeTime: 3
-    };
-  }
-  
-  // Don't decrease below 0
-  if(window.gameState.timeAllocation[activity] <= hours) {
-    return;
-  }
-  
-  // Decrease time spent on activity
-  window.gameState.timeAllocation[activity] -= hours;
-  
-  // Increase free time
-  window.gameState.timeAllocation.freeTime += hours;
-}
-
-/**
- * Update all displays
- */
-function updateAllDisplays() {
-  try {
-    updateDateDisplay();
-    updatePlayerStats();
-    updateFinancialStats();
-    updateTimeAllocation();
-    updateLifestyleStats();
-    updateEnergyDisplay();
-    updateJobsPanel();
-    updateSkillsPanel();
-    updateLifestylePanel();
-  } catch (error) {
-    console.error("Error updating displays:", error);
-  }
-}
-
-/**
- * Update date and age display
- */
-function updateDateDisplay() {
-  const dateDisplay = document.querySelector('.date-display');
-  const ageDisplay = document.querySelector('.age-display');
-  
-  if(dateDisplay) {
-    // Use season-display format: "Day X, Season, Year Y"
-    const day = window.gameState.day || 1;
-    const season = window.gameState.currentSeason || 'Spring';
-    const year = window.gameState.year || 1;
-    
-    dateDisplay.textContent = `Day ${day}, ${season}, Year ${year}`;
-  }
-  
-  if(ageDisplay) {
-    ageDisplay.textContent = `Age: ${window.gameState.age || 18}`;
-  }
-}
-
-/**
- * Update player stats (job title and level)
- */
-function updatePlayerStats() {
-  const jobTitle = document.querySelector('.job-title');
-  const jobProgressFill = document.querySelector('.job-level-bar .progress-fill');
-  const jobLevel = document.querySelector('.level-indicator');
-  
-  if(jobTitle && jobProgressFill && jobLevel) {
-    if(window.gameState.activeJob) {
-      jobTitle.textContent = window.gameState.activeJob.title;
-      
-      // Get current job level
-      const currentLevel = window.gameState.jobLevels && window.gameState.activeJob.id && 
-        window.gameState.jobLevels[window.gameState.activeJob.id] ? 
-        window.gameState.jobLevels[window.gameState.activeJob.id] : 1;
-      
-      jobLevel.textContent = `L. ${currentLevel}`;
-      
-      // Calculate job progress percentage
-      let progressPercent = 0;
-      if(typeof window.getJobProgressPercentage === 'function') {
-        progressPercent = window.getJobProgressPercentage();
-      } else {
-        // Fallback calculation
-        const progressNeeded = 100 * Math.pow(1.1, currentLevel - 1);
-        progressPercent = Math.min(100, (window.gameState.jobProgress / progressNeeded) * 100);
-      }
-      
-      jobProgressFill.style.width = `${progressPercent}%`;
-    } else {
-      jobTitle.textContent = 'Unemployed';
-      jobLevel.textContent = '';
-      jobProgressFill.style.width = '0%';
-    }
-  }
-}
-
-/**
- * Update financial stats
- */
-function updateFinancialStats() {
-  const bankValue = document.querySelector('.financial-stats .stat-row:nth-child(1) .stat-value');
-  const incomeValue = document.querySelector('.financial-stats .stat-row:nth-child(2) .stat-value');
-  const salaryValue = document.querySelector('.financial-stats .stat-row:nth-child(3) .stat-value');
-  const expensesValue = document.querySelector('.financial-stats .stat-row:nth-child(4) .stat-value');
-  
-  if(bankValue) {
-    bankValue.textContent = `${formatNumber(window.gameState.gold || 0)}`;
-  }
-  
-  if(incomeValue) {
-    // Calculate income
-    const income = calculateIncome();
-    incomeValue.textContent = income.toFixed(2);
-    
-    // Add positive class if income is positive
-    if(income > 0) {
-      incomeValue.classList.add('positive-value');
-    } else {
-      incomeValue.classList.remove('positive-value');
-    }
-  }
-  
-  if(salaryValue && window.gameState.activeJob) {
-    // Calculate salary per hour
-    const salaryPerHour = calculateJobHourlyRate(window.gameState.activeJob);
-    const workingHours = (window.gameState.timeAllocation && window.gameState.timeAllocation.working) || 5;
-    
-    salaryValue.textContent = (salaryPerHour * workingHours).toFixed(2);
-  } else if(salaryValue) {
-    salaryValue.textContent = '0.00';
-  }
-  
-  if(expensesValue) {
-    // Calculate expenses (example)
-    const expenses = -15.37; // Placeholder
-    expensesValue.textContent = expenses.toFixed(2);
-    
-    // Add negative class if expenses are negative
-    if(expenses < 0) {
-      expensesValue.classList.add('negative-value');
-    } else {
-      expensesValue.classList.remove('negative-value');
-    }
-  }
-}
-
-/**
- * Update time allocation display
- */
-function updateTimeAllocation() {
-  const divisionValue = document.querySelector('.time-division .division-value');
-  const workingTimeDisplay = document.querySelector('.working .time-display');
-  const workingProgressFill = document.querySelector('.working .progress-fill');
-  const trainingTimeDisplay = document.querySelector('.training .time-display');
-  const trainingProgressFill = document.querySelector('.training .progress-fill');
-  
-  // Other activities
-  const sleepingTime = document.querySelector('.other-activities .other-activity:nth-child(1) span:nth-child(2)');
-  const travelingTime = document.querySelector('.other-activities .other-activity:nth-child(2) span:nth-child(2)');
-  const cleaningTime = document.querySelector('.other-activities .other-activity:nth-child(3) span:nth-child(2)');
-  const cookingTime = document.querySelector('.other-activities .other-activity:nth-child(4) span:nth-child(2)');
-  
-  // Free time
-  const freeTimeValue = document.querySelector('.free-time .free-time-value');
-  
-  // Get time allocation from game state
-  if(!window.gameState.timeAllocation) {
-    window.gameState.timeAllocation = {
-      working: 5,
-      training: 3,
-      sleeping: 8,
-      traveling: 4,
-      cleaning: 0.5,
-      cooking: 0.5,
-      freeTime: 3
-    };
-  }
-  
-  // Update displayed values
-  if(divisionValue) {
-    divisionValue.textContent = "1 hour"; // This could be dynamic if your game has different time divisions
-  }
-  
-  if(workingTimeDisplay) {
-    const hours = Math.floor(window.gameState.timeAllocation.working);
-    const minutes = Math.round((window.gameState.timeAllocation.working - hours) * 60);
-    workingTimeDisplay.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
-  }
-  
-  if(workingProgressFill) {
-    // Calculate what percentage of the day is spent working
-    const percentWorking = (window.gameState.timeAllocation.working / 24) * 100;
-    workingProgressFill.style.width = `${percentWorking}%`;
-  }
-  
-  if(trainingTimeDisplay) {
-    const hours = Math.floor(window.gameState.timeAllocation.training);
-    const minutes = Math.round((window.gameState.timeAllocation.training - hours) * 60);
-    trainingTimeDisplay.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
-  }
-  
-  if(trainingProgressFill) {
-    // Calculate what percentage of the day is spent training
-    const percentTraining = (window.gameState.timeAllocation.training / 24) * 100;
-    trainingProgressFill.style.width = `${percentTraining}%`;
-  }
-  
-  // Update other activities
-  if(sleepingTime) {
-    const hours = Math.floor(window.gameState.timeAllocation.sleeping);
-    const minutes = Math.round((window.gameState.timeAllocation.sleeping - hours) * 60);
-    sleepingTime.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
-  }
-  
-  if(travelingTime) {
-    const hours = Math.floor(window.gameState.timeAllocation.traveling);
-    const minutes = Math.round((window.gameState.timeAllocation.traveling - hours) * 60);
-    travelingTime.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
-  }
-  
-  if(cleaningTime) {
-    const hours = Math.floor(window.gameState.timeAllocation.cleaning);
-    const minutes = Math.round((window.gameState.timeAllocation.cleaning - hours) * 60);
-    cleaningTime.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
-  }
-  
-  if(cookingTime) {
-    const hours = Math.floor(window.gameState.timeAllocation.cooking);
-    const minutes = Math.round((window.gameState.timeAllocation.cooking - hours) * 60);
-    cookingTime.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
-  }
-  
-  // Update free time
-  if(freeTimeValue) {
-    const hours = Math.floor(window.gameState.timeAllocation.freeTime);
-    const minutes = Math.round((window.gameState.timeAllocation.freeTime - hours) * 60);
-    freeTimeValue.textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
-  }
-}
-
-/**
- * Toggle game pause state
- */
-function togglePause() {
-  // This should integrate with your game's pause system
-  if(typeof window.gameState !== 'undefined') {
-    window.gameState.gamePaused = !window.gameState.gamePaused;
-    console.log(`Game ${window.gameState.gamePaused ? 'paused' : 'resumed'}`);
-  }
-}
-
-/**
- * Cycle game speed through available multipliers
- */
-function cycleGameSpeed() {
-  // This should integrate with your game's speed system
-  if(typeof window.gameState !== 'undefined' && window.CONFIG && window.CONFIG.settings && window.CONFIG.settings.speedMultipliers) {
-    const speedMultipliers = window.CONFIG.settings.speedMultipliers;
-    const currentIndex = speedMultipliers.indexOf(window.gameState.gameSpeed);
-    
-    // Move to next speed or cycle back to beginning
-    const nextIndex = (currentIndex + 1) % speedMultipliers.length;
-    window.gameState.gameSpeed = speedMultipliers[nextIndex];
-    
-    console.log(`Game speed set to ${window.gameState.gameSpeed}x`);
-  }
-}
-
-/**
- * Update energy display
- */
-function updateEnergyDisplay() {
-  const energyDisplay = document.getElementById('energy-display');
-  const energyBarFill = document.getElementById('energy-bar-fill');
-  
-  if(energyDisplay && typeof window.gameState !== 'undefined') {
-    energyDisplay.textContent = `${Math.floor(window.gameState.energy)}/${window.gameState.maxEnergy}`;
-  }
-  
-  if(energyBarFill && typeof window.gameState !== 'undefined') {
-    const energyPercentage = (window.gameState.energy / window.gameState.maxEnergy) * 100;
-    energyBarFill.style.width = `${energyPercentage}%`;
-  }
-}
-
-/**
  * Add event to event log
  * @param {string} text - Event text to add
  * @param {string} type - Event type (optional)
@@ -1311,6 +1379,43 @@ function logEvent(text, type = 'info') {
   }
 }
 
+/**
+ * Show a notification to the user
+ * @param {string} title - Notification title
+ * @param {string} message - Notification message
+ * @param {string} type - Notification type (info, success, error, warning)
+ */
+function showNotification(title, message, type = 'info') {
+  // Create notification element if it doesn't exist
+  let notification = document.getElementById('notification');
+  if (!notification) {
+    notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.className = 'notification';
+    document.body.appendChild(notification);
+  }
+  
+  // Set content and type
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <div class="notification-title">${title}</div>
+    <div class="notification-body">${message}</div>
+  `;
+  
+  // Show notification
+  notification.style.display = 'block';
+  
+  // Clear any existing timeout
+  if (window.notificationTimeout) {
+    clearTimeout(window.notificationTimeout);
+  }
+  
+  // Hide after a delay
+  window.notificationTimeout = setTimeout(() => {
+    notification.style.display = 'none';
+  }, 5000); // 5 seconds
+}
+
 // Make functions available to window object
 window.updateAllDisplays = updateAllDisplays;
 window.updateDateDisplay = updateDateDisplay;
@@ -1323,3 +1428,70 @@ window.updateSkillsPanel = updateSkillsPanel;
 window.updateLifestylePanel = updateLifestylePanel;
 window.logEvent = logEvent;
 window.updateEnergyDisplay = updateEnergyDisplay;
+window.showNotification = showNotification;
+window.togglePause = togglePause;
+window.cycleGameSpeed = cycleGameSpeed;
+window.increaseActivityTime = increaseActivityTime;
+window.decreaseActivityTime = decreaseActivityTime;
+window.saveAutoLearnConfig = saveAutoLearnConfig;
+window.showAutoLearnConfig = showAutoLearnConfig;
+
+// Additional CSS for lifestyle panel
+document.addEventListener('DOMContentLoaded', function() {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+    /* Lifestyle Panel Enhancements */
+    .lifestyle-option {
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    
+    .lifestyle-option.unavailable {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .lifestyle-option:not(.unavailable):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .lifestyle-option.selected::after {
+      content: '✓';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent-primary);
+      font-weight: bold;
+    }
+    
+    .daily-cost-display {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: var(--bg-panel);
+      border-radius: var(--radius-md);
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .cost-label {
+      color: var(--text-secondary);
+    }
+    
+    .cost-value {
+      font-weight: bold;
+      color: var(--danger);
+    }
+    
+    .job-item-quote {
+      font-style: italic;
+      color: var(--text-secondary);
+      margin-top: 5px;
+      font-size: 0.9em;
+    }
+  `;
+  document.head.appendChild(styleElement);
+});
+
+console.log("ui-integration.js - Updated UI integration module loaded successfully");
