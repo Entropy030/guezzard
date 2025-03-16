@@ -3,9 +3,12 @@
  * This file extends game-data.js with the remaining career tracks
  */
 
-// Import base GameData
-import GameData from './game-data.js';
-import { TYPES } from './game-data.js';
+// At the top of game-data-extended.js
+import GameData, { TYPES } from './game-data.js';
+
+// No need to re-import TYPES separately
+
+
 
 // Add Theoretical Physics Track
 GameData.careers[TYPES.CAREER_TRACK.PHYSICS] = {

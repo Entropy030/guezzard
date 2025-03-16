@@ -40,6 +40,7 @@ function initializeGame() {
         
         // Update UI with initial state
         updateUI();
+        console.log("Initial UI update complete");
         
         // Start the game
         if (!gameState.isPaused) {
@@ -130,6 +131,8 @@ function setupTabs() {
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
+            console.log(`Tab clicked: ${tab.getAttribute('data-tab')}`);
+            
             // Remove active class from all tabs
             tabs.forEach(t => t.classList.remove('active'));
             
@@ -146,6 +149,9 @@ function setupTabs() {
             const tabPane = document.getElementById(`${tabId}-tab`);
             if (tabPane) {
                 tabPane.classList.remove('hidden');
+                console.log(`Tab pane ${tabId}-tab shown`);
+            } else {
+                console.error(`Tab pane ${tabId}-tab not found`);
             }
         });
     });
@@ -1058,16 +1064,26 @@ function canAffordLifestyleOption(cost) {
  */
 function updateUI() {
     try {
+        // Update status panel with player stats
+        updateStatusPanel();
+
+        // Update skill panels (general and professional)
+        updateSkillsPanel();
+        
+        // Update career panel with available jobs
+        updateCareerPanel();
+        
+        // Update lifestyle panel options
+        updateLifestylePanel();
+        
+        // Update time allocation display and sliders
+        updateTimeAllocation();
+
         // Update save button based on game changes
-        // (This is optional but a nice QoL feature)
         const saveButton = document.getElementById('save-game-button');
         if (saveButton) {
             saveButton.disabled = false; // Enable whenever UI updates
         }
-        updateStatusPanel();
-
-        // Call updateSkillsPanel to update the skills panel
-        updateSkillsPanel();
     } catch (error) {
         console.error("Error updating UI:", error);
     }
@@ -1445,10 +1461,12 @@ function updateCareerPanel() {
         
         // Check if career tracks are available
         if (!GameData.careers || Object.keys(GameData.careers).length === 0) {
-            console.error("No career tracks found in GameData");
+            console.error("No career tracks found in GameData:", GameData);
             careerContainer.innerHTML = '<div class="career-track">No career tracks available</div>';
             return;
         }
+        
+        console.log("Career tracks found:", Object.keys(GameData.careers));
         
         // Add career tracks
         for (const trackId in GameData.careers) {
@@ -1479,6 +1497,8 @@ function updateCareerPanel() {
             
             // Add all job tiers
             if (track.tiers && track.tiers.length > 0) {
+                console.log(`Track ${track.name} has ${track.tiers.length} tiers`);
+                
                 // Keep track of which tiers to show
                 // Initially just show first tier and current job's tier
                 const visibleTiers = new Set();
@@ -1498,16 +1518,20 @@ function updateCareerPanel() {
                 // Add each visible tier
                 track.tiers.forEach((tier, index) => {
                     if (visibleTiers.has(index)) {
+                        console.log(`Adding tier: ${tier.name}`);
                         const tierElement = createJobTierElement(tier, track.tiers, trackId);
                         trackElement.appendChild(tierElement);
                     }
                 });
+            } else {
+                console.warn(`Track ${track.name} has no tiers`);
             }
             
             careerContainer.appendChild(trackElement);
         }
     } catch (error) {
         console.error("Error updating career panel:", error);
+        console.error("Stack trace:", error.stack);
     }
 }
 
