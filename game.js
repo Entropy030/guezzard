@@ -1,4 +1,4 @@
-// Debug helper - add at the top of game.js
+// Debug helper - already at the top of game.js
 window.onerror = function(message, source, lineno, colno, error) {
     console.log(`Error at line ${lineno}, column ${colno}:`);
     console.log(`Message: ${message}`);
@@ -7,35 +7,36 @@ window.onerror = function(message, source, lineno, colno, error) {
     return false; // Let the default handler run as well
 };
 
-// Add this to test the exact issue
-function debugLifestyle() {
-    try {
-        // Find all references to currentOption
-        const gameJsText = document.querySelector('script[src*="game.js"]')?.textContent;
-        if (gameJsText) {
-            const lines = gameJsText.split('\n');
-            lines.forEach((line, index) => {
-                if (line.includes('currentOption') && !line.includes('currentOptionId')) {
-                    console.log(`Found 'currentOption' at line ${index + 1}:`, line.trim());
-                }
-            });
-        } else {
-            console.log("Couldn't access script content for direct search");
-        }
-    } catch (e) {
-        console.error("Debug error:", e);
-    }
+// Add debugging functions here
+function debugGameData() {
+  console.log('DEBUG: GameData available?', !!GameData);
+  console.log('DEBUG: TYPES available?', !!TYPES);
+  
+  if (GameData) {
+    console.log('DEBUG: Career tracks', Object.keys(GameData.careers || {}));
+    console.log('DEBUG: Sample career track', GameData.careers[Object.keys(GameData.careers)[0]]);
+    console.log('DEBUG: Lifestyle options', {
+      housing: Object.keys(GameData.lifestyle?.housing || {}),
+      transport: Object.keys(GameData.lifestyle?.transport || {}),
+      food: Object.keys(GameData.lifestyle?.food || {})
+    });
+  }
 }
 
-// Call the debug function
-window.addEventListener('load', debugLifestyle);
-
-
-
-
+function debugGameState() {
+  console.log('DEBUG: GameState initialized?', !!gameState);
+  
+  if (gameState) {
+    console.log('DEBUG: Current job', gameState.currentJob);
+    console.log('DEBUG: Current career track', gameState.currentCareerTrack);
+    console.log('DEBUG: Active game loop?', !!gameState.tickInterval);
+    console.log('DEBUG: Game paused?', gameState.isPaused);
+    console.log('DEBUG: Game over?', gameState.isGameOver);
+  }
+}
 // ============== Game.js - Main Game Logic ==============
 import GameState from './game-state.js';
-import GameData from './game-data.js';
+import GameData, { TYPES } from './game-data.js';
 
 // Global game state instance
 let gameState = null;
@@ -58,6 +59,9 @@ function initializeGame() {
             gameState = GameState.createNewState();
             gameState = GameState.initializeSkills(gameState);
         }
+
+        // Debug game state
+        debugGameState();
         
         // Ensure default lifestyle options are set if missing
         if (!gameState.housingType) {
@@ -90,8 +94,13 @@ function initializeGame() {
             }
         }
         
+
+
         // Set up event listeners
         setupEventListeners();
+
+        debugGameData();
+        console.log('DEBUG: DOM ready?', !!document.getElementById('career-tracks-container'));
         
         // Update UI with initial state
         updateUI();
@@ -291,6 +300,141 @@ function manualSave() {
 
 // ============== UI Interaction Functions ==============
 
+
+/**
+ * Update career panel
+ */
+function updateCareerPanel() {
+    try {
+        console.log('DEBUG: Updating career panel');
+        console.log('DEBUG: Career container exists?', !!document.getElementById('career-tracks-container'));
+        console.log('DEBUG: Available careers', Object.keys(GameData.careers || {}));
+        
+        const careerContainer = document.getElementById('career-tracks-container');
+        if (!careerContainer) {
+            console.error('DEBUG: Career container not found in DOM');
+            return;
+        }
+        
+        careerContainer.innerHTML = '';
+        
+        // Add career tracks
+        for (const trackId in GameData.careers) {
+            const track = GameData.careers[trackId];
+            console.log(`DEBUG: Processing career track ${trackId}`, track);
+            
+            // Create career track element
+            const trackElement = document.createElement('div');
+            trackElement.className = 'career-track';
+            
+            // Create track header
+            const trackHeader = document.createElement('div');
+            trackHeader.className = 'career-track-header';
+            
+            const trackTitle = document.createElement('div');
+            trackTitle.className = 'career-track-title';
+            trackTitle.textContent = track.name;
+            
+            const trackDescription = document.createElement('div');
+            trackDescription.className = 'career-track-description';
+            trackDescription.textContent = track.description;
+            
+            trackHeader.appendChild(trackTitle);
+            trackElement.appendChild(trackHeader);
+            trackElement.appendChild(trackDescription);
+            
+            // Add job tiers - but only show the current one and the next one
+            const currentTrackIndex = track.tiers.findIndex(tier => tier.id === gameState.currentJob);
+            console.log(`DEBUG: Current track index for ${trackId}:`, currentTrackIndex);
+            
+            // Default to showing first two tiers if not on this track
+            let startIndex = 0;
+            let endIndex = 1;
+            
+            if (trackId === gameState.currentCareerTrack) {
+                // If on this track, show current and next tier
+                startIndex = currentTrackIndex;
+                endIndex = Math.min(currentTrackIndex + 1, track.tiers.length - 1);
+            }
+            
+            for (let i = startIndex; i <= endIndex; i++) {
+                if (!track.tiers[i]) {
+                    console.warn(`DEBUG: No tier at index ${i} for track ${trackId}`);
+                    continue;
+                }
+                
+                const tier = track.tiers[i];
+                console.log(`DEBUG: Adding job tier ${tier.id}`, tier);
+                
+                const tierElement = document.createElement('div');
+                tierElement.className = 'job-tier';
+                
+                if (tier.id === gameState.currentJob) {
+                    tierElement.classList.add('current-job');
+                }
+                
+                // Only allow next tier if requirements are met
+                const canApply = checkJobRequirements(tier);
+                if (!canApply && tier.id !== gameState.currentJob) {
+                    tierElement.classList.add('locked-job');
+                }
+                
+                const jobDetails = document.createElement('div');
+                jobDetails.className = 'job-details';
+                
+                const jobTitle = document.createElement('div');
+                jobTitle.className = 'job-title';
+                jobTitle.textContent = tier.name;
+                
+                const jobQuote = document.createElement('div');
+                jobQuote.className = 'job-quote';
+                jobQuote.textContent = tier.quote;
+                
+                const jobSalary = document.createElement('div');
+                jobSalary.className = 'job-salary';
+                jobSalary.textContent = `${tier.baseSalary} kudos/hr`;
+                
+                jobDetails.appendChild(jobTitle);
+                jobDetails.appendChild(jobQuote);
+                
+                const applyButton = document.createElement('button');
+                
+                if (tier.id === gameState.currentJob) {
+                    applyButton.textContent = 'Current Job';
+                    applyButton.disabled = true;
+                } else {
+                    applyButton.textContent = canApply ? 'Apply' : 'Requirements Not Met';
+                    applyButton.disabled = !canApply;
+                    
+                    if (canApply) {
+                        applyButton.addEventListener('click', () => applyForJob(tier.id));
+                    } else {
+                        // Show requirements when hovering over locked job
+                        const requirementsText = getJobRequirementsText(tier);
+                        tierElement.setAttribute('title', requirementsText);
+                        
+                        // Display requirements below the job
+                        const requirementsDisplay = document.createElement('div');
+                        requirementsDisplay.className = 'job-requirements';
+                        requirementsDisplay.innerHTML = requirementsText.replace(/\n/g, '<br>');
+                        jobDetails.appendChild(requirementsDisplay);
+                    }
+                }
+                
+                tierElement.appendChild(jobDetails);
+                tierElement.appendChild(jobSalary);
+                tierElement.appendChild(applyButton);
+                
+                trackElement.appendChild(tierElement);
+            }
+            
+            careerContainer.appendChild(trackElement);
+        }
+    } catch (error) {
+        console.error("DEBUG: Error updating career panel:", error);
+    }
+}
+
 /**
  * Adjust work hours by the specified amount
  */
@@ -373,9 +517,9 @@ function switchTrainingSkill(skillId, skillType) {
     // Get skill name based on type
     let skillName = "";
     if (skillType === 'general') {
-        skillName = generalSkills[skillId].name;
+        skillName = GameData.skills.general[skillId].name;
     } else if (skillType === 'professional') {
-        skillName = professionalSkills[skillId].name;
+        skillName = GameData.skills.professional[skillId].name;
     }
     
     showNotification("Training Changed", `Now training ${skillName}.`);
@@ -393,15 +537,15 @@ function purchaseLifestyleUpgrade(category, typeId) {
         // Get current and new option based on category
         switch (category) {
             case 'housing':
-                option = housingOptions[typeId];
+                option = GameData.lifestyle.housing[typeId];
                 currentTypeId = gameState.housingType;
                 break;
             case 'transport':
-                option = transportOptions[typeId];
+                option = GameData.lifestyle.transport[typeId];
                 currentTypeId = gameState.transportType;
                 break;
             case 'food':
-                option = foodOptions[typeId];
+                option = GameData.lifestyle.food[typeId];
                 currentTypeId = gameState.foodType;
                 break;
             default:
@@ -486,6 +630,97 @@ function purchaseLifestyleUpgrade(category, typeId) {
     }
 }
 
+/**
+ * Check if job requirements are met
+ */
+function checkJobRequirements(jobTier) {
+    try {
+        // If it's the current job, requirements are already met
+        if (gameState.currentJob === jobTier.id) {
+            return true;
+        }
+        
+        // Check previous job requirement
+        if (jobTier.requirements.previousJob && gameState.currentJob !== jobTier.requirements.previousJob) {
+            return false;
+        }
+        
+        // Check previous job level requirement
+        if (jobTier.requirements.previousJobLevel && gameState.jobLevel < jobTier.requirements.previousJobLevel) {
+            return false;
+        }
+        
+        // Check general skills requirements
+        if (jobTier.requirements.generalSkills) {
+            for (const [skillId, requiredLevel] of Object.entries(jobTier.requirements.generalSkills)) {
+                if (!gameState.generalSkills[skillId] || gameState.generalSkills[skillId].level < requiredLevel) {
+                    return false;
+                }
+            }
+        }
+        
+        // Check professional skills requirements
+        if (jobTier.requirements.professionalSkills) {
+            for (const [skillId, requiredLevel] of Object.entries(jobTier.requirements.professionalSkills)) {
+                if (!gameState.professionalSkills[skillId] || gameState.professionalSkills[skillId].level < requiredLevel) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    } catch (error) {
+        console.error("Error checking job requirements:", error);
+        return false;
+    }
+}
+
+/**
+ * Get job requirements text for displaying
+ */
+function getJobRequirementsText(jobTier) {
+    let reqText = "Requirements:\n";
+    
+    // Previous job requirement
+    if (jobTier.requirements.previousJob) {
+        reqText += `- Previous Job: ${getJobName(jobTier.requirements.previousJob)} (Level ${jobTier.requirements.previousJobLevel})\n`;
+    }
+    
+    // General skills requirements
+    if (jobTier.requirements.generalSkills) {
+        reqText += "- General Skills:\n";
+        for (const [skillId, requiredLevel] of Object.entries(jobTier.requirements.generalSkills)) {
+            const skillName = GameData.skills.general[skillId]?.name || skillId;
+            reqText += `  • ${skillName}: Level ${requiredLevel}\n`;
+        }
+    }
+    
+    // Professional skills requirements
+    if (jobTier.requirements.professionalSkills) {
+        reqText += "- Professional Skills:\n";
+        for (const [skillId, requiredLevel] of Object.entries(jobTier.requirements.professionalSkills)) {
+            const skillName = GameData.skills.professional[skillId]?.name || skillId;
+            reqText += `  • ${skillName}: Level ${requiredLevel}\n`;
+        }
+    }
+    
+    return reqText;
+}
+
+/**
+ * Get job name from id
+ */
+function getJobName(jobId) {
+    for (const trackId in GameData.careers) {
+        const track = GameData.careers[trackId];
+        const jobTier = track.tiers.find(tier => tier.id === jobId);
+        if (jobTier) {
+            return jobTier.name;
+        }
+    }
+    return "Unknown Job";
+}
+
 // ============== Core Game Functions ==============
 
 /**
@@ -494,9 +729,9 @@ function purchaseLifestyleUpgrade(category, typeId) {
 function calculateAllocatableHours() {
     try {
         // Apply lifestyle modifiers to fixed time costs
-        const housingOption = housingOptions[gameState.housingType];
-        const transportOption = transportOptions[gameState.transportType];
-        const foodOption = foodOptions[gameState.foodType];
+        const housingOption = GameData.lifestyle.housing[gameState.housingType];
+        const transportOption = GameData.lifestyle.transport[gameState.transportType];
+        const foodOption = GameData.lifestyle.food[gameState.foodType];
         
         if (!housingOption || !transportOption || !foodOption) {
             throw new Error("Invalid lifestyle options");
@@ -555,9 +790,9 @@ function calculateDailyIncome() {
  */
 function calculateDailyExpenses() {
     try {
-        const housingCost = housingOptions[gameState.housingType].cost;
-        const transportCost = transportOptions[gameState.transportType].cost;
-        const foodCost = foodOptions[gameState.foodType].cost;
+        const housingCost = GameData.lifestyle.housing[gameState.housingType].cost;
+        const transportCost = GameData.lifestyle.transport[gameState.transportType].cost;
+        const foodCost = GameData.lifestyle.food[gameState.foodType].cost;
         
         return housingCost + transportCost + foodCost;
     } catch (error) {
@@ -659,8 +894,8 @@ function checkSkillLevelUp(skillType, skillId) {
             skillData.level++;
             
             const skillName = skillType === 'general' ? 
-                            generalSkills[skillId].name : 
-                            professionalSkills[skillId].name;
+                            GameData.skills.general[skillId].name : 
+                            GameData.skills.professional[skillId].name;
             
             showNotification("Skill Improved!", `Your ${skillName} skill level is now ${skillData.level}.`);
             
@@ -693,8 +928,8 @@ function updateEternalEchoMultiplier(skillType, skillId, multiplierLevel) {
             gameState.skillEchoes[skillId] = multiplierValue;
             
             const skillName = skillType === 'general' ? 
-                            generalSkills[skillId].name : 
-                            professionalSkills[skillId].name;
+                            GameData.skills.general[skillId].name : 
+                            GameData.skills.professional[skillId].name;
             
             showNotification("Eternal Echo Gained!", `Your ${skillName} skill now has a ${bonusPercent}% Eternal Echo bonus.`);
         } else if (skillType === 'job') {
@@ -715,8 +950,8 @@ function calculateMortalityRate() {
         const midpoint = 75; // Age at which mortality reaches 50%
         
         // Apply lifestyle modifiers
-        const housingOption = housingOptions[gameState.housingType];
-        const foodOption = foodOptions[gameState.foodType];
+        const housingOption = GameData.lifestyle.housing[gameState.housingType];
+        const foodOption = GameData.lifestyle.food[gameState.foodType];
         
         const mortalityModifier = housingOption.mortalityReduction + foodOption.mortalityReduction;
         const adjustedK = kValue * (1 - mortalityModifier);
@@ -755,9 +990,6 @@ function checkMortality() {
     }
 }
 
-/**
- * Handle player death
- */
 /**
  * Reincarnate player
  */
@@ -818,12 +1050,17 @@ function pauseGame() {
     }
 }
 
-/**
- * Resume the game
- */
 function resumeGame() {
+    console.log('DEBUG: resumeGame called');
+    console.log('DEBUG: Existing tick interval?', !!gameState.tickInterval);
+    console.log('DEBUG: Game over?', gameState.isGameOver);
+    console.log('DEBUG: Game speed', gameState.gameSpeed || 1);
+    
     if (!gameState.tickInterval && !gameState.isGameOver) {
-        gameState.tickInterval = setInterval(progressDay, gameState.gameSpeed * 1000);
+        console.log('DEBUG: Creating new tick interval with speed', gameState.gameSpeed || 1);
+        gameState.tickInterval = setInterval(progressDay, (gameState.gameSpeed || 1) * 1000);
+    } else {
+        console.log('DEBUG: Not creating tick interval - already exists or game over');
     }
     
     gameState.isPaused = false;
@@ -834,9 +1071,14 @@ function resumeGame() {
  * Progress one day
  */
 function progressDay() {
-    if (gameState.isPaused || gameState.isGameOver) return;
+    if (gameState.isPaused || gameState.isGameOver) {
+        console.log('DEBUG: progressDay called but game is paused or over');
+        return;
+    }
     
     try {
+        console.log('DEBUG: Processing day progress');
+        
         // Calculate allocatable time
         const timeInfo = calculateAllocatableHours();
         
@@ -908,6 +1150,19 @@ function progressDay() {
             }
         }
         
+        // Log debug info
+        console.log('DEBUG: Day progressed', {
+            day: gameState.day,
+            month: gameState.month,
+            year: gameState.year,
+            age: gameState.age,
+            kudos: gameState.kudos,
+            workHours: gameState.workHours,
+            trainingHours: gameState.trainingHours,
+            jobExp: gameState.jobExperience,
+            jobLevel: gameState.jobLevel
+        });
+        
         // Update UI
         updateUI();
     } catch (error) {
@@ -978,629 +1233,8 @@ function handleDeath() {
     }
 }
 
-// ============== UI Update Functions ==============
-
-/**
- * Update the entire UI
- */
-function updateUI() {
-    try {
-        updateStatusPanel();
-        updateTimeAllocation();
-        updateCareerPanel();
-        updateSkillsPanel();
-        updateLifestylePanel();
-    } catch (error) {
-        console.error("Error updating UI:", error);
-    }
-}
-
-/**
- * Update status panel
- */
-function updateStatusPanel() {
-    // Update date and age
-    document.getElementById('date-display').textContent = `Day ${gameState.day}, Year ${gameState.year - 2024}`;
-    document.getElementById('age-display').textContent = gameState.age;
-    
-    // Update kudos
-    document.getElementById('kudos-display').textContent = Math.floor(gameState.kudos);
-    
-    // Update job info
-    document.getElementById('job-display').textContent = getJobTitle();
-    document.getElementById('job-level-display').textContent = gameState.jobLevel;
-    
-    // Update job progress bar
-    const expForNextLevel = 100 * Math.pow(1.1, gameState.jobLevel);
-    const progressPercent = (gameState.jobExperience / expForNextLevel) * 100;
-    document.getElementById('job-progress').style.width = `${progressPercent}%`;
-    
-    // Update income and expenses
-    document.getElementById('income-display').textContent = `${calculateDailyIncome().toFixed(1)} kudos/day`;
-    document.getElementById('expenses-display').textContent = `${calculateDailyExpenses().toFixed(1)} kudos/day`;
-    
-    // Update mortality rate
-    const mortalityPercent = calculateMortalityRate() * 100;
-    document.getElementById('mortality-display').textContent = `${mortalityPercent.toFixed(2)}%`;
-}
-
-/**
- * Update time allocation panel
- */
-function updateTimeAllocation() {
-    const timeInfo = calculateAllocatableHours();
-    
-    // Update fixed time displays
-    document.getElementById('fixed-time-display').textContent = `${timeInfo.fixedTimeTotal.toFixed(1)} hours/day`;
-    document.getElementById('sleep-time-display').textContent = `${timeInfo.adjustedSleepHours.toFixed(1)} hours`;
-    document.getElementById('commute-time-display').textContent = `${timeInfo.adjustedCommuteHours.toFixed(1)} hours`;
-    document.getElementById('meal-time-display').textContent = `${timeInfo.adjustedMealHours.toFixed(1)} hours`;
-    
-    // Update allocatable time
-    document.getElementById('allocatable-time-display').textContent = `${timeInfo.allocatableHours.toFixed(1)} hours/day`;
-    
-    // Update work time display
-    document.getElementById('work-time-display').textContent = `${gameState.workHours.toFixed(1)} hours`;
-    
-    // Update training time display
-    document.getElementById('training-time-display').textContent = `${gameState.trainingHours.toFixed(1)} hours`;
-    
-    // Update slider positions
-    updateTimeSliders(timeInfo.allocatableHours);
-}
-
-/**
- * Update slider positions based on current hours
- */
-function updateTimeSliders(allocatableHours) {
-    // Set work slider
-    const workSlider = document.getElementById('work-slider');
-    const workHandle = document.getElementById('work-handle');
-    const workPercentage = Math.min(100, (gameState.workHours / allocatableHours) * 100);
-    workHandle.style.left = `${workPercentage}%`;
-    
-    // Set training slider
-    const trainingSlider = document.getElementById('training-slider');
-    const trainingHandle = document.getElementById('training-handle');
-    const trainingPercentage = Math.min(100, (gameState.trainingHours / allocatableHours) * 100);
-    trainingHandle.style.left = `${trainingPercentage}%`;
-}
-
-/**
- * Update career panel
- */
-function updateCareerPanel() {
-    const careerContainer = document.getElementById('career-tracks-container');
-    careerContainer.innerHTML = '';
-    
-    // Add career tracks
-    for (const trackId in GameData.careers) {
-        const track = GameData.careers[trackId];
-        
-        // Create career track element
-        const trackElement = document.createElement('div');
-        trackElement.className = 'career-track';
-        
-        // Create track header
-        const trackHeader = document.createElement('div');
-        trackHeader.className = 'career-track-header';
-        
-        const trackTitle = document.createElement('div');
-        trackTitle.className = 'career-track-title';
-        trackTitle.textContent = track.name;
-        
-        const trackDescription = document.createElement('div');
-        trackDescription.className = 'career-track-description';
-        trackDescription.textContent = track.description;
-        
-        trackHeader.appendChild(trackTitle);
-        trackElement.appendChild(trackHeader);
-        trackElement.appendChild(trackDescription);
-        
-        // Add job tiers - but only show the current one and the next one
-        const currentTrackIndex = track.tiers.findIndex(tier => tier.id === gameState.currentJob);
-        
-        // Default to showing first two tiers if not on this track
-        let startIndex = 0;
-        let endIndex = 1;
-        
-        if (trackId === gameState.currentCareerTrack) {
-            // If on this track, show current and next tier
-            startIndex = currentTrackIndex;
-            endIndex = Math.min(currentTrackIndex + 1, track.tiers.length - 1);
-        }
-        
-        for (let i = startIndex; i <= endIndex; i++) {
-            const tier = track.tiers[i];
-            
-            const tierElement = document.createElement('div');
-            tierElement.className = 'job-tier';
-            
-            if (tier.id === gameState.currentJob) {
-                tierElement.classList.add('current-job');
-            }
-            
-            // Only allow next tier if requirements are met
-            const canApply = checkJobRequirements(tier);
-            if (!canApply && tier.id !== gameState.currentJob) {
-                tierElement.classList.add('locked-job');
-            }
-            
-            const jobDetails = document.createElement('div');
-            jobDetails.className = 'job-details';
-            
-            const jobTitle = document.createElement('div');
-            jobTitle.className = 'job-title';
-            jobTitle.textContent = tier.name;
-            
-            const jobQuote = document.createElement('div');
-            jobQuote.className = 'job-quote';
-            jobQuote.textContent = tier.quote;
-            
-            const jobSalary = document.createElement('div');
-            jobSalary.className = 'job-salary';
-            jobSalary.textContent = `${tier.baseSalary} kudos/hr`;
-            
-            jobDetails.appendChild(jobTitle);
-            jobDetails.appendChild(jobQuote);
-            
-            const applyButton = document.createElement('button');
-            
-            if (tier.id === gameState.currentJob) {
-                applyButton.textContent = 'Current Job';
-                applyButton.disabled = true;
-            } else {
-                applyButton.textContent = canApply ? 'Apply' : 'Requirements Not Met';
-                applyButton.disabled = !canApply;
-                
-                if (canApply) {
-                    applyButton.addEventListener('click', () => applyForJob(tier.id));
-                } else {
-                    // Show requirements when hovering over locked job
-                    const requirementsText = getJobRequirementsText(tier);
-                    tierElement.setAttribute('title', requirementsText);
-                    
-                    // Display requirements below the job
-                    const requirementsDisplay = document.createElement('div');
-                    requirementsDisplay.className = 'job-requirements';
-                    requirementsDisplay.innerHTML = requirementsText.replace(/\n/g, '<br>');
-                    jobDetails.appendChild(requirementsDisplay);
-                }
-            }
-            
-            tierElement.appendChild(jobDetails);
-            tierElement.appendChild(jobSalary);
-            tierElement.appendChild(applyButton);
-            
-            trackElement.appendChild(tierElement);
-        }
-        
-        careerContainer.appendChild(trackElement);
-    }
-}
-
-/**
- * Update skills panel
- */
-function updateSkillsPanel() {
-    // Update general skills
-    const generalSkillsContainer = document.getElementById('general-skills-container');
-    generalSkillsContainer.innerHTML = '';
-    
-    for (const skillId in generalSkills) {
-        const skill = generalSkills[skillId];
-        const skillLevel = gameState.generalSkills[skillId].level;
-        const skillExperience = gameState.generalSkills[skillId].experience;
-        
-        const expForNextLevel = 100 * Math.pow(1.08, skillLevel);
-        const progressPercent = (skillExperience / expForNextLevel) * 100;
-        
-        const skillElement = document.createElement('div');
-        skillElement.className = 'skill-item';
-        
-        const skillHeader = document.createElement('div');
-        skillHeader.className = 'skill-header';
-        
-        const skillName = document.createElement('div');
-        skillName.className = 'skill-name';
-        skillName.textContent = skill.name;
-        
-        const skillLevelDisplay = document.createElement('div');
-        skillLevelDisplay.className = 'skill-level';
-        skillLevelDisplay.textContent = `Level ${skillLevel}`;
-        
-        // Add echo bonus if exists
-        if (gameState.skillEchoes[skillId] && gameState.skillEchoes[skillId] > 1) {
-            const bonusPercent = ((gameState.skillEchoes[skillId] - 1) * 100).toFixed(0);
-            skillLevelDisplay.textContent += ` (${bonusPercent}% Echo)`;
-        }
-        
-        skillHeader.appendChild(skillName);
-        skillHeader.appendChild(skillLevelDisplay);
-        
-        const skillDescription = document.createElement('div');
-        skillDescription.className = 'skill-description';
-        skillDescription.textContent = skill.description;
-        
-        const progressContainer = document.createElement('div');
-        progressContainer.className = 'progress-container skill-progress';
-        
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressBar.style.width = `${progressPercent}%`;
-        
-        progressContainer.appendChild(progressBar);
-        
-        const trainingButton = document.createElement('button');
-        trainingButton.className = 'training-button';
-        
-        if (gameState.currentTrainingSkill === skillId) {
-            trainingButton.textContent = 'Currently Training';
-            trainingButton.classList.add('active-training');
-            trainingButton.disabled = true;
-        } else {
-            trainingButton.textContent = 'Train Skill';
-            trainingButton.addEventListener('click', () => switchTrainingSkill(skillId, 'general'));
-        }
-        
-        skillElement.appendChild(skillHeader);
-        skillElement.appendChild(skillDescription);
-        skillElement.appendChild(progressContainer);
-        skillElement.appendChild(trainingButton);
-        
-        generalSkillsContainer.appendChild(skillElement);
-    }
-    
-    // Update professional skills
-    const professionalSkillsContainer = document.getElementById('professional-skills-container');
-    professionalSkillsContainer.innerHTML = '';
-    
-    for (const skillId in professionalSkills) {
-        const skill = professionalSkills[skillId];
-        const skillLevel = gameState.professionalSkills[skillId].level;
-        const skillExperience = gameState.professionalSkills[skillId].experience;
-        
-        const expForNextLevel = 100 * Math.pow(1.08, skillLevel);
-        const progressPercent = (skillExperience / expForNextLevel) * 100;
-        
-        const skillElement = document.createElement('div');
-        skillElement.className = 'skill-item';
-        
-        const skillHeader = document.createElement('div');
-        skillHeader.className = 'skill-header';
-        
-        const skillName = document.createElement('div');
-        skillName.className = 'skill-name';
-        skillName.textContent = skill.name;
-        
-        const skillLevelDisplay = document.createElement('div');
-        skillLevelDisplay.className = 'skill-level';
-        skillLevelDisplay.textContent = `Level ${skillLevel}`;
-        
-        // Add echo bonus if exists
-        if (gameState.skillEchoes[skillId] && gameState.skillEchoes[skillId] > 1) {
-            const bonusPercent = ((gameState.skillEchoes[skillId] - 1) * 100).toFixed(0);
-            skillLevelDisplay.textContent += ` (${bonusPercent}% Echo)`;
-        }
-        
-        skillHeader.appendChild(skillName);
-        skillHeader.appendChild(skillLevelDisplay);
-        
-        const skillDescription = document.createElement('div');
-        skillDescription.className = 'skill-description';
-        skillDescription.textContent = skill.description;
-        
-        // Show primary career tracks for this skill
-        if (skill.primaryCareerTracks && skill.primaryCareerTracks.length > 0) {
-            const careerInfo = document.createElement('div');
-            careerInfo.className = 'skill-career-info';
-            
-            const trackNames = skill.primaryCareerTracks.map(trackId => {
-                const track = GameData.careers[trackId];
-                return track ? track.name : 'Unknown';
-            }).join(', ');
-            
-            careerInfo.textContent = `Used in: ${trackNames}`;
-            skillDescription.appendChild(careerInfo);
-        }
-        
-        const progressContainer = document.createElement('div');
-        progressContainer.className = 'progress-container skill-progress';
-        
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressBar.style.width = `${progressPercent}%`;
-        
-        progressContainer.appendChild(progressBar);
-        
-        const trainingButton = document.createElement('button');
-        trainingButton.className = 'training-button';
-        
-        if (gameState.currentTrainingSkill === skillId) {
-            trainingButton.textContent = 'Currently Training';
-            trainingButton.classList.add('active-training');
-            trainingButton.disabled = true;
-        } else {
-            trainingButton.textContent = 'Train Skill';
-            trainingButton.addEventListener('click', () => switchTrainingSkill(skillId, 'professional'));
-        }
-        
-        skillElement.appendChild(skillHeader);
-        skillElement.appendChild(skillDescription);
-        skillElement.appendChild(progressContainer);
-        skillElement.appendChild(trainingButton);
-        
-        professionalSkillsContainer.appendChild(skillElement);
-    }
-}
-
-/**
- * Update lifestyle panel
- */
-function updateLifestylePanel() {
-    try {
-        // Make sure we have access to the options
-        if (typeof housingOptions === 'undefined' || 
-            typeof transportOptions === 'undefined' || 
-            typeof foodOptions === 'undefined') {
-            
-            // Try to get options from GameData if available
-            const housing = GameData?.lifestyle?.housing || {};
-            const transport = GameData?.lifestyle?.transport || {};
-            const food = GameData?.lifestyle?.food || {};
-            
-            // Update housing options
-            updateLifestyleCategory('housing', housing, gameState.housingType);
-            
-            // Update transportation options
-            updateLifestyleCategory('transport', transport, gameState.transportType);
-            
-            // Update food options
-            updateLifestyleCategory('food', food, gameState.foodType);
-        } else {
-            // Use the directly available options
-            updateLifestyleCategory('housing', housingOptions, gameState.housingType);
-            updateLifestyleCategory('transport', transportOptions, gameState.transportType);
-            updateLifestyleCategory('food', foodOptions, gameState.foodType);
-        }
-    } catch (error) {
-        console.error("Error updating lifestyle panel:", error);
-    }
-}
-
-
-/**
- * Update a lifestyle category panel - Simplified version for quick fix
- */
-function updateLifestyleCategory(category, options, currentOptionId) {
-    try {
-        // Get container and clear it
-        const containerId = `${category}-options-container`;
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        container.innerHTML = '';
-        
-        // Check if options exist
-        if (!options || Object.keys(options).length === 0) return;
-        
-        // Handle undefined current option
-        if (currentOptionId === undefined || currentOptionId === null) {
-            // Find a free option
-            for (const id in options) {
-                if (options[id] && options[id].cost === 0) {
-                    // Update gameState
-                    if (category === 'housing') gameState.housingType = id;
-                    else if (category === 'transport') gameState.transportType = id;
-                    else if (category === 'food') gameState.foodType = id;
-                    
-                    // Update our local variable
-                    currentOptionId = id;
-                    break;
-                }
-            }
-            
-            // If still undefined, use first option
-            if (currentOptionId === undefined && Object.keys(options).length > 0) {
-                currentOptionId = Object.keys(options)[0];
-                // Update gameState
-                if (category === 'housing') gameState.housingType = currentOptionId;
-                else if (category === 'transport') gameState.transportType = currentOptionId;
-                else if (category === 'food') gameState.foodType = currentOptionId;
-            }
-        }
-        
-        // Create option elements
-        for (const optionId in options) {
-            if (!options[optionId]) continue;
-            const option = options[optionId];
-            
-            const optionElement = document.createElement('div');
-            optionElement.className = 'lifestyle-option';
-            
-            // Mark current option
-            if (currentOptionId === optionId) {
-                optionElement.classList.add('current-lifestyle');
-            }
-            
-            // Create content
-            const optionDetails = document.createElement('div');
-            optionDetails.className = 'lifestyle-details';
-            
-            const optionName = document.createElement('div');
-            optionName.className = 'lifestyle-name';
-            optionName.textContent = option.name || `${category} option`;
-            
-            const optionEffects = document.createElement('div');
-            optionEffects.className = 'lifestyle-effects';
-            
-            // Set effects text safely
-            let effectsText = '';
-            if (category === 'housing') {
-                const sleepReduction = (option.sleepTimeReduction || 0) * 100;
-                const mortReduction = (option.mortalityReduction || 0) * 100;
-                effectsText = `Sleep time: -${sleepReduction.toFixed(0)}%, Mortality: -${mortReduction.toFixed(0)}%`;
-            } else if (category === 'transport') {
-                const commuteReduction = (option.commuteTimeReduction || 0) * 100;
-                effectsText = `Commute time: -${commuteReduction.toFixed(0)}%`;
-            } else if (category === 'food') {
-                const mealReduction = (option.mealTimeReduction || 0) * 100;
-                effectsText = `Meal time: -${mealReduction.toFixed(0)}%`;
-                
-                if (option.mortalityReduction !== undefined) {
-                    const mortSign = option.mortalityReduction >= 0 ? '-' : '+';
-                    const mortEffect = Math.abs(option.mortalityReduction) * 100;
-                    effectsText += `, Mortality: ${mortSign}${mortEffect.toFixed(0)}%`;
-                }
-            }
-            optionEffects.textContent = effectsText;
-            
-            const optionCost = document.createElement('div');
-            optionCost.className = 'lifestyle-cost';
-            optionCost.textContent = `${option.cost || 0} kudos/day`;
-            
-            // Assemble content
-            optionDetails.appendChild(optionName);
-            optionDetails.appendChild(optionEffects);
-            
-            optionElement.appendChild(optionDetails);
-            optionElement.appendChild(optionCost);
-            
-            // Add purchase button
-            const purchaseButton = document.createElement('button');
-            
-            if (currentOptionId === optionId) {
-                purchaseButton.textContent = 'Current';
-                purchaseButton.disabled = true;
-            } else {
-                // Can afford check
-                const canAfford = gameState.kudos >= (option.cost || 0);
-                
-                if (canAfford) {
-                    purchaseButton.textContent = 'Purchase';
-                    purchaseButton.addEventListener('click', () => {
-                        // Simple implementation of purchase
-                        gameState.kudos -= (option.cost || 0);
-                        
-                        if (category === 'housing') gameState.housingType = optionId;
-                        else if (category === 'transport') gameState.transportType = optionId;
-                        else if (category === 'food') gameState.foodType = optionId;
-                        
-                        // Refresh UI
-                        updateUI();
-                        showNotification('Purchased', `You've upgraded your ${category}!`);
-                    });
-                } else {
-                    purchaseButton.textContent = 'Cannot Afford';
-                    purchaseButton.disabled = true;
-                }
-            }
-            
-            optionElement.appendChild(purchaseButton);
-            container.appendChild(optionElement);
-        }
-    } catch (error) {
-        console.error(`Error in updateLifestyleCategory for ${category}:`, error);
-    }
-}
-
-
-// ============== Utility Functions ==============
-
-/**
- * Get the title of the current job
- */
-function getJobTitle() {
-    try {
-        const trackInfo = GameData.careers[gameState.currentCareerTrack];
-        if (!trackInfo) return "Unemployed";
-        
-        const jobTier = trackInfo.tiers.find(tier => tier.id === gameState.currentJob);
-        if (!jobTier) return "Unemployed";
-        
-        return jobTier.name;
-    } catch (error) {
-        console.error("Error getting job title:", error);
-        return "Unemployed";
-    }
-}
-        
-        if (currentOption === optionId) {
-                            purchaseButton.textContent = 'Current';
-            purchaseButton.disabled = true;
-        } else {
-            // Check if player can afford it
-            const canAfford = gameState.kudos >= option.cost;
-            
-            if (canAfford) {
-                purchaseButton.textContent = 'Purchase';
-                purchaseButton.addEventListener('click', () => purchaseLifestyleUpgrade(category, optionId));
-            } else {
-                purchaseButton.textContent = 'Cannot Afford';
-                purchaseButton.disabled = true;
-            }
-            
-            // Check additional requirements
-            if (option.requirements) {
-                let requirementsUnmet = false;
-                
-                // Check housing requirement
-                if (option.requirements.housing) {
-                    const requiredHousing = Array.isArray(option.requirements.housing) 
-                        ? option.requirements.housing 
-                        : [option.requirements.housing];
-                    
-                    if (!requiredHousing.includes(gameState.housingType)) {
-                        requirementsUnmet = true;
-                    }
-                }
-                
-                // Check kudos requirement (additional to cost)
-                if (option.requirements.kudos && gameState.kudos < option.requirements.kudos) {
-                    requirementsUnmet = true;
-                }
-                
-                // Check career track completion
-                if (option.requirements.carrierTrackComplete) {
-                    const requiredTracks = Array.isArray(option.requirements.carrierTrackComplete)
-                        ? option.requirements.carrierTrackComplete
-                        : [option.requirements.carrierTrackComplete];
-                    
-                    for (const trackId of requiredTracks) {
-                        if (!gameState.completedCareerTracks.includes(trackId)) {
-                            requirementsUnmet = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if (requirementsUnmet) {
-                    purchaseButton.textContent = 'Requirements Not Met';
-                    purchaseButton.disabled = true;
-                    
-                    // Add requirements info to the tooltip
-                    let requirementsText = "Requirements:\n";
-                    
-                    if (option.requirements.housing) {
-                        const housingNames = Array.isArray(option.requirements.housing)
-                            ? option.requirements.housing.map(id => housingOptions[id]?.name || id).join(' or ')
-                            : housingOptions[option.requirements.housing]?.name || option.requirements.housing;
-                        
-                        requirementsText += `- Housing: ${housingNames}\n`;
-                    }
-                    
-                    if (option.requirements.kudos) {
-                        requirementsText += `- Minimum Kudos: ${option.requirements.kudos}\n`;
-                    }
-                    
-                    if (option.requirements.carrierTrackComplete) {
-                        const trackNames = Array.isArray(option.requirements.carrierTrackComplete)
-                            ? option.requirements.carrierTrackComplete.map(id => GameData.careers[id]?.name || id).join(' and ')
-                            : GameData.careers[option.requirements.carrierTrackComplete]?.name || option.requirements.carrierTrackComplete;
-                        
-                        requirementsText += `- Complete Career Tracks: ${trackNames}\n`;
-                    }
-                    
-                    optionElement.setAttribute('title', requirementsText);
-                }
-            }
-        }
+// Initialize game when document is loaded
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('DEBUG: DOMContentLoaded event triggered');
+    initializeGame();
+});
