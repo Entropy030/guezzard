@@ -7,6 +7,9 @@
     --text-primary: #E8D0B5;
     --text-secondary: #B59F84;
     --inactive: #4D3629;
+    --success: #4CAF50;
+    --warning: #FF9800;
+    --error: #F44336;
 }
 
 /* Base Styling */
@@ -17,13 +20,14 @@ body {
     margin: 0;
     padding: 0;
     line-height: 1.6;
+    font-size: 14px;
 }
 
 /* Layout */
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 20px 20px 70px 20px; /* Extra padding at bottom for fixed nav */
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
@@ -31,76 +35,117 @@ body {
 
 @media (min-width: 768px) {
     .container {
-        grid-template-columns: 300px 1fr;
+        grid-template-columns: 280px 1fr;
     }
 }
 
 /* Header */
 header {
     background-color: var(--secondary-bg);
-    padding: 15px;
+    padding: 10px 15px;
     border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     max-width: 1200px;
     margin: 10px auto;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* Panels */
 .panel {
     background-color: var(--secondary-bg);
     border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
+    padding: 12px;
+    margin-bottom: 15px;
 }
 
 .panel-title {
     color: var(--accent);
     margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 16px;
     border-bottom: 1px solid var(--accent);
     padding-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.panel-title::after {
+    content: '▼';
+    font-size: 10px;
+    transition: transform 0.3s;
+}
+
+.panel-title.collapsed::after {
+    transform: rotate(-90deg);
+}
+
+.panel-content {
+    transition: max-height 0.3s ease-out;
+    overflow: hidden;
+    max-height: 2000px;
+}
+
+.panel-content.collapsed {
+    max-height: 0;
 }
 
 /* Status Panel */
 .status-panel {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 .status-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .status-label {
     color: var(--text-secondary);
 }
 
+.status-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
 /* Interactive Panel */
 .interactive-panel {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 /* Tabs */
 .tabs {
     display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 8px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
+    position: sticky;
+    top: 60px;
+    background-color: var(--primary-bg);
+    padding: 5px 0;
+    z-index: 90;
 }
 
 .tab {
-    padding: 10px 15px;
+    padding: 8px 12px;
     background-color: var(--panel-bg);
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
+    font-size: 13px;
 }
 
 .tab.active {
@@ -109,8 +154,37 @@ header {
     font-weight: bold;
 }
 
+/* Fixed Navigation */
+.fixed-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--secondary-bg);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 1000;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.nav-button {
+    background-color: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 22px;
+    transition: color 0.3s;
+}
+
+.nav-button.active {
+    color: var(--accent);
+}
+
 /* Progress Bars */
 .progress-container {
+    position: relative;
     margin-top: 5px;
     background-color: var(--panel-bg);
     border-radius: 5px;
@@ -123,6 +197,19 @@ header {
     border-radius: 5px;
     background-color: var(--accent);
     transition: width 0.3s;
+    position: relative;
+}
+
+.progress-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    color: var(--text-primary);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+    white-space: nowrap;
+    z-index: 1;
 }
 
 /* Buttons */
@@ -131,9 +218,10 @@ button {
     color: var(--text-primary);
     border: 1px solid var(--accent);
     border-radius: 5px;
-    padding: 8px 15px;
+    padding: 6px 12px;
     cursor: pointer;
     transition: background-color 0.3s;
+    font-size: 13px;
 }
 
 button:hover {
@@ -152,7 +240,7 @@ button:disabled {
 .slider-container {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
 }
 
 .slider {
@@ -171,33 +259,41 @@ button:disabled {
     position: absolute;
     top: -5px;
     cursor: pointer;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+    transition: transform 0.1s;
+}
+
+.slider-handle:hover, .slider-handle:active {
+    transform: scale(1.2);
 }
 
 /* Time allocation */
 .time-allocation {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 15px;
+    gap: 8px;
+    margin-top: 12px;
 }
 
 .time-label {
     display: flex;
     justify-content: space-between;
+    font-size: 13px;
 }
 
 /* Career section */
 .career-track {
     background-color: var(--panel-bg);
     border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 15px;
+    padding: 12px;
+    margin-bottom: 12px;
 }
 
 .career-track-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
 }
 
 .career-track-title {
@@ -210,7 +306,7 @@ button:disabled {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    margin: 8px 0;
+    margin: 6px 0;
     background-color: var(--primary-bg);
     border-radius: 5px;
 }
@@ -242,12 +338,22 @@ button:disabled {
     opacity: 0.5;
 }
 
+.job-requirements {
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.job-requirements ul {
+    margin: 5px 0;
+    padding-left: 20px;
+}
+
 /* Skills section */
 .skill-item {
     background-color: var(--panel-bg);
     border-radius: 5px;
     padding: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .skill-header {
@@ -262,12 +368,19 @@ button:disabled {
 
 .skill-level {
     color: var(--accent);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 .skill-description {
     font-size: 0.9em;
     color: var(--text-secondary);
     margin-top: 5px;
+}
+
+.skill-career-info {
+    font-size: 0.8em;
+    margin-top: 3px;
+    color: var(--text-primary);
 }
 
 .skill-progress {
@@ -282,6 +395,47 @@ button:disabled {
 .active-training {
     background-color: var(--accent);
     color: var(--primary-bg);
+    border: 1px solid var(--primary-bg);
+}
+
+.skill-echo-info {
+    font-size: 0.8em;
+    color: var(--accent);
+    margin-top: 3px;
+}
+
+.skill-exp-info {
+    font-size: 0.8em;
+    text-align: center;
+    margin-top: 2px;
+    color: var(--text-secondary);
+}
+
+/* Category headers for skills */
+.skill-category {
+    margin-top: 10px;
+    padding: 5px;
+    background-color: var(--secondary-bg);
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.skill-category-title {
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.skill-category-items {
+    transition: max-height 0.3s ease;
+    overflow: hidden;
+    max-height: 2000px;
+}
+
+.skill-category-items.collapsed {
+    max-height: 0;
 }
 
 /* Lifestyle section */
@@ -289,7 +443,7 @@ button:disabled {
     background-color: var(--panel-bg);
     border-radius: 5px;
     padding: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -311,6 +465,8 @@ button:disabled {
 .lifestyle-cost {
     color: var(--accent);
     font-weight: bold;
+    font-size: 13px;
+    margin: 0 10px;
 }
 
 .current-lifestyle {
@@ -326,7 +482,7 @@ button:disabled {
     background-color: var(--panel-bg);
     border-radius: 5px;
     padding: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .achievement-title {
@@ -376,10 +532,27 @@ button:disabled {
     margin-bottom: 20px;
 }
 
+.death-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.death-stat-label {
+    color: var(--text-secondary);
+}
+
+.death-stat-value {
+    color: var(--accent);
+    font-weight: bold;
+}
+
 /* Notification */
 .notification {
     position: fixed;
-    bottom: 20px;
+    bottom: 70px; /* Above fixed navigation */
     right: 20px;
     background-color: var(--secondary-bg);
     border-left: 4px solid var(--accent);
@@ -412,4 +585,89 @@ button:disabled {
 /* Hide by default */
 .hidden {
     display: none;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--primary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--panel-bg);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* Tooltips */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    width: 200px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Loading indicator */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(232, 164, 92, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--accent);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Help button */
+.help-button {
+    background-color: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+.help-button:hover {
+    background-color: var(--accent);
+    color: var(--primary-bg);
 }

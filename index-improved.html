@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guezzard - Career Simulation Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="date-display">
+            <span id="date-display">Day 1, Year 1</span>
+        </div>
+        <div class="age-display">
+            Age: <span id="age-display">20</span>
+        </div>
+        <button id="toggle-pause"><i class="fas fa-pause"></i></button>
+    </header>
+
+    <div class="container">
+        <div class="status-panel">
+            <div class="panel" id="status-panel">
+                <h2 class="panel-title">Status</h2>
+                <div class="panel-content">
+                    <div class="status-item">
+                        <span class="status-label">Kudos:</span>
+                        <span id="kudos-display" class="status-value">1000</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Current Job:</span>
+                        <span id="job-display" class="status-value">Temp</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Job Level:</span>
+                        <span id="job-level-display" class="status-value">1</span>
+                    </div>
+                    <div class="status-item">
+                        <div id="job-progress-container" class="progress-container">
+                            <div id="job-progress" class="progress-bar"></div>
+                            <span id="job-progress-text" class="progress-value">0/100 XP</span>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Income:</span>
+                        <span id="income-display" class="status-value">0 kudos/day</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Expenses:</span>
+                        <span id="expenses-display" class="status-value">0 kudos/day</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Mortality Rate:</span>
+                        <span id="mortality-display" class="status-value">0.01%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" id="time-panel">
+                <h2 class="panel-title">Time Allocation</h2>
+                <div class="panel-content">
+                    <div class="status-item">
+                        <span class="status-label">Fixed Time:</span>
+                        <span id="fixed-time-display" class="status-value">18 hours/day</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">- Sleep:</span>
+                        <span id="sleep-time-display" class="status-value">10 hours</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">- Commute:</span>
+                        <span id="commute-time-display" class="status-value">4 hours</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">- Meals:</span>
+                        <span id="meal-time-display" class="status-value">4 hours</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Allocatable Time:</span>
+                        <span id="allocatable-time-display" class="status-value">6 hours/day</span>
+                    </div>
+                    
+                    <div class="time-allocation">
+                        <div class="time-label">
+                            <span>Work Time:</span>
+                            <span id="work-time-display">4 hours</span>
+                        </div>
+                        <div class="slider-container">
+                            <button id="work-decrease" class="time-btn">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <div class="slider" id="work-slider">
+                                <div class="slider-handle" id="work-handle"></div>
+                            </div>
+                            <button id="work-increase" class="time-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <div class="time-label">
+                            <span>Training Time:</span>
+                            <span id="training-time-display">2 hours</span>
+                        </div>
+                        <div class="slider-container">
+                            <button id="training-decrease" class="time-btn">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <div class="slider" id="training-slider">
+                                <div class="slider-handle" id="training-handle"></div>
+                            </div>
+                            <button id="training-increase" class="time-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interactive-panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="career">Career</div>
+                <div class="tab" data-tab="skills">Skills</div>
+                <div class="tab" data-tab="lifestyle">Lifestyle</div>
+                <div class="tab" data-tab="achievements">Achievements</div>
+            </div>
+
+            <div class="tab-content">
+                <!-- Career Tab -->
+                <div class="tab-pane active" id="career-tab">
+                    <div class="panel">
+                        <h2 class="panel-title">Career Tracks</h2>
+                        <div id="career-tracks-container" class="panel-content">
+                            <!-- Will be populated with Career Tracks -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Tab -->
+                <div class="tab-pane hidden" id="skills-tab">
+                    <div class="panel">
+                        <h2 class="panel-title">General Skills</h2>
+                        <div id="general-skills-container" class="panel-content">
+                            <!-- Will be populated with General Skills -->
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2 class="panel-title">Professional Skills</h2>
+                        <div id="professional-skills-container" class="panel-content">
+                            <!-- Will be populated with Professional Skills -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lifestyle Tab -->
+                <div class="tab-pane hidden" id="lifestyle-tab">
+                    <div class="panel">
+                        <h2 class="panel-title">Housing</h2>
+                        <div id="housing-options-container" class="panel-content">
+                            <!-- Will be populated with Housing Options -->
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2 class="panel-title">Transportation</h2>
+                        <div id="transportation-options-container" class="panel-content">
+                            <!-- Will be populated with Transportation Options -->
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h2 class="panel-title">Food</h2>
+                        <div id="food-options-container" class="panel-content">
+                            <!-- Will be populated with Food Options -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievements Tab -->
+                <div class="tab-pane hidden" id="achievements-tab">
+                    <div class="panel">
+                        <h2 class="panel-title">Achievements</h2>
+                        <div id="achievements-container" class="panel-content">
+                            <!-- Will be populated with Achievements -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fixed Navigation -->
+    <nav class="fixed-navigation" id="fixed-navigation">
+        <button class="nav-button active" data-tab="career">
+            <i class="fas fa-briefcase"></i>
+        </button>
+        <button class="nav-button" data-tab="skills">
+            <i class="fas fa-brain"></i>
+        </button>
+        <button class="nav-button" data-tab="lifestyle">
+            <i class="fas fa-home"></i>
+        </button>
+        <button class="nav-button" data-tab="achievements">
+            <i class="fas fa-trophy"></i>
+        </button>
+    </nav>
+
+    <!-- Death Screen -->
+    <div class="death-screen" id="death-screen">
+        <div class="death-message">
+            <h2 class="death-title">You have died</h2>
+            <p>You lived to the age of <span id="death-age">0</span> years.</p>
+            
+            <div class="death-stats">
+                <div class="death-stat-label">Highest Job Level:</div>
+                <div id="death-job-level" class="death-stat-value">0</div>
+                
+                <div class="death-stat-label">Highest Skill Level:</div>
+                <div id="death-skill-level" class="death-stat-value">0</div>
+                
+                <div class="death-stat-label">Final Mortality Rate:</div>
+                <div id="death-mortality-rate" class="death-stat-value">0%</div>
+                
+                <div class="death-stat-label">Kudos Earned:</div>
+                <div id="death-kudos-earned" class="death-stat-value">0</div>
+            </div>
+            
+            <p>Your Eternal Echo bonuses will carry over to your next life.</p>
+            <button id="reincarnate-button">Reincarnate</button>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="death-screen" id="loading-screen">
+        <div class="death-message">
+            <h2 class="death-title">Loading Guezzard</h2>
+            <div class="loading"></div>
+            <p>Preparing your career simulation...</p>
+        </div>
+    </div>
+
+    <script type="module" src="game-state.js"></script>
+    <script type="module" src="game-data.js"></script>
+    <script type="module" src="game-data-extended.js"></script>
+    <script type="module" src="game.js"></script>
+</body>
+</html>
