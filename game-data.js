@@ -879,5 +879,7 @@ const careerTracks = {
     // const nextTier = GameData.getCareerTier(TYPES.CAREER_TRACK.AI, "ai_tier2");
     // const canAdvanceCareer = GameData.meetsRequirements(nextTier.requirements, playerState);
     
-    // Make the data available for use in other modules
-    export default GameData;
+
+    // At the bottom of game-data.js, add:
+export { TYPES };
+export default GameData;
