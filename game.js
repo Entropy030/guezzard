@@ -594,14 +594,16 @@ function resumeGame() {
     }
 }
 
+// Find the progressDay function in game.js and replace it with this improved version
+
 /**
- * Progress one day - simplified core game loop
+ * Progress one day - Core game loop
  */
 function progressDay() {
     if (gameState.isPaused || gameState.isGameOver) {
         return;
     }
-    
+
     try {
         console.log(`Processing day ${gameState.day}...`);
         
@@ -628,8 +630,18 @@ function progressDay() {
         // Update kudos
         gameState.kudos += (dailyIncome - dailyExpenses);
         
-        // Basic progress for job and skills
-        // ... add more detailed calculations later
+        // Process skill training
+        if (gameState.trainingHours > 0 && gameState.currentTrainingSkill) {
+            processSkillTraining(gameState.currentTrainingSkill, gameState.trainingHours);
+        }
+        
+        // Process job experience
+        if (gameState.workHours > 0) {
+            processJobExperience(gameState.workHours);
+        }
+        
+        // Process mortality check
+        processMortalityCheck();
         
         // Increment day
         gameState.day++;
@@ -645,10 +657,12 @@ function progressDay() {
                 
                 // Age increases each year
                 gameState.age++;
-                
-                // Check mortality
-                // ... add later
             }
+        }
+        
+        // Save game if autosave is enabled
+        if (gameState.autosaveEnabled) {
+            GameState.saveGame(gameState);
         }
         
         // Update UI
@@ -656,6 +670,254 @@ function progressDay() {
     } catch (error) {
         console.error("Error progressing day:", error);
         pauseGame();
+        showNotification("Game Error", "A problem occurred while processing the day. Game paused.");
+    }
+}
+
+/**
+ * Process skill training for the day
+ * @param {string} skillId - The ID of the skill being trained
+ * @param {number} trainingHours - Hours spent training
+ */
+function processSkillTraining(skillId, trainingHours) {
+    // Base experience rate per hour
+    const BASE_SKILL_EXP_RATE = 5;
+    
+    // Determine if it's a general or professional skill
+    let skillObj = null;
+    let skillType = "";
+    
+    if (skillId.startsWith("skill_")) {
+        skillObj = gameState.generalSkills[skillId];
+        skillType = "general";
+    } else if (skillId.startsWith("professionalSkill_")) {
+        skillObj = gameState.professionalSkills[skillId];
+        skillType = "professional";
+    }
+    
+    if (!skillObj) {
+        console.error(`Skill not found: ${skillId}`);
+        return;
+    }
+    
+    // Calculate experience gain with Eternal Echo multiplier
+    const echoMultiplier = gameState.skillEchoes[skillId] || 1;
+    const expGain = trainingHours * BASE_SKILL_EXP_RATE * echoMultiplier;
+    
+    // Add experience
+    skillObj.experience += expGain;
+    
+    // Check for level up
+    checkSkillLevelUp(skillId, skillType);
+}
+
+/**
+ * Check if a skill levels up
+ * @param {string} skillId - The ID of the skill
+ * @param {string} skillType - "general" or "professional"
+ */
+function checkSkillLevelUp(skillId, skillType) {
+    // Get skill object
+    const skillObj = skillType === "general" 
+        ? gameState.generalSkills[skillId] 
+        : gameState.professionalSkills[skillId];
+    
+    if (!skillObj) return;
+    
+    // Calculate experience needed for next level
+    // Each level requires more exp than the previous (8% increase per level)
+    const expForNextLevel = 100 * Math.pow(1.08, skillObj.level);
+    
+    // Check if enough experience has been gained
+    if (skillObj.experience >= expForNextLevel) {
+        // Level up
+        skillObj.experience -= expForNextLevel;
+        skillObj.level++;
+        
+        // Show notification
+        const skillName = skillType === "general" 
+            ? GameData.skills.general[skillId].name 
+            : GameData.skills.professional[skillId].name;
+        
+        showNotification("Skill Level Up!", `${skillName} is now level ${skillObj.level}!`);
+        
+        // Check if this level grants an Eternal Echo increase (every 10 levels)
+        if (skillObj.level % 10 === 0 && skillObj.level <= 100) {
+            updateEternalEchoMultiplier(skillId, skillObj.level / 10);
+        }
+        
+        // Check for multiple level ups
+        checkSkillLevelUp(skillId, skillType);
+    }
+}
+
+/**
+ * Update Eternal Echo multiplier for a skill
+ * @param {string} skillId - The ID of the skill
+ * @param {number} echoLevel - The echo level (1-10)
+ */
+function updateEternalEchoMultiplier(skillId, echoLevel) {
+    // 10% bonus per 10 levels, capped at 100% (2x multiplier)
+    const bonusMultiplier = 1 + (Math.min(echoLevel, 10) * 0.1);
+    
+    // Update the echo multiplier if it's higher than the current one
+    if (!gameState.skillEchoes[skillId] || bonusMultiplier > gameState.skillEchoes[skillId]) {
+        gameState.skillEchoes[skillId] = bonusMultiplier;
+        
+        // Show notification
+        showNotification("Eternal Echo Increased!", 
+            `Your training in this skill will be ${Math.floor((bonusMultiplier - 1) * 100)}% faster in future lives!`);
+    }
+}
+
+/**
+ * Process job experience for the day
+ * @param {number} workHours - Hours spent working
+ */
+function processJobExperience(workHours) {
+    // Base experience rate per hour - depends on job tier
+    const trackInfo = GameData.careers[gameState.currentCareerTrack];
+    if (!trackInfo) return;
+    
+    const jobTier = trackInfo.tiers.find(tier => tier.id === gameState.currentJob);
+    if (!jobTier) return;
+    
+    // Base experience is proportional to job tier (higher tier = more exp)
+    const tierIndex = trackInfo.tiers.findIndex(tier => tier.id === gameState.currentJob);
+    const BASE_JOB_EXP_RATE = 5 + (tierIndex * 3); // 5 for tier 1, 8 for tier 2, etc.
+    
+    // Calculate experience gain with Eternal Echo multiplier
+    const echoMultiplier = gameState.jobEchoes[gameState.currentJob] || 1;
+    const expGain = workHours * BASE_JOB_EXP_RATE * echoMultiplier;
+    
+    // Add experience
+    gameState.jobExperience += expGain;
+    
+    // Check for level up
+    checkJobLevelUp();
+}
+
+/**
+ * Check if job levels up
+ */
+function checkJobLevelUp() {
+    // Calculate experience needed for next level
+    // Each level requires more exp than the previous (10% increase per level)
+    const expForNextLevel = 100 * Math.pow(1.1, gameState.jobLevel);
+    
+    // Check if enough experience has been gained
+    if (gameState.jobExperience >= expForNextLevel) {
+        // Level up
+        gameState.jobExperience -= expForNextLevel;
+        gameState.jobLevel++;
+        
+        // Show notification
+        const jobTitle = getJobTitle();
+        showNotification("Job Level Up!", `You are now a level ${gameState.jobLevel} ${jobTitle}!`);
+        
+        // Check if this level grants an Eternal Echo increase (every 10 levels)
+        if (gameState.jobLevel % 10 === 0 && gameState.jobLevel <= 100) {
+            updateJobEchoMultiplier(gameState.currentJob, gameState.jobLevel / 10);
+        }
+        
+        // Check for multiple level ups
+        checkJobLevelUp();
+    }
+}
+
+/**
+ * Update Eternal Echo multiplier for a job
+ * @param {string} jobId - The ID of the job
+ * @param {number} echoLevel - The echo level (1-10)
+ */
+function updateJobEchoMultiplier(jobId, echoLevel) {
+    // 10% bonus per 10 levels, capped at 100% (2x multiplier)
+    const bonusMultiplier = 1 + (Math.min(echoLevel, 10) * 0.1);
+    
+    // Update the echo multiplier if it's higher than the current one
+    if (!gameState.jobEchoes[jobId] || bonusMultiplier > gameState.jobEchoes[jobId]) {
+        gameState.jobEchoes[jobId] = bonusMultiplier;
+        
+        // Show notification
+        showNotification("Eternal Echo Increased!", 
+            `Your experience in this job will be ${Math.floor((bonusMultiplier - 1) * 100)}% faster in future lives!`);
+    }
+}
+
+/**
+ * Process mortality check for the day
+ */
+function processMortalityCheck() {
+    // Only start mortality checks after age 30
+    if (gameState.age < 30) return;
+    
+    // Base parameters for mortality curve
+    const BASE_MORTALITY = 1.0; // Max mortality rate (100%)
+    const BASE_K_VALUE = 0.1;   // Steepness of the curve
+    const MIDPOINT_AGE = 75;    // Age at which mortality rate is 50%
+    
+    // Get lifestyle modifiers
+    const housingOption = GameData.lifestyle.housing[gameState.housingType] || { mortalityReduction: 0 };
+    const foodOption = GameData.lifestyle.food[gameState.foodType] || { mortalityReduction: 0 };
+    
+    // Calculate adjusted k-value with lifestyle modifiers
+    const adjustedK = BASE_K_VALUE * (1 - (housingOption.mortalityReduction + foodOption.mortalityReduction));
+    
+    // Calculate current mortality rate using sigmoid function
+    const mortalityRate = BASE_MORTALITY * (1 / (1 + Math.exp(-adjustedK * (gameState.age - MIDPOINT_AGE))));
+    
+    // Convert to daily probability (simplification)
+    const dailyMortalityChance = mortalityRate / 365;
+    
+    // Update UI to show mortality rate
+    const mortalityDisplay = document.getElementById('mortality-display');
+    if (mortalityDisplay) {
+        mortalityDisplay.textContent = (dailyMortalityChance * 100).toFixed(2) + "%";
+    }
+    
+    // Check for death
+    if (Math.random() < dailyMortalityChance) {
+        handleDeath();
+    }
+}
+
+/**
+ * Handle player death
+ */
+function handleDeath() {
+    // Pause the game
+    pauseGame();
+    
+    // Set game over flag
+    gameState.isGameOver = true;
+    
+    // Update death screen
+    const deathScreen = document.getElementById('death-screen');
+    const deathAge = document.getElementById('death-age');
+    const deathJobLevel = document.getElementById('death-job-level');
+    const deathSkillLevel = document.getElementById('death-skill-level');
+    
+    if (deathAge) deathAge.textContent = gameState.age;
+    if (deathJobLevel) deathJobLevel.textContent = gameState.jobLevel;
+    
+    // Find highest skill level
+    let highestSkillLevel = 0;
+    for (const skillId in gameState.generalSkills) {
+        if (gameState.generalSkills[skillId].level > highestSkillLevel) {
+            highestSkillLevel = gameState.generalSkills[skillId].level;
+        }
+    }
+    for (const skillId in gameState.professionalSkills) {
+        if (gameState.professionalSkills[skillId].level > highestSkillLevel) {
+            highestSkillLevel = gameState.professionalSkills[skillId].level;
+        }
+    }
+    
+    if (deathSkillLevel) deathSkillLevel.textContent = highestSkillLevel;
+    
+    // Show death screen
+    if (deathScreen) {
+        deathScreen.style.display = 'flex';
     }
 }
 
@@ -695,9 +957,209 @@ function updateUI() {
         updateStatusPanel();
         updateTimeAllocation();
         updateCareerPanel();
-        // Add more panel updates as needed
-        //updateSkillsPanel();
-        //updateLifestylePanel();
+        updateSkillsPanel(); // Add the new skills panel update
+        updateLifestylePanel(); // This function would need to be implemented later
+        
+/**
+ * Update the skills panel in the UI
+ * This function should be called from updateUI()
+ */
+function updateSkillsPanel() {
+    try {
+        // Update general skills container
+        updateGeneralSkills();
+        
+        // Update professional skills container
+        updateProfessionalSkills();
+    } catch (error) {
+        console.error("Error updating skills panel:", error);
+    }
+}
+
+/**
+ * Update the general skills section
+ */
+function updateGeneralSkills() {
+    const container = document.getElementById('general-skills-container');
+    if (!container) return;
+    
+    // Clear the container
+    container.innerHTML = '';
+    
+    // Add each general skill
+    for (const skillId in GameData.skills.general) {
+        const skillData = GameData.skills.general[skillId];
+        const playerSkill = gameState.generalSkills[skillId] || { level: 1, experience: 0 };
+        
+        // Create skill element
+        const skillElement = createSkillElement(
+            skillId, 
+            skillData.name, 
+            skillData.description, 
+            playerSkill.level, 
+            playerSkill.experience, 
+            calculateExpForLevel(playerSkill.level),
+            "general",
+            skillId === gameState.currentTrainingSkill
+        );
+        
+        container.appendChild(skillElement);
+    }
+}
+
+/**
+ * Update the professional skills section
+ */
+function updateProfessionalSkills() {
+    const container = document.getElementById('professional-skills-container');
+    if (!container) return;
+    
+    // Clear the container
+    container.innerHTML = '';
+    
+    // Add each professional skill
+    for (const skillId in GameData.skills.professional) {
+        const skillData = GameData.skills.professional[skillId];
+        const playerSkill = gameState.professionalSkills[skillId] || { level: 1, experience: 0 };
+        
+        // Create skill element
+        const skillElement = createSkillElement(
+            skillId, 
+            skillData.name, 
+            skillData.description, 
+            playerSkill.level, 
+            playerSkill.experience, 
+            calculateExpForLevel(playerSkill.level),
+            "professional",
+            skillId === gameState.currentTrainingSkill
+        );
+        
+        // Add career track info for professional skills
+        if (skillData.primaryCareerTracks && skillData.primaryCareerTracks.length > 0) {
+            const careerInfo = document.createElement('div');
+            careerInfo.className = 'skill-career-info';
+            
+            let careerNames = skillData.primaryCareerTracks.map(trackId => {
+                const track = GameData.careers[trackId];
+                return track ? track.name : '';
+            }).filter(name => name);
+            
+            careerInfo.textContent = `Career Tracks: ${careerNames.join(', ')}`;
+            skillElement.querySelector('.skill-description').appendChild(careerInfo);
+        }
+        
+        container.appendChild(skillElement);
+    }
+}
+
+/**
+ * Create a skill element for the UI
+ * @param {string} skillId - The skill ID
+ * @param {string} name - The skill name
+ * @param {string} description - The skill description
+ * @param {number} level - The current skill level
+ * @param {number} experience - The current experience
+ * @param {number} expForNextLevel - Experience needed for next level
+ * @param {string} skillType - "general" or "professional"
+ * @param {boolean} isTraining - Whether this skill is currently being trained
+ * @returns {HTMLElement} The skill element
+ */
+function createSkillElement(skillId, name, description, level, experience, expForNextLevel, skillType, isTraining) {
+    const skillElement = document.createElement('div');
+    skillElement.className = 'skill-item';
+    if (isTraining) {
+        skillElement.classList.add('active-training');
+    }
+    
+    // Create header with name and level
+    const header = document.createElement('div');
+    header.className = 'skill-header';
+    
+    const nameElement = document.createElement('div');
+    nameElement.className = 'skill-name';
+    nameElement.textContent = name;
+    
+    const levelElement = document.createElement('div');
+    levelElement.className = 'skill-level';
+    levelElement.textContent = `Level ${level}`;
+    
+    header.appendChild(nameElement);
+    header.appendChild(levelElement);
+    skillElement.appendChild(header);
+    
+    // Add description
+    const descElement = document.createElement('div');
+    descElement.className = 'skill-description';
+    descElement.textContent = description;
+    skillElement.appendChild(descElement);
+    
+    // Create progress bar
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'progress-container';
+    
+    const progressBar = document.createElement('div');
+    progressBar.className = 'progress-bar';
+    
+    // Calculate progress percentage
+    const progressPercent = (experience / expForNextLevel) * 100;
+    progressBar.style.width = `${Math.min(100, progressPercent)}%`;
+    
+    progressContainer.appendChild(progressBar);
+    skillElement.appendChild(progressContainer);
+    
+    // Add experience info
+    const expInfo = document.createElement('div');
+    expInfo.className = 'skill-exp-info';
+    expInfo.textContent = `${Math.floor(experience)}/${Math.floor(expForNextLevel)} XP`;
+    skillElement.appendChild(expInfo);
+    
+    // Add eternal echo info if applicable
+    if (gameState.skillEchoes[skillId] && gameState.skillEchoes[skillId] > 1) {
+        const echoInfo = document.createElement('div');
+        echoInfo.className = 'skill-echo-info';
+        const bonusPercent = Math.floor((gameState.skillEchoes[skillId] - 1) * 100);
+        echoInfo.textContent = `Eternal Echo: +${bonusPercent}% XP`;
+        skillElement.appendChild(echoInfo);
+    }
+    
+    // Add training button
+    const trainButton = document.createElement('button');
+    trainButton.className = 'training-button';
+    trainButton.textContent = isTraining ? 'Currently Training' : 'Train This Skill';
+    trainButton.disabled = isTraining;
+    
+    // Add event listener to switch training skill
+    trainButton.addEventListener('click', () => {
+        switchTrainingSkill(skillId, skillType);
+    });
+    
+    skillElement.appendChild(trainButton);
+    
+    return skillElement;
+}
+
+/**
+ * Calculate experience needed for the next level
+ * @param {number} currentLevel - The current level
+ * @returns {number} Experience needed for next level
+ */
+function calculateExpForLevel(currentLevel) {
+    // Same formula as in checkSkillLevelUp
+    return 100 * Math.pow(1.08, currentLevel);
+}
+
+/**
+ * Add the updateSkillsPanel call to the updateUI function
+ * Find the updateUI function and add this line inside:
+ * updateSkillsPanel();
+ */
+
+        // Update save button based on game changes
+        // (This is optional but a nice QoL feature)
+        const saveButton = document.getElementById('save-game-button');
+        if (saveButton) {
+            saveButton.disabled = false; // Enable whenever UI updates
+        }
     } catch (error) {
         console.error("Error updating UI:", error);
     }

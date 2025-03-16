@@ -1,6 +1,7 @@
 // Import TYPES from game-data.js
 import { TYPES } from './game-data.js';
-
+// Import GameData to access skills
+import GameData from './game-data.js';
 
 // ============== Game State ==============
 /**
@@ -36,9 +37,9 @@ const GameState = {
             currentTrainingSkill: TYPES.SKILL.FOCUS,
             
             // Lifestyle - default to free options
-            housingType: "housing_homeless", // Free basic housing
-            transportType: "transport_foot", // Walking (free)
-            foodType: "food_homelessShelter", // Free basic food
+            housingType: TYPES.HOUSING.HOMELESS, // Use the enum value instead of string
+            transportType: TYPES.TRANSPORT.FOOT, // Use the enum value instead of string
+            foodType: TYPES.FOOD.HOMELESS, // Use the enum value instead of string
             
             // Skills - will be initialized with initializeSkills()
             generalSkills: {},
@@ -62,36 +63,36 @@ const GameState = {
         };
     },
     
-    // Initialize all skills to level 1
-    initializeSkills(state) {
-        try {
-            // General skills
-            for (const skillId in generalSkills) {
-                state.generalSkills[skillId] = {
-                    level: 1,
-                    experience: 0
-                };
-            }
-            
-            // Professional skills
-            for (const skillId in professionalSkills) {
-                state.professionalSkills[skillId] = {
-                    level: 1,
-                    experience: 0
-                };
-            }
-            
-            return state;
-        } catch (error) {
-            console.error("Error initializing skills:", error);
-            // Provide a fallback empty skill set to prevent crashes
-            return {
-                ...state,
-                generalSkills: {},
-                professionalSkills: {}
+// Initialize all skills to level 1
+initializeSkills(state) {
+    try {
+        // General skills - use GameData.skills.general
+        for (const skillId in GameData.skills.general) {
+            state.generalSkills[skillId] = {
+                level: 1,
+                experience: 0
             };
         }
-    },
+        
+        // Professional skills - use GameData.skills.professional
+        for (const skillId in GameData.skills.professional) {
+            state.professionalSkills[skillId] = {
+                level: 1,
+                experience: 0
+            };
+        }
+        
+        return state;
+    } catch (error) {
+        console.error("Error initializing skills:", error);
+        // Provide a fallback empty skill set to prevent crashes
+        return {
+            ...state,
+            generalSkills: {},
+            professionalSkills: {}
+        };
+    }
+},
     
     // Save game state to local storage
     saveGame(state) {
