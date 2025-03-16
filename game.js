@@ -182,69 +182,6 @@ function setupSliders() {
     }
 }
 
-/**
- * Make a slider element draggable
- */
-function makeSliderDraggable(sliderElement, handleElement, callback) {
-    let isDragging = false;
-    
-    // Start dragging on mousedown
-    handleElement.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        updateSliderPosition(e);
-        e.preventDefault(); // Prevent text selection
-    });
-    
-    // Handle touch events for mobile
-    handleElement.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        updateSliderPosition(e.touches[0]);
-        e.preventDefault(); // Prevent scrolling
-    });
-    
-    // Track drag on mousemove
-    document.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            updateSliderPosition(e);
-        }
-    });
-    
-    // Track touch movement
-    document.addEventListener('touchmove', (e) => {
-        if (isDragging) {
-            updateSliderPosition(e.touches[0]);
-            e.preventDefault(); // Prevent scrolling
-        }
-    });
-    
-    // End drag on mouseup
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
-    
-    // End drag on touch end
-    document.addEventListener('touchend', () => {
-        isDragging = false;
-    });
-    
-    // Helper to update slider position
-    function updateSliderPosition(event) {
-        const rect = sliderElement.getBoundingClientRect();
-        let x = event.clientX - rect.left;
-        
-        // Constrain to slider width
-        x = Math.max(0, Math.min(x, rect.width));
-        
-        // Calculate percentage
-        const percent = (x / rect.width) * 100;
-        
-        // Update handle position
-        handleElement.style.left = `${percent}%`;
-        
-        // Call the callback with the percentage
-        callback(percent);
-    }
-}
 
 // ============== UI Interaction Functions ==============
 
@@ -448,25 +385,6 @@ function purchaseLifestyleUpgrade(category, typeId) {
 
 // ============== Game Core Functions ==============
 
-/**
- * Check if job requirements are met (simplified)
- */
-function checkJobRequirements(jobTier) {
-    try {
-        // If it's the current job, requirements are already met
-        if (gameState.currentJob === jobTier.id) {
-            return true;
-        }
-        
-        // Basic checks (simplified)
-        // ... add detailed checks as needed
-        
-        return true; // For now, allow all jobs
-    } catch (error) {
-        console.error("Error checking job requirements:", error);
-        return false;
-    }
-}
 
 /**
  * Calculate allocatable hours per day
@@ -948,18 +866,212 @@ function reincarnate() {
 }
 
 // ============== UI Update Functions ==============
+/**
+ * Update the lifestyle panel in the UI
+ * This function should be called from updateUI()
+ */
+function updateLifestylePanel() {
+    try {
+        // Update housing options
+        updateHousingOptions();
+        
+        // Update transportation options
+        updateTransportOptions();
+        
+        // Update food options
+        updateFoodOptions();
+    } catch (error) {
+        console.error("Error updating lifestyle panel:", error);
+    }
+}
 
+/**
+ * Update housing options
+ */
+function updateHousingOptions() {
+    const container = document.getElementById('housing-options-container');
+    if (!container) return;
+    
+    // Clear the container
+    container.innerHTML = '';
+    
+    // Add each housing option
+    for (const housingId in GameData.lifestyle.housing) {
+        const housingData = GameData.lifestyle.housing[housingId];
+        const isCurrent = gameState.housingType === housingId;
+        
+        // Create housing element
+        const housingElement = createLifestyleOptionElement(
+            housingId,
+            housingData.name,
+            housingData.cost,
+            [
+                `Sleep: -${(housingData.sleepTimeReduction * 100).toFixed(0)}%`,
+                `Mortality: ${housingData.mortalityReduction > 0 ? '-' : '+'}${Math.abs(housingData.mortalityReduction * 100).toFixed(0)}%`
+            ],
+            isCurrent,
+            'housing',
+            canAffordLifestyleOption(housingData.cost)
+        );
+        
+        container.appendChild(housingElement);
+    }
+}
+
+/**
+ * Update transportation options
+ */
+function updateTransportOptions() {
+    const container = document.getElementById('transportation-options-container');
+    if (!container) return;
+    
+    // Clear the container
+    container.innerHTML = '';
+    
+    // Add each transport option
+    for (const transportId in GameData.lifestyle.transport) {
+        const transportData = GameData.lifestyle.transport[transportId];
+        const isCurrent = gameState.transportType === transportId;
+        
+        // Create transport element
+        const transportElement = createLifestyleOptionElement(
+            transportId,
+            transportData.name,
+            transportData.cost,
+            [
+                `Commute: -${(transportData.commuteTimeReduction * 100).toFixed(0)}%`
+            ],
+            isCurrent,
+            'transport',
+            canAffordLifestyleOption(transportData.cost)
+        );
+        
+        container.appendChild(transportElement);
+    }
+}
+
+/**
+ * Update food options
+ */
+function updateFoodOptions() {
+    const container = document.getElementById('food-options-container');
+    if (!container) return;
+    
+    // Clear the container
+    container.innerHTML = '';
+    
+    // Add each food option
+    for (const foodId in GameData.lifestyle.food) {
+        const foodData = GameData.lifestyle.food[foodId];
+        const isCurrent = gameState.foodType === foodId;
+        
+        // Create food element
+        const foodElement = createLifestyleOptionElement(
+            foodId,
+            foodData.name,
+            foodData.cost,
+            [
+                `Meals: -${(foodData.mealTimeReduction * 100).toFixed(0)}%`,
+                `Mortality: ${foodData.mortalityReduction > 0 ? '-' : '+'}${Math.abs(foodData.mortalityReduction * 100).toFixed(0)}%`
+            ],
+            isCurrent,
+            'food',
+            canAffordLifestyleOption(foodData.cost)
+        );
+        
+        container.appendChild(foodElement);
+    }
+}
+
+/**
+ * Create a lifestyle option element
+ * @param {string} id - The option ID
+ * @param {string} name - The option name
+ * @param {number} cost - The option cost
+ * @param {Array} effects - Array of effect descriptions
+ * @param {boolean} isCurrent - Whether this is the current option
+ * @param {string} type - The type of lifestyle option (housing, transport, food)
+ * @param {boolean} canAfford - Whether the player can afford this option
+ * @returns {HTMLElement} - The lifestyle option element
+ */
+function createLifestyleOptionElement(id, name, cost, effects, isCurrent, type, canAfford) {
+    const element = document.createElement('div');
+    element.className = 'lifestyle-option';
+    
+    // Add current-lifestyle class if applicable
+    if (isCurrent) {
+        element.classList.add('current-lifestyle');
+    }
+    
+    // Create details section
+    const details = document.createElement('div');
+    details.className = 'lifestyle-details';
+    
+    // Option name
+    const nameElement = document.createElement('div');
+    nameElement.className = 'lifestyle-name';
+    nameElement.textContent = name;
+    details.appendChild(nameElement);
+    
+    // Option effects
+    if (effects && effects.length > 0) {
+        const effectsElement = document.createElement('div');
+        effectsElement.className = 'lifestyle-effects';
+        effectsElement.textContent = effects.join(' • ');
+        details.appendChild(effectsElement);
+    }
+    
+    element.appendChild(details);
+    
+    // Cost display
+    const costElement = document.createElement('div');
+    costElement.className = 'lifestyle-cost';
+    costElement.textContent = `${cost} kudos/day`;
+    element.appendChild(costElement);
+    
+    // Add purchase button if not current option
+    if (!isCurrent) {
+        const purchaseButton = document.createElement('button');
+        purchaseButton.textContent = "Purchase";
+        purchaseButton.disabled = !canAfford;
+        
+        purchaseButton.addEventListener('click', () => {
+            purchaseLifestyleUpgrade(type, id);
+        });
+        
+        element.appendChild(purchaseButton);
+    }
+    
+    return element;
+}
+
+/**
+ * Check if player can afford a lifestyle option
+ * @param {number} cost - The cost of the option
+ * @returns {boolean} - Whether the player can afford it
+ */
+function canAffordLifestyleOption(cost) {
+    return gameState.kudos >= cost;
+}
 /**
  * Update the entire UI
  */
 function updateUI() {
     try {
+        // Update save button based on game changes
+        // (This is optional but a nice QoL feature)
+        const saveButton = document.getElementById('save-game-button');
+        if (saveButton) {
+            saveButton.disabled = false; // Enable whenever UI updates
+        }
         updateStatusPanel();
-        updateTimeAllocation();
-        updateCareerPanel();
-        updateSkillsPanel(); // Add the new skills panel update
-        updateLifestylePanel(); // This function would need to be implemented later
-        
+
+        // Call updateSkillsPanel to update the skills panel
+        updateSkillsPanel();
+    } catch (error) {
+        console.error("Error updating UI:", error);
+    }
+}
 /**
  * Update the skills panel in the UI
  * This function should be called from updateUI()
@@ -1148,22 +1260,6 @@ function calculateExpForLevel(currentLevel) {
     return 100 * Math.pow(1.08, currentLevel);
 }
 
-/**
- * Add the updateSkillsPanel call to the updateUI function
- * Find the updateUI function and add this line inside:
- * updateSkillsPanel();
- */
-
-        // Update save button based on game changes
-        // (This is optional but a nice QoL feature)
-        const saveButton = document.getElementById('save-game-button');
-        if (saveButton) {
-            saveButton.disabled = false; // Enable whenever UI updates
-        }
-    } catch (error) {
-        console.error("Error updating UI:", error);
-    }
-}
 
 /**
  * Update status panel
@@ -1196,7 +1292,7 @@ function updateStatusPanel() {
 }
 
 /**
- * Update time allocation panel
+ * Update time allocation UI and sliders
  */
 function updateTimeAllocation() {
     const timeInfo = calculateAllocatableHours();
@@ -1226,6 +1322,9 @@ function updateTimeAllocation() {
     
     // Update slider positions
     updateTimeSliders(timeInfo.allocatableHours);
+    
+    // Enable/disable +/- buttons based on current values
+    updateTimeButtons(timeInfo.allocatableHours);
 }
 
 /**
@@ -1235,20 +1334,101 @@ function updateTimeSliders(allocatableHours) {
     // Set work slider
     const workHandle = document.getElementById('work-handle');
     if (workHandle) {
-        const workPercentage = Math.min(100, (gameState.workHours / allocatableHours) * 100);
+        const workPercentage = allocatableHours > 0 ? 
+            Math.min(100, (gameState.workHours / allocatableHours) * 100) : 0;
         workHandle.style.left = `${workPercentage}%`;
     }
     
     // Set training slider
     const trainingHandle = document.getElementById('training-handle');
     if (trainingHandle) {
-        const trainingPercentage = Math.min(100, (gameState.trainingHours / allocatableHours) * 100);
+        const trainingPercentage = allocatableHours > 0 ? 
+            Math.min(100, (gameState.trainingHours / allocatableHours) * 100) : 0;
         trainingHandle.style.left = `${trainingPercentage}%`;
     }
 }
 
 /**
- * Update career panel - minimal implementation
+ * Update time buttons enabled/disabled state
+ */
+function updateTimeButtons(allocatableHours) {
+    const workDecrease = document.getElementById('work-decrease');
+    const workIncrease = document.getElementById('work-increase');
+    const trainingDecrease = document.getElementById('training-decrease');
+    const trainingIncrease = document.getElementById('training-increase');
+    
+    if (workDecrease) workDecrease.disabled = gameState.workHours <= 0;
+    if (workIncrease) workIncrease.disabled = gameState.workHours + gameState.trainingHours >= allocatableHours;
+    if (trainingDecrease) trainingDecrease.disabled = gameState.trainingHours <= 0;
+    if (trainingIncrease) trainingIncrease.disabled = gameState.workHours + gameState.trainingHours >= allocatableHours;
+}
+
+/**
+ * Make a slider element draggable with improved functionality
+ */
+function makeSliderDraggable(sliderElement, handleElement, callback) {
+    let isDragging = false;
+    
+    // Start dragging on mousedown
+    handleElement.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        updateSliderPosition(e);
+        e.preventDefault(); // Prevent text selection
+    });
+    
+    // Handle touch events for mobile
+    handleElement.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        updateSliderPosition(e.touches[0]);
+        e.preventDefault(); // Prevent scrolling
+    });
+    
+    // Track drag on mousemove
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            updateSliderPosition(e);
+        }
+    });
+    
+    // Track touch movement
+    document.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            updateSliderPosition(e.touches[0]);
+            e.preventDefault(); // Prevent scrolling
+        }
+    });
+    
+    // End drag on mouseup
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+    
+    // End drag on touch end
+    document.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+    
+    // Helper to update slider position
+    function updateSliderPosition(event) {
+        const rect = sliderElement.getBoundingClientRect();
+        let x = event.clientX - rect.left;
+        
+        // Constrain to slider width
+        x = Math.max(0, Math.min(x, rect.width));
+        
+        // Calculate percentage
+        const percent = (x / rect.width) * 100;
+        
+        // Update handle position
+        handleElement.style.left = `${percent}%`;
+        
+        // Call the callback with the percentage
+        callback(percent);
+    }
+}
+
+/**
+ * Update career panel with clickable job options
  */
 function updateCareerPanel() {
     try {
@@ -1297,25 +1477,228 @@ function updateCareerPanel() {
                 trackElement.appendChild(trackDescription);
             }
             
-            // Add job tiers (simplified - just show the first tier)
+            // Add all job tiers
             if (track.tiers && track.tiers.length > 0) {
-                const tier = track.tiers[0];
+                // Keep track of which tiers to show
+                // Initially just show first tier and current job's tier
+                const visibleTiers = new Set();
+                visibleTiers.add(0); // Always show first tier
                 
-                const tierElement = document.createElement('div');
-                tierElement.className = 'job-tier';
+                // Find current job's tier index if in this track
+                const currentTierIndex = track.tiers.findIndex(tier => tier.id === gameState.currentJob);
+                if (currentTierIndex >= 0) {
+                    visibleTiers.add(currentTierIndex);
+                    
+                    // Also show next tier if available
+                    if (currentTierIndex + 1 < track.tiers.length) {
+                        visibleTiers.add(currentTierIndex + 1);
+                    }
+                }
                 
-                const jobTitle = document.createElement('div');
-                jobTitle.className = 'job-title';
-                jobTitle.textContent = tier.name;
-                
-                tierElement.appendChild(jobTitle);
-                trackElement.appendChild(tierElement);
+                // Add each visible tier
+                track.tiers.forEach((tier, index) => {
+                    if (visibleTiers.has(index)) {
+                        const tierElement = createJobTierElement(tier, track.tiers, trackId);
+                        trackElement.appendChild(tierElement);
+                    }
+                });
             }
             
             careerContainer.appendChild(trackElement);
         }
     } catch (error) {
         console.error("Error updating career panel:", error);
+    }
+}
+
+/**
+ * Create a job tier element
+ * @param {Object} tier - The job tier data
+ * @param {Array} allTiers - All tiers in this career track
+ * @param {string} trackId - The career track ID
+ * @returns {HTMLElement} - The job tier element
+ */
+function createJobTierElement(tier, allTiers, trackId) {
+    const tierElement = document.createElement('div');
+    tierElement.className = 'job-tier';
+    
+    // Add current-job class if this is the player's current job
+    if (tier.id === gameState.currentJob) {
+        tierElement.classList.add('current-job');
+    }
+    
+    // Create job details section
+    const jobDetails = document.createElement('div');
+    jobDetails.className = 'job-details';
+    
+    // Job title
+    const jobTitle = document.createElement('div');
+    jobTitle.className = 'job-title';
+    jobTitle.textContent = tier.name;
+    jobDetails.appendChild(jobTitle);
+    
+    // Job quote
+    if (tier.quote) {
+        const jobQuote = document.createElement('div');
+        jobQuote.className = 'job-quote';
+        jobQuote.textContent = `"${tier.quote}"`;
+        jobDetails.appendChild(jobQuote);
+    }
+    
+    // Job salary
+    const jobSalary = document.createElement('div');
+    jobSalary.className = 'job-salary';
+    jobSalary.textContent = `${tier.baseSalary} kudos/hr`;
+    jobDetails.appendChild(jobSalary);
+    
+    tierElement.appendChild(jobDetails);
+    
+    // Add requirements if this isn't the current job
+    if (tier.id !== gameState.currentJob) {
+        const requirements = document.createElement('div');
+        requirements.className = 'job-requirements';
+        
+        // Check if requirements are met
+        const requirementsMet = checkJobRequirements(tier);
+        
+        if (requirementsMet) {
+            const applyButton = document.createElement('button');
+            applyButton.textContent = "Apply for Job";
+            applyButton.addEventListener('click', () => {
+                applyForJob(tier.id);
+            });
+            requirements.appendChild(applyButton);
+        } else {
+            if (tier.requirements) {
+                // Add general skill requirements
+                if (tier.requirements.generalSkills && Object.keys(tier.requirements.generalSkills).length > 0) {
+                    const skillReqs = document.createElement('div');
+                    skillReqs.className = 'skill-requirements';
+                    skillReqs.textContent = "Required Skills:";
+                    
+                    const skillList = document.createElement('ul');
+                    for (const [skillId, level] of Object.entries(tier.requirements.generalSkills)) {
+                        const skillName = GameData.skills.general[skillId]?.name || skillId;
+                        const playerLevel = gameState.generalSkills[skillId]?.level || 0;
+                        
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${skillName}: ${playerLevel}/${level}`;
+                        
+                        // Highlight if requirement not met
+                        if (playerLevel < level) {
+                            listItem.style.color = 'red';
+                        } else {
+                            listItem.style.color = 'green';
+                        }
+                        
+                        skillList.appendChild(listItem);
+                    }
+                    skillReqs.appendChild(skillList);
+                    requirements.appendChild(skillReqs);
+                }
+                
+                // Add professional skill requirements
+                if (tier.requirements.professionalSkills && Object.keys(tier.requirements.professionalSkills).length > 0) {
+                    const profSkillReqs = document.createElement('div');
+                    profSkillReqs.className = 'prof-skill-requirements';
+                    profSkillReqs.textContent = "Required Professional Skills:";
+                    
+                    const skillList = document.createElement('ul');
+                    for (const [skillId, level] of Object.entries(tier.requirements.professionalSkills)) {
+                        const skillName = GameData.skills.professional[skillId]?.name || skillId;
+                        const playerLevel = gameState.professionalSkills[skillId]?.level || 0;
+                        
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${skillName}: ${playerLevel}/${level}`;
+                        
+                        // Highlight if requirement not met
+                        if (playerLevel < level) {
+                            listItem.style.color = 'red';
+                        } else {
+                            listItem.style.color = 'green';
+                        }
+                        
+                        skillList.appendChild(listItem);
+                    }
+                    profSkillReqs.appendChild(skillList);
+                    requirements.appendChild(profSkillReqs);
+                }
+                
+                // Add previous job requirement if applicable
+                if (tier.requirements.previousJob) {
+                    const prevJobReq = document.createElement('div');
+                    prevJobReq.className = 'previous-job-requirement';
+                    
+                    // Find previous job info
+                    const prevJobTier = allTiers.find(t => t.id === tier.requirements.previousJob);
+                    const prevJobName = prevJobTier ? prevJobTier.name : tier.requirements.previousJob;
+                    
+                    prevJobReq.textContent = `Previous Job: ${prevJobName} (Level ${gameState.currentJob === tier.requirements.previousJob ? gameState.jobLevel : 0}/${tier.requirements.previousJobLevel})`;
+                    
+                    // Highlight if requirement not met
+                    if (gameState.currentJob !== tier.requirements.previousJob || gameState.jobLevel < tier.requirements.previousJobLevel) {
+                        prevJobReq.style.color = 'red';
+                    } else {
+                        prevJobReq.style.color = 'green';
+                    }
+                    
+                    requirements.appendChild(prevJobReq);
+                }
+            }
+        }
+        
+        tierElement.appendChild(requirements);
+    }
+    
+    return tierElement;
+}
+
+/**
+ * Check if job requirements are met
+ * @param {Object} jobTier - The job tier to check
+ * @returns {boolean} - Whether requirements are met
+ */
+function checkJobRequirements(jobTier) {
+    try {
+        // If it's the current job, requirements are already met
+        if (gameState.currentJob === jobTier.id) {
+            return true;
+        }
+        
+        // If no requirements, return true
+        if (!jobTier.requirements) {
+            return true;
+        }
+        
+        // Check previous job requirement
+        if (jobTier.requirements.previousJob && 
+            (gameState.currentJob !== jobTier.requirements.previousJob || 
+             gameState.jobLevel < jobTier.requirements.previousJobLevel)) {
+            return false;
+        }
+        
+        // Check general skill requirements
+        if (jobTier.requirements.generalSkills) {
+            for (const [skillId, level] of Object.entries(jobTier.requirements.generalSkills)) {
+                if (!gameState.generalSkills[skillId] || gameState.generalSkills[skillId].level < level) {
+                    return false;
+                }
+            }
+        }
+        
+        // Check professional skill requirements
+        if (jobTier.requirements.professionalSkills) {
+            for (const [skillId, level] of Object.entries(jobTier.requirements.professionalSkills)) {
+                if (!gameState.professionalSkills[skillId] || gameState.professionalSkills[skillId].level < level) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    } catch (error) {
+        console.error("Error checking job requirements:", error);
+        return false;
     }
 }
 
