@@ -1,3 +1,7 @@
+// Import TYPES from game-data.js
+import { TYPES } from './game-data.js';
+
+
 // ============== Game State ==============
 /**
  * Main game state object that holds all player data and game settings

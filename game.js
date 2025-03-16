@@ -34,6 +34,44 @@ function debugGameState() {
     console.log('DEBUG: Game over?', gameState.isGameOver);
   }
 }
+
+
+/**
+ * Display a notification to the user
+ */
+function showNotification(title, message) {
+    // Create notification element if it doesn't exist
+    let notification = document.getElementById('notification');
+    
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.className = 'notification';
+        document.body.appendChild(notification);
+        
+        const notificationTitle = document.createElement('div');
+        notificationTitle.className = 'notification-title';
+        notification.appendChild(notificationTitle);
+        
+        const notificationMessage = document.createElement('div');
+        notificationMessage.className = 'notification-message';
+        notification.appendChild(notificationMessage);
+    }
+    
+    // Update notification content
+    notification.querySelector('.notification-title').textContent = title;
+    notification.querySelector('.notification-message').textContent = message;
+    
+    // Show notification
+    notification.classList.add('show');
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+
 // ============== Game.js - Main Game Logic ==============
 import GameState from './game-state.js';
 import GameData, { TYPES } from './game-data.js';
