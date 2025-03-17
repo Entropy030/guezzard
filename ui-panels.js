@@ -121,3 +121,16 @@ import { AchievementsUI } from './ui-achievements.js';
 
 // Export all UI panels
 export { CareerUI, SkillsUI, LifestyleUI, AchievementsUI };
+
+// Force panel refresh on first load
+export function initializePanels(gameState) {
+    CareerUI.needsRefresh = true;
+    SkillsUI.needsRefresh = true;
+    LifestyleUI.needsRefresh = true;
+    AchievementsUI.needsRefresh = true;
+    
+    CareerUI.updateCareerPanel(gameState);
+    SkillsUI.updateSkillsPanel(gameState);
+    LifestyleUI.updateLifestylePanel(gameState);
+    AchievementsUI.updateAchievementsPanel(gameState);
+}

@@ -25,7 +25,15 @@ const TimeManager = {
         const timeInfo = this.calculateAllocatableHours(this.gameState);
         const newHours = Math.round((percent / 100) * timeInfo.allocatableHours * 2) / 2; // Round to nearest 0.5
         
-        this.gameState.workHours = Math.max(0, Math.min(newHours, timeInfo.allocatableHours - this.gameState.trainingHours));
+        // Ensure total hours don't exceed allocatable time
+        const totalPossibleHours = Math.min(newHours, timeInfo.allocatableHours);
+        const remainingHours = timeInfo.allocatableHours - totalPossibleHours;
+        
+        // Adjust training hours if needed
+        const trainingHours = Math.min(this.gameState.trainingHours, remainingHours);
+        
+        this.gameState.workHours = totalPossibleHours;
+        this.gameState.trainingHours = trainingHours;
         
         // Update UI
         GameEvents.publish('timeAllocationChanged', { gameState: this.gameState });

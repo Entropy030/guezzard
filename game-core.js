@@ -51,13 +51,17 @@ function initializeGame() {
         // Subscribe to game events
         subscribeToGameEvents();
         
-        // Update UI with initial state
-        GameEvents.publish('gameStateUpdated', { gameState });
-        
-        // Start the game
-        if (!gameState.isPaused) {
-            resumeGame();
-        }
+// Update UI with initial state
+import('./ui-panels.js').then(module => {
+    module.initializePanels(gameState);
+});
+
+GameEvents.publish('gameStateUpdated', { gameState });
+
+// Start the game
+if (!gameState.isPaused) {
+    resumeGame();
+}
     } catch (error) {
         console.error("Error initializing game:", error);
         UIManager.showNotification("Error", "Failed to initialize game. Starting a new game.");

@@ -249,6 +249,18 @@ const UIManager = {
         GameEvents.subscribe('gameLoaded', () => this.hideLoadingScreen());
     },
     
+
+    updateEconomyDisplay(data) {
+        if (!data) return;
+        
+        const income = data.income || 0;
+        const expenses = data.expenses || 0;
+        const balance = data.balance || 0;
+        
+        this.updateTextContent('income-display', `${income.toFixed(1)} kudos/day`);
+        this.updateTextContent('expenses-display', `${expenses.toFixed(1)} kudos/day`);
+        this.updateTextContent('kudos-display', Math.floor(balance));
+    },
     /**
      * Switch active tab
      * @param {string} tabId - ID of tab to switch to
