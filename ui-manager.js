@@ -301,6 +301,10 @@ const UIManager = {
     throttledUpdateUI(gameState) {
         if (this.updatePending) return;
         
+        // Store reference to current game state
+        this.gameState = gameState;
+
+        
         this.updatePending = true;
         requestAnimationFrame(() => {
             this.updateUI(gameState);
@@ -728,7 +732,38 @@ const UIManager = {
             console.error("Error getting job title:", error);
             return "Unemployed";
         }
+    },
+    
+    /** 
+    * Update job display after job change
+    * @param {Object} data - Job change data
+    */
+    updateJobDisplay(data) {
+    if (!data) return;
+    
+    try {
+        // Update job display elements
+        this.updateTextContent('job-display', data.jobName || "Unemployed");
+        this.updateTextContent('job-level-display', 1); // Reset level to 1 for new job
+        
+        // Reset job progress bar
+        this.updateProgressBar('job-progress', 0, 100);
+        this.updateTextContent('job-progress-text', '0/100 XP');
+        
+        // Show notification
+        this.showNotification("New Job!", `You are now a ${data.jobName}.`);
+        
+        // Refresh career panel
+        import('./ui-panels.js').then(module => {
+            module.CareerUI.needsRefresh = true;
+            module.CareerUI.updateCareerPanel(this.gameState);
+        });
+    } catch (error) {
+        console.error("Error updating job display:", error);
     }
+}
+
+
 };
 
 export default UIManager;

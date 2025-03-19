@@ -11,35 +11,40 @@ export const CareerUI = {
     // Track if we need to rebuild the career panel
     needsRefresh: true,
     
-    /**
-     * Update career panel with career tracks and job tiers
-     * @param {Object} gameState - Current game state
-     */
-    updateCareerPanel(gameState) {
-        try {
-            const container = DOMCache.get('career-tracks-container');
-            if (!container) return;
+// Replace the updateCareerPanel function in ui-career.js with this improved version
+
+/**
+ * Update career panel with career tracks and job tiers
+ * @param {Object} gameState - Current game state
+ */
+updateCareerPanel(gameState) {
+    try {
+        const container = DOMCache.get('career-tracks-container');
+        if (!container) return;
+        
+        // Force refresh if needed or if the job has changed
+        const jobChanged = container.querySelector(`.current-job`)?.dataset.jobId !== gameState.currentJob;
+        
+        // Only rebuild if needed (first time, career change, or job change)
+        if (container.children.length === 0 || this.needsRefresh || jobChanged) {
+            container.innerHTML = '';
             
-            // Only rebuild if needed (first time or career change)
-            if (container.children.length === 0 || this.needsRefresh) {
-                container.innerHTML = '';
-                
-                // Create career tracks 
-                for (const trackId in GameData.careers) {
-                    const track = GameData.careers[trackId];
-                    const trackElement = this.createCareerTrackElement(trackId, track, gameState);
-                    container.appendChild(trackElement);
-                }
-                
-                this.needsRefresh = false;
-            } else {
-                // Just update job levels and progress
-                this.updateJobsProgress(gameState);
+            // Create career tracks 
+            for (const trackId in GameData.careers) {
+                const track = GameData.careers[trackId];
+                const trackElement = this.createCareerTrackElement(trackId, track, gameState);
+                container.appendChild(trackElement);
             }
-        } catch (error) {
-            console.error("Error updating career panel:", error);
+            
+            this.needsRefresh = false;
+        } else {
+            // Just update job levels and progress
+            this.updateJobsProgress(gameState);
         }
-    },
+    } catch (error) {
+        console.error("Error updating career panel:", error);
+    }
+},
     
     /**
      * Create a career track element

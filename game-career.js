@@ -18,60 +18,62 @@ const CareerManager = {
         this.gameState = state;
     },
     
-    /**
-     * Apply for a new job
-     * @param {string} jobId - ID of the job to apply for
-     */
-    applyForJob(jobId) {
-        try {
-            // Find which career track this job belongs to
-            let careerTrackId = null;
-            let jobTier = null;
+// Modify the applyForJob function in game-career.js
+// Replace or update the existing function with this version
+
+/**
+ * Apply for a new job
+ * @param {string} jobId - ID of the job to apply for
+ */
+applyForJob(jobId) {
+    try {
+        // Find which career track this job belongs to
+        let careerTrackId = null;
+        let jobTier = null;
+        
+        for (const trackId in GameData.careers) {
+            const track = GameData.careers[trackId];
+            const foundTier = track.tiers.find(tier => tier.id === jobId);
             
-            for (const trackId in GameData.careers) {
-                const track = GameData.careers[trackId];
-                const foundTier = track.tiers.find(tier => tier.id === jobId);
-                
-                if (foundTier) {
-                    careerTrackId = trackId;
-                    jobTier = foundTier;
-                    break;
-                }
+            if (foundTier) {
+                careerTrackId = trackId;
+                jobTier = foundTier;
+                break;
             }
-            
-            if (!careerTrackId || !jobTier) {
-                UIManager.showNotification("Error", "Job not found. Please try again.");
-                return;
-            }
-            
-            // Check requirements
-            if (!this.checkJobRequirements(jobTier, this.gameState)) {
-                UIManager.showNotification("Cannot Apply", "You don't meet the requirements for this job.");
-                return;
-            }
-            
-            // Apply for the job
-            this.gameState.currentCareerTrack = careerTrackId;
-            this.gameState.currentJob = jobId;
-            this.gameState.jobLevel = 1;
-            this.gameState.jobExperience = 0;
-            
-            UIManager.showNotification("New Job!", `You are now a ${jobTier.name}.`);
-            
-            // Update UI
-            GameEvents.publish('jobChanged', { 
-                careerTrack: careerTrackId,
-                job: jobId,
-                jobName: jobTier.name
-            });
-            
-            // Complete state update
-            GameEvents.publish('gameStateUpdated', { gameState: this.gameState });
-        } catch (error) {
-            console.error("Error applying for job:", error);
-            UIManager.showNotification("Error", "Something went wrong while applying for job.");
         }
-    },
+        
+        if (!careerTrackId || !jobTier) {
+            UIManager.showNotification("Error", "Job not found. Please try again.");
+            return;
+        }
+        
+        // Check requirements
+        if (!this.checkJobRequirements(jobTier, this.gameState)) {
+            UIManager.showNotification("Cannot Apply", "You don't meet the requirements for this job.");
+            return;
+        }
+        
+        // Apply for the job
+        this.gameState.currentCareerTrack = careerTrackId;
+        this.gameState.currentJob = jobId;
+        this.gameState.jobLevel = 1;
+        this.gameState.jobExperience = 0;
+        
+        // Publish job changed event
+        GameEvents.publish('jobChanged', { 
+            careerTrack: careerTrackId,
+            job: jobId,
+            jobName: jobTier.name
+        });
+        
+        // Complete state update - this triggers a full UI refresh
+        GameEvents.publish('gameStateUpdated', { gameState: this.gameState });
+        
+    } catch (error) {
+        console.error("Error applying for job:", error);
+        UIManager.showNotification("Error", "Something went wrong while applying for job.");
+    }
+},
     
     /**
      * Check if job requirements are met
